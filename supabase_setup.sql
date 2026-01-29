@@ -52,6 +52,6 @@ CREATE POLICY "Public events are viewable" ON events FOR SELECT USING (true);
 
 -- Seed Event Data
 INSERT INTO events (slug, name, package_price)
-VALUES ('ramadan-nights-2026', 'Ramadan Nights 2026', 4999)
+VALUES ('ramadan-nights-2026', 'Ramadan Majlis 2026', 4999)
 ON CONFLICT (slug) DO UPDATE SET
   package_price = EXCLUDED.package_price;

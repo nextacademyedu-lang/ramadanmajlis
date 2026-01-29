@@ -104,7 +104,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-12">
           <div className="text-2xl font-bold text-white flex items-center gap-2">
             <span className="bg-amber-500 text-black px-2 py-1 rounded-md text-sm">2026</span>
-            Ramadan Nights
+            Ramadan Majlis
           </div>
           <button
             onClick={scrollToBooking}
@@ -129,7 +129,7 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-              Ramadan <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">Nights</span>
+              Ramadan <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">Majlis</span>
               <br />
               <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block">For Entrepreneurs</span>
             </h1>
@@ -461,7 +461,7 @@ function SponsorshipSection() {
 
                   <div className="space-y-3">
                     <button
-                      onClick={() => window.open(`https://wa.me/201505822735?text=${encodeURIComponent(`Hello, I am interested in the ${activePlan.name} sponsorship package for Ramadan Nights.`)}`, '_blank')}
+                      onClick={() => window.open(`https://wa.me/201505822735?text=${encodeURIComponent(`Hello, I am interested in the ${activePlan.name} sponsorship package for Ramadan Majlis.`)}`, '_blank')}
                       className="w-full flex items-center justify-center h-12 text-lg bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl transition-colors"
                     >
                       <Phone className="w-5 h-5 ml-2" />

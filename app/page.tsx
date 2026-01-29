@@ -23,7 +23,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const [ticketData, setTicketData] = useState({ name: '', title: '', company: '', date: '' });
+  const [ticketData, setTicketData] = useState({ name: '', title: '', company: '', date: '', photo: '', night: '', location: '' });
 
   useEffect(() => {
     // Check for success param
@@ -39,6 +39,9 @@ export default function Home() {
         title: localStorage.getItem('booking_title') || 'Entrepreneur',
         company: localStorage.getItem('booking_company') || '',
         date: localStorage.getItem('booking_date') || 'Ramadan 2026',
+        photo: localStorage.getItem('booking_photo') || '',
+        night: localStorage.getItem('booking_night_title') || 'Ramadan Majlis',
+        location: localStorage.getItem('booking_location') || 'Creativa Innovation Hub',
       });
     }
     setStars(generateStars(60));
@@ -52,8 +55,12 @@ export default function Home() {
     params.set('title', ticketData.title);
     params.set('company', ticketData.company);
     params.set('date', ticketData.date);
-    // If we had a photo URL in local storage we would add it here
-    // params.set('image', '/speakers/Hesham_Alaraky .jpg'); // Example default or from user input
+    params.set('night', ticketData.night);
+    params.set('location', ticketData.location);
+
+    if (ticketData.photo) {
+      params.set('image', ticketData.photo);
+    }
     return `/api/og/ticket?${params.toString()}`;
   }, [ticketData]);
 

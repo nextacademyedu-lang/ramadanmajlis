@@ -11,6 +11,8 @@ export async function GET(request: Request) {
     const title = searchParams.get('title') || 'Entrepreneur';
     const company = searchParams.get('company') || '';
     const date = searchParams.get('date') || 'Ramadan 2026';
+    const night = searchParams.get('night') || '';
+    const location = searchParams.get('location') || '';
     const imagePath = searchParams.get('image');
 
     // Background Image URL (Using the uploaded event share.png from public folder)
@@ -116,6 +118,50 @@ export async function GET(request: Request) {
           </div>
 
 
+
+          {/* Night Title & Location - Right Side */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '500px',
+              left: '680px',
+              width: '400px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              textAlign: 'left',
+            }}
+          >
+            {night && (
+              <div style={{
+                fontSize: 48,
+                fontWeight: 'bold',
+                color: '#fbbf24', // Amber/Gold
+                textTransform: 'uppercase',
+                marginBottom: 16,
+                lineHeight: 1.1,
+                textShadow: '0 4px 8px rgba(0,0,0,0.3)'
+              }}>
+                {night}
+              </div>
+            )}
+
+            {location && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: 24,
+                color: '#d1fae5'
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{location === 'Creativa Innovation Hub' ? 'Creativa Hub, Giza' : location}</span>
+              </div>
+            )}
+          </div>
 
           {/* Date - Bottom Center */}
           <div

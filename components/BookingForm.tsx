@@ -162,17 +162,32 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
             // 2. Redirect to Payment
             // Save data for Ticket generation on Success page
             let dateStr = 'Ramadan 2026';
+            let nightTitle = 'All Nights Access';
+            let location = 'Creativa Innovation Hub'; // Default
+
             if (data.ticketType === 'single' && data.selectedNights && data.selectedNights.length > 0) {
-                const firstNight = new Date(data.selectedNights[0]);
+                const selectedDate = data.selectedNights[0];
+                const firstNight = new Date(selectedDate);
                 dateStr = format(firstNight, 'd MMM yyyy');
+
+                // Find the night object from props
+                const nightObj = nights.find((n: any) => n.date === selectedDate);
+                if (nightObj) {
+                    nightTitle = nightObj.title;
+                    location = nightObj.location || location; // Use DB location, fall back to default if null
+                }
             } else {
                 dateStr = 'Full Package';
+                location = 'Cairo, Egypt'; // Or some generic location for the package
             }
 
             localStorage.setItem('booking_name', data.fullName);
             localStorage.setItem('booking_title', data.jobTitle);
             localStorage.setItem('booking_company', data.company);
             localStorage.setItem('booking_date', dateStr);
+            localStorage.setItem('booking_night_title', nightTitle);
+            localStorage.setItem('booking_location', location);
+
             if (photoUrl) {
                 localStorage.setItem('booking_photo', photoUrl);
             }
@@ -272,13 +287,13 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         <>
                                             <Label>Select Nights ({SINGLE_NIGHT_PRICE.toLocaleString()} EGP / Night)</Label>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                {NIGHTS.map((night) => (
+                                                {(nights.length > 0 ? nights : NIGHTS).map((night: any) => (
                                                     <div
                                                         key={night.date}
                                                         onClick={() => {
                                                             const current = selectedNights || [];
                                                             const newSelection = current.includes(night.date)
-                                                                ? current.filter(d => d !== night.date)
+                                                                ? current.filter((d: string) => d !== night.date)
                                                                 : [...current, night.date];
                                                             setValue('selectedNights', newSelection);
                                                         }}
@@ -289,8 +304,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                                                 : "border-white/10 bg-white/5 text-gray-400"
                                                         )}
                                                     >
-                                                        <div className="font-bold">{night.label}</div>
-                                                        <div className="text-xs opacity-70">{night.sub}</div>
+                                                        <div className="font-bold">{night.title || night.label}</div>
+                                                        <div className="text-xs opacity-70">{night.subtitle || format(new Date(night.date), 'd MMM')}</div>
                                                     </div>
                                                 ))}
                                             </div>

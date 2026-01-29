@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -160,10 +161,18 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
 
             // 2. Redirect to Payment
             // Save data for Ticket generation on Success page
-            localStorage.setItem('booking_name', values.fullName);
-            localStorage.setItem('booking_title', values.jobTitle);
-            localStorage.setItem('booking_company', values.company);
-            localStorage.setItem('booking_date', dateStr); // Using format(d, 'd MMM yyyy')
+            let dateStr = 'Ramadan 2026';
+            if (data.ticketType === 'single' && data.selectedNights && data.selectedNights.length > 0) {
+                const firstNight = new Date(data.selectedNights[0]);
+                dateStr = format(firstNight, 'd MMM yyyy');
+            } else {
+                dateStr = 'Full Package';
+            }
+
+            localStorage.setItem('booking_name', data.fullName);
+            localStorage.setItem('booking_title', data.jobTitle);
+            localStorage.setItem('booking_company', data.company);
+            localStorage.setItem('booking_date', dateStr);
             // No photo upload in form yet, but we can handle that later.
 
             const response = await fetch('/api/create-booking', {

@@ -22,7 +22,16 @@ export default function Home() {
   const [stars, setStars] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   useEffect(() => {
+    // Check for success param
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('status') === 'success') {
+      setShowSuccess(true);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
     setStars(generateStars(60));
   }, []);
 
@@ -300,6 +309,42 @@ export default function Home() {
       <SponsorshipSection />
       <FaqSection />
       <Footer />
+
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-[#0a201b] border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-emerald-500/10 blur-[50px] pointer-events-none" />
+
+              <div className="w-20 h-20 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle className="w-10 h-10 text-emerald-400" />
+              </div>
+
+              <h3 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h3>
+              <p className="text-emerald-200/70 mb-8">We can't wait to see you. A confirmation email has been sent to you.</p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowSuccess(false)}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
+                >
+                  Done
+                </button>
+                <p className="text-xs text-white/30 pt-2">Share this with your network</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </main>
   );

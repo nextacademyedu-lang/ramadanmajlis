@@ -48,19 +48,19 @@ export async function POST(request: Request) {
                     expiration: 3600,
                     order_id: orderId,
                     billing_data: {
-                        apartment: "NA",
+                        apartment: "1",
                         email: customer.email,
-                        floor: "NA",
+                        floor: "1",
                         first_name: customer.first_name,
-                        street: "NA",
-                        building: "NA",
+                        street: "Cairo St",
+                        building: "1",
                         phone_number: customer.phone,
                         shipping_method: "NA",
-                        postal_code: "NA",
-                        city: "NA",
-                        country: "NA",
+                        postal_code: "12345",
+                        city: "Cairo",
+                        country: "EG",
                         last_name: customer.last_name,
-                        state: "NA"
+                        state: "Cairo"
                     },
                     currency: "EGP",
                     integration_id: integrationId
@@ -70,25 +70,35 @@ export async function POST(request: Request) {
 
             if (!keyData.token) throw new Error("Failed to get Paymob token: " + JSON.stringify(keyData));
 
-            // 4. Return URL
-            // Wallet payments might redirect differently, but standard frame works for both if configured? 
-            // Usually Wallet returns a `redirect_url` directly in the key response? No, usually you use the token in an iframe or redirect for card.
-            // For Wallets, Paymob often returns a `redirection_url` field in a subsequent step (Pay request), NOT just key generation.
-            // However, iframe is for Cards. Wallets usually need a separate "Pay" request.
+            // 4. Handle Based on Type
+            // A) WALLET: Must confirm payment server-side
+            if (provider === 'paymob_wallet') {
+                const payResponse = await fetch('https://accept.paymob.com/api/acceptance/payments/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source: {
+                            identifier: customer.phone, // Must be the wallet number
+                            subtype: "WALLET"
+                        },
+                        payment_token: keyData.token
+                    })
+                });
+                const payData = await payResponse.json();
 
-            // Let's assume user wants standard Iframe for now, but Wallet integration is usually "Process" step.
-            // Actually, for Wallets (e.g. Vodafone), you have to POST to /acceptance/payments/pay with source: { identifier: mobile, subtype: WALLET }.
-            // IMPORTANT: The current implementation only generates a KEY. It doesn't charge for wallets.
-            // Since I cannot change the whole flow blindly, I will stick to returning the Iframe URL.
-            // Paymob Iframe often handles Wallet selection IF the iframe supports it, OR we need the specific wallet logic.
-            // Given the complexity of Wallet API (requires phone number POST), I will keep it simple: 
-            // If it's a Wallet ID, the Iframe might not work well.
+                // Expecting { redirect_url: "..." } or similar
+                if (payData.redirect_url) {
+                    return NextResponse.json({ paymentUrl: payData.redirect_url });
+                } else if (payData.iframe_url) {
+                    return NextResponse.json({ paymentUrl: payData.iframe_url });
+                } else {
+                    // Fallback or error
+                    console.error("Wallet Pay Error:", payData);
+                    throw new Error("Wallet payment failed: " + (payData.detail || "Unknown error"));
+                }
+            }
 
-            // BUT: The user asked to "Configure multiple methods".
-            // I will return the Iframe URL using the Wallet Integration ID. If Paymob requires direct API for wallets (Process), this might fail in Iframe.
-            // Let's use the iframe for now as it's the safest assumption without docs on their specific wallet configuration.
-            // Actually, for Wallets, just getting the key and opening iframe often shows the wallet number input.
-
+            // B) CARD: Use Iframe
             const iframeId = process.env.PAYMOB_IFRAME_ID;
             const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${keyData.token}`;
             return NextResponse.json({ paymentUrl });

@@ -23,6 +23,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [ticketData, setTicketData] = useState({ name: '', title: '', company: '', date: '' });
 
   useEffect(() => {
     // Check for success param
@@ -31,9 +32,87 @@ export default function Home() {
       setShowSuccess(true);
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
+
+      // Load ticket data
+      setTicketData({
+        name: localStorage.getItem('booking_name') || 'Guest',
+        title: localStorage.getItem('booking_title') || 'Entrepreneur',
+        company: localStorage.getItem('booking_company') || '',
+        date: localStorage.getItem('booking_date') || 'Ramadan 2026',
+      });
     }
     setStars(generateStars(60));
   }, []);
+
+  // ... (existing code) ...
+
+  const ticketUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('name', ticketData.name);
+    params.set('title', ticketData.title);
+    params.set('company', ticketData.company);
+    params.set('date', ticketData.date);
+    // If we had a photo URL in local storage we would add it here
+    // params.set('image', '/speakers/Hesham_Alaraky .jpg'); // Example default or from user input
+    return `/api/og/ticket?${params.toString()}`;
+  }, [ticketData]);
+
+  // ... (inside Return) ...
+
+  {
+    showSuccess && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      >
+        <motion.div
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          className="bg-[#0a201b] border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-emerald-500/10 blur-[50px] pointer-events-none" />
+
+          <h3 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h3>
+          <p className="text-emerald-200/70 mb-6">Here is your personal ticket.</p>
+
+          <div className="flex flex-col items-center gap-6">
+            {/* Dynamic Ticket Preview */}
+            <div className="relative w-64 h-64 rounded-xl overflow-hidden shadow-2xl border border-emerald-500/30 group">
+              <img
+                src={ticketUrl}
+                alt="Your Ticket"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-white text-sm font-bold">Preview</span>
+              </div>
+            </div>
+
+            <div className="w-full space-y-3">
+              <a
+                href={ticketUrl}
+                download="my-ramadan-ticket.png"
+                target="_blank"
+                className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
+              >
+                Download Ticket 📥
+              </a>
+
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="block w-full text-sm text-emerald-400 hover:text-white transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+        </motion.div>
+      </motion.div>
+    )
+  }
 
   useEffect(() => {
     const targetDate = new Date('2026-03-20T00:00:00').getTime();
@@ -332,14 +411,36 @@ export default function Home() {
               <h3 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h3>
               <p className="text-emerald-200/70 mb-8">We can't wait to see you. A confirmation email has been sent to you.</p>
 
-              <div className="space-y-3">
-                <button
-                  onClick={() => setShowSuccess(false)}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
-                >
-                  Done
-                </button>
-                <p className="text-xs text-white/30 pt-2">Share this with your network</p>
+              <div className="flex flex-col items-center gap-6">
+                {/* Dynamic Ticket Preview */}
+                <div className="relative w-64 h-64 rounded-xl overflow-hidden shadow-2xl border border-emerald-500/30 group">
+                  <img
+                    src={`/api/og/ticket?name=Guest&title=Entrepreneur&night=Ramadan%20Majlis`}
+                    alt="Your Ticket"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-sm font-bold">Preview</span>
+                  </div>
+                </div>
+
+                <div className="w-full space-y-3">
+                  <a
+                    href={`/api/og/ticket?name=Guest&title=Entrepreneur&night=Ramadan%20Majlis`}
+                    download="my-ramadan-ticket.png"
+                    target="_blank"
+                    className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
+                  >
+                    Download Ticket 📥
+                  </a>
+
+                  <button
+                    onClick={() => setShowSuccess(false)}
+                    className="block w-full text-sm text-emerald-400 hover:text-white transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

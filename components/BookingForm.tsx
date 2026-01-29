@@ -159,6 +159,13 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
             if (dbError) throw dbError;
 
             // 2. Redirect to Payment
+            // Save data for Ticket generation on Success page
+            localStorage.setItem('booking_name', values.fullName);
+            localStorage.setItem('booking_title', values.jobTitle);
+            localStorage.setItem('booking_company', values.company);
+            localStorage.setItem('booking_date', dateStr); // Using format(d, 'd MMM yyyy')
+            // No photo upload in form yet, but we can handle that later.
+
             const response = await fetch('/api/create-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

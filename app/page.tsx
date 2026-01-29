@@ -422,7 +422,7 @@ export default function Home() {
                 {/* Dynamic Ticket Preview */}
                 <div className="relative w-64 h-64 rounded-xl overflow-hidden shadow-2xl border border-emerald-500/30 group">
                   <img
-                    src={`/api/og/ticket?name=Guest&title=Entrepreneur&night=Ramadan%20Majlis`}
+                    src={ticketUrl}
                     alt="Your Ticket"
                     className="w-full h-full object-cover"
                   />
@@ -433,8 +433,8 @@ export default function Home() {
 
                 <div className="w-full space-y-3">
                   <a
-                    href={`/api/og/ticket?name=Guest&title=Entrepreneur&night=Ramadan%20Majlis`}
-                    download="my-ramadan-ticket.png"
+                    href={ticketUrl}
+                    download={`ramadan-ticket-${ticketData.name.replace(/\s+/g, '-').toLowerCase() || 'guest'}.png`}
                     target="_blank"
                     className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
                   >

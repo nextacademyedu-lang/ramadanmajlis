@@ -15,8 +15,8 @@ export async function GET(request: Request) {
     const location = searchParams.get('location') || '';
     const imagePath = searchParams.get('image');
 
-    // Background Image URL (Using the uploaded event share.png from public folder)
-    const bgUrl = `${origin}/event%20share.png`;
+    // Background Image URL (Using the uploaded mocup.png from public folder)
+    const bgUrl = `${origin}/mocup.png`;
 
     // User Photo URL 
     let userPhotoUrl = null;
@@ -41,163 +41,141 @@ export async function GET(request: Request) {
             justifyContent: 'center',
             flexDirection: 'column',
             backgroundImage: `url(${bgUrl})`,
-            backgroundSize: '1080px 1080px',
+            backgroundSize: '100% 100%',
             backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            fontFamily: 'sans-serif',
-            color: 'white',
+            fontFamily: '"Outfit"',
             position: 'relative',
           }}
         >
           {/* ==========================================
-            RIGHT COLUMN: User Photo & Details
-           ========================================== */}
+              RIGHT COLUMN: User Photo & Details
+             ========================================== */}
+
+          {/* User Photo */}
           <div
             style={{
+              position: 'absolute',
+              right: '150px',
+              top: '280px',
+              width: '300px',
+              height: '300px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '3px solid #fbbf24', // Golden border
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#064e3b',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={userPhotoUrl || 'https://via.placeholder.com/300'}
+              alt={name}
+              width="300"
+              height="300"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </div>
+
+          {/* User Info Stack */}
+          <div
+            style={{
+              position: 'absolute',
+              right: '100px', // As per spec (center of right half approximately)
+              top: '600px',
+              width: '400px', // Area width to center content within
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              position: 'absolute',
-              right: '80px', // Position on the Right
-              top: '250px',
-              width: '400px',
               textAlign: 'center',
             }}
           >
-            {/* User Photo Circle */}
-            <div
-              style={{
-                width: '240px',
-                height: '240px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '6px solid #10b981', // Emerald border
-                boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '32px',
-                backgroundColor: '#064e3b',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={userPhotoUrl || 'https://via.placeholder.com/400'}
-                alt={name}
-                width="240"
-                height="240"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              />
+            {/* Name */}
+            <div style={{ fontSize: 32, fontWeight: 'bold', color: 'white', marginBottom: 10, textTransform: 'uppercase' }}>
+              {name.split(' ').slice(0, 2).join(' ')}
             </div>
-
-            {/* User Data */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ fontSize: 42, fontWeight: 800, color: 'white', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '-0.02em', textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
-                {name.split(' ').slice(0, 2).join(' ')}
-              </div>
-
-              {/* Gradient Line Separator */}
-              <div style={{ width: '80px', height: '4px', background: 'linear-gradient(90deg, transparent, #fbbf24, transparent)', marginBottom: 12 }}></div>
-
-              <div style={{ fontSize: 24, fontWeight: 500, color: '#fbbf24', marginBottom: 4, letterSpacing: '0.05em' }}>
-                {title.length > 30 ? title.substring(0, 30) + '...' : title}
-              </div>
-              {company && (
-                <div style={{ fontSize: 20, fontWeight: 400, color: '#a7f3d0' }}>
-                  {company.length > 35 ? company.substring(0, 35) + '...' : company}
-                </div>
-              )}
+            {/* Job Title */}
+            <div style={{ fontSize: 22, color: '#00ffff', marginBottom: 8, fontWeight: 500 }}>
+              {title.length > 30 ? title.substring(0, 30) + '...' : title}
             </div>
+            {/* Company */}
+            {company && (
+              <div style={{ fontSize: 18, color: 'white', fontWeight: 400 }}>
+                {company.length > 35 ? company.substring(0, 35) + '...' : company}
+              </div>
+            )}
           </div>
 
           {/* ==========================================
-            BOTTOM LEFT: Night Title & Date
-           ========================================== */}
+              BOTTOM SECTION: Nights, Date, Location
+             ========================================== */}
+
+          {/* Selected Nights - Bottom Left */}
           <div
             style={{
               position: 'absolute',
-              bottom: '60px',
               left: '60px',
+              bottom: '100px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'flex-start',
-              textAlign: 'left',
+              fontSize: 18,
+              fontWeight: 700,
+              color: 'white',
+              lineHeight: 1.8,
             }}
           >
-            {/* Night Name */}
-            <div style={{
-              fontSize: 56,
-              fontWeight: 900,
-              color: '#fff',
-              lineHeight: 1,
-              marginBottom: 10,
-              textTransform: 'uppercase',
-              textShadow: '0 4px 10px rgba(0,0,0,0.5)'
-            }}>
-              {night || 'Ramadan Majlis'}
-            </div>
-
-            {/* Date */}
-            <div style={{
-              fontSize: 28,
-              fontWeight: 500,
-              color: '#fbbf24',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              <span>{date}</span>
-            </div>
+            {(night.toLowerCase().includes('all') || night.toLowerCase().includes('package')) ? (
+              <div>All 3 Nights</div>
+            ) : (
+              night.split(',').map((n, i) => (
+                <div key={i}>{n.trim()}</div>
+              ))
+            )}
+            {(night.toLowerCase().includes('all') || night.toLowerCase().includes('package')) && (
+              <div style={{ fontSize: 16, fontWeight: 400, opacity: 0.9 }}>20-22 March 2026</div>
+            )}
           </div>
 
-          {/* ==========================================
-            BOTTOM CENTER: Location
-           ========================================== */}
+          {/* Event Date - Bottom Center */}
           <div
             style={{
               position: 'absolute',
-              bottom: '50px',
               left: '50%',
               transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
+              bottom: '80px',
+              fontSize: 22,
+              fontWeight: 'bold',
+              color: '#fbbf24',
               textAlign: 'center',
             }}
           >
-            {location && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: 26,
-                fontWeight: 600,
-                color: '#d1fae5',
-                background: 'rgba(6, 78, 59, 0.6)',
-                padding: '10px 24px',
-                borderRadius: '50px',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                backdropFilter: 'blur(4px)'
-              }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>{location === 'Creativa Innovation Hub' ? 'Creativa Hub, Giza' : location}</span>
-              </div>
-            )}
+            {date}
+          </div>
+
+          {/* Location - Bottom Center */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              bottom: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: 16,
+              color: 'white',
+              textAlign: 'center',
+            }}
+          >
+            <span>📍</span>
+            <span>{location || 'Creativa Innovation Hub - Giza'}</span>
           </div>
 
         </div>

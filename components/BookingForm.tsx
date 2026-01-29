@@ -66,6 +66,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    // Promo Code States
     const [promoCode, setPromoCode] = useState('');
     const [promoApplied, setPromoApplied] = useState<{ id: string, type: string, value: number, code: string } | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);

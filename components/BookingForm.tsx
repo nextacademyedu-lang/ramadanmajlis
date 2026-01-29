@@ -150,8 +150,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                     selected_nights: data.ticketType === 'package' ? ['ALL'] : data.selectedNights,
                     ticket_count: 1,
                     total_amount: totalAmount,
-                    payment_provider: data.paymentProvider,
-                    payment_status: 'pending',
+                    payment_provider: totalAmount === 0 ? 'free_tier' : data.paymentProvider,
+                    payment_status: totalAmount === 0 ? 'paid' : 'pending',
                     profile_image_url: photoUrl,
                 })
                 .select()
@@ -178,7 +178,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                 }
             } else {
                 dateStr = 'Full Package';
-                location = 'Cairo, Egypt'; // Or some generic location for the package
+                location = 'Creativa Hub, Giza'; // Or some generic location for the package
+                // Check if we have specific locations for package? for now default is fine.
             }
 
             localStorage.setItem('booking_name', data.fullName);
@@ -190,6 +191,12 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
 
             if (photoUrl) {
                 localStorage.setItem('booking_photo', photoUrl);
+            }
+
+            // -- FREE BOOKING BYPASS --
+            if (totalAmount === 0) {
+                window.location.href = `${window.location.origin}/?status=success`;
+                return;
             }
 
             const response = await fetch('/api/create-booking', {

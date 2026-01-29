@@ -38,9 +38,9 @@ export async function GET(request: Request) {
     const imagePath = searchParams.get('image');
 
     // Random Design Selection
-    // const designs = ['mocup1.png', 'mocup2.png'];
-    // const randomDesign = designs[Math.floor(Math.random() * designs.length)];
-    const bgUrl = `${origin}/mocup1.png`;
+    const designs = ['mocup1.png', 'mocup2.png'];
+    const randomDesign = designs[Math.floor(Math.random() * designs.length)];
+    const bgUrl = `${origin}/${randomDesign}`;
 
     // Random Text Selection
     const greeting = textVariations.greetings[Math.floor(Math.random() * textVariations.greetings.length)];

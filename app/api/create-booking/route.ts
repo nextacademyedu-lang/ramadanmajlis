@@ -39,6 +39,11 @@ export async function POST(request: Request) {
                 integrationId = process.env.PAYMOB_INTEGRATION_ID_WALLET;
             }
 
+            // Ensure it's a number (Env vars are strings)
+            const integrationIdInt = parseInt(integrationId || '0', 10);
+
+            console.log(`[Paymob] Requesting Key for Order ${orderId} using Integration ID: ${integrationIdInt} (Provider: ${provider})`);
+
             const keyResponse = await fetch('https://accept.paymob.com/api/acceptance/payment_keys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -63,12 +68,15 @@ export async function POST(request: Request) {
                         state: "Cairo"
                     },
                     currency: "EGP",
-                    integration_id: integrationId
+                    integration_id: integrationIdInt
                 })
             });
             const keyData = await keyResponse.json();
 
-            if (!keyData.token) throw new Error("Failed to get Paymob token: " + JSON.stringify(keyData));
+            // Log error detail if present
+            if (!keyData.token) {
+                console.error("[Paymob] Key Request Failed:", JSON.stringify(keyData));
+            }
 
             // 4. Handle Based on Type
             // A) WALLET: Must confirm payment server-side

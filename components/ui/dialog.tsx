@@ -54,7 +54,7 @@ const DialogTrigger = ({
 
 const DialogContent = React.forwardRef<
     HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
+    React.ComponentPropsWithoutRef<typeof motion.div>
 >(({ className, children, ...props }, ref) => {
     const { open, onOpenChange } = React.useContext(DialogContext)
 

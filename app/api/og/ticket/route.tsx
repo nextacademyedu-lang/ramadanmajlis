@@ -115,29 +115,7 @@ export async function GET(request: Request) {
             )}
           </div>
 
-          {/* "I am attending..." Text - Right Side */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '280px',
-              left: '680px',
-              width: '350px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              textAlign: 'left',
-            }}
-          >
-            <div style={{ fontSize: 32, color: '#ecfdf5', marginBottom: 10 }}>
-              I am attending
-            </div>
-            <div style={{ fontSize: 44, fontWeight: 'bold', color: '#fff', lineHeight: 1.2, textShadow: '0 2px 10px rgba(16, 185, 129, 0.3)' }}>
-              Ramadan Majlis
-            </div>
-            <div style={{ fontSize: 20, color: '#d1fae5', marginTop: 24, maxWidth: '300px', lineHeight: 1.4 }}>
-              Join me at one of the largest business networking events in Egypt
-            </div>
-          </div>
+
 
           {/* Date - Bottom Center */}
           <div

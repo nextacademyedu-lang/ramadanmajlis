@@ -66,8 +66,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [promoCode, setPromoCode] = useState('');
+    const [promoApplied, setPromoApplied] = useState<{ id: string, type: string, value: number, code: string } | null>(null);
+    const [promoLoading, setPromoLoading] = useState(false);
+    const [promoError, setPromoError] = useState<string | null>(null);
 
     const {
         register,
@@ -94,9 +96,53 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
     const SINGLE_NIGHT_PRICE = nights.length > 0 ? Number(nights[0].price) : 1999;
     const FULL_PACKAGE_PRICE = Number(packagePrice);
 
-    const totalAmount = ticketType === 'package' || (selectedNights.length === 3) // Use package price if 3 nights selected
+    const baseAmount = ticketType === 'package' || (selectedNights.length === 3) // Use package price if 3 nights selected
         ? FULL_PACKAGE_PRICE
         : (selectedNights.length * SINGLE_NIGHT_PRICE);
+
+    // Calculate Discount
+    let discountAmount = 0;
+    if (promoApplied) {
+        if (promoApplied.type === 'percentage') {
+            discountAmount = baseAmount * (promoApplied.value / 100);
+        } else {
+            discountAmount = promoApplied.value;
+        }
+    }
+
+    // Ensure total doesn't go below 0
+    const totalAmount = Math.max(0, baseAmount - discountAmount);
+
+    const handleApplyPromo = async () => {
+        if (!promoCode.trim()) return;
+        setPromoLoading(true);
+        setPromoError(null);
+        try {
+            const res = await fetch('/api/validate-promo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: promoCode })
+            });
+            const data = await res.json();
+
+            if (data.valid) {
+                setPromoApplied({
+                    id: data.id,
+                    type: data.discount_type,
+                    value: data.discount_value,
+                    code: data.code
+                });
+                setPromoError(null);
+            } else {
+                setPromoError(data.message || "Invalid Code");
+                setPromoApplied(null);
+            }
+        } catch (err) {
+            setPromoError("Failed to validate code");
+        } finally {
+            setPromoLoading(false);
+        }
+    };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         try {
@@ -153,6 +199,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                     payment_provider: totalAmount === 0 ? 'free_tier' : data.paymentProvider,
                     payment_status: totalAmount === 0 ? 'paid' : 'pending',
                     profile_image_url: photoUrl,
+                    // Add Promo Info
+                    promo_code_id: promoApplied?.id || null,
+                    discount_applied: discountAmount
                 })
                 .select()
                 .single();
@@ -474,11 +523,57 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         <span className="text-gray-400">Package</span>
                                         <span className="text-white capitalize">{ticketType === 'package' ? 'Full Access' : `${selectedNights.length} Night(s)`}</span>
                                     </div>
-                                    <div className="flex justify-between text-lg font-bold text-primary">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-400">Subtotal</span>
+                                        <span className="text-white">{baseAmount.toLocaleString()} EGP</span>
+                                    </div>
+
+                                    {/* Discount Row */}
+                                    {promoApplied && (
+                                        <div className="flex justify-between text-sm text-green-400 animate-pulse">
+                                            <span>Discount ({promoApplied.code})</span>
+                                            <span>- {discountAmount.toLocaleString()} EGP</span>
+                                        </div>
+                                    )}
+
+                                    <div className="border-t border-white/10 my-2 pt-2 flex justify-between text-lg font-bold text-primary">
                                         <span>Total</span>
-                                        <span>{totalAmount} EGP</span>
+                                        <span>{totalAmount.toLocaleString()} EGP</span>
                                     </div>
                                 </div>
+
+                                {/* Promo Code Input */}
+                                <div className="flex gap-2 items-end">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Have a Promo Code?</Label>
+                                        <div className="relative">
+                                            <Input
+                                                value={promoCode}
+                                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                placeholder="ENTER CODE"
+                                                disabled={!!promoApplied || promoLoading}
+                                                className={cn(
+                                                    "uppercase",
+                                                    promoApplied ? "border-green-500 text-green-500" : ""
+                                                )}
+                                            />
+                                            {promoApplied && <CheckCircle2 className="absolute right-3 top-2.5 text-green-500 w-5 h-5" />}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        onClick={handleApplyPromo}
+                                        disabled={!promoCode || !!promoApplied || promoLoading}
+                                        variant={promoApplied ? "outline" : "secondary"}
+                                        className={cn(
+                                            promoApplied ? "border-green-500 text-green-500 hover:text-green-400" : ""
+                                        )}
+                                    >
+                                        {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (promoApplied ? "Applied" : "Apply")}
+                                    </Button>
+                                </div>
+                                {promoError && <p className="text-red-400 text-xs mt-1">{promoError}</p>}
+
 
                                 <div className="space-y-3">
                                     <Label>Payment Method</Label>

@@ -173,7 +173,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
             localStorage.setItem('booking_title', data.jobTitle);
             localStorage.setItem('booking_company', data.company);
             localStorage.setItem('booking_date', dateStr);
-            // No photo upload in form yet, but we can handle that later.
+            if (photoUrl) {
+                localStorage.setItem('booking_photo', photoUrl);
+            }
 
             const response = await fetch('/api/create-booking', {
                 method: 'POST',

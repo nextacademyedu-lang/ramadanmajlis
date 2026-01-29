@@ -9,15 +9,23 @@ export async function POST(request: Request) {
         // --- PAYMOB INTEGRATION ---
         if (provider.startsWith('paymob')) {
             // 1. Authenticate
+            console.log('[Paymob] Step 1: Authenticating...');
             const authResponse = await fetch('https://accept.paymob.com/api/auth/tokens', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ api_key: process.env.PAYMOB_API_KEY })
             });
             const authData = await authResponse.json();
+
+            if (!authData.token) {
+                console.error('[Paymob] Auth Failed:', JSON.stringify(authData));
+                throw new Error(`Paymob Auth Failed: ${authData.detail || 'Unknown Error'}`);
+            }
             const token = authData.token;
+            console.log('[Paymob] Auth Success');
 
             // 2. Register Order
+            console.log('[Paymob] Step 2: Registering Order...');
             const orderResponse = await fetch('https://accept.paymob.com/api/ecommerce/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -31,7 +39,13 @@ export async function POST(request: Request) {
                 })
             });
             const orderData = await orderResponse.json();
+
+            if (!orderData.id) {
+                console.error('[Paymob] Order Failed:', JSON.stringify(orderData));
+                throw new Error(`Paymob Order Failed: ${orderData.detail || 'check logs'}`);
+            }
             const orderId = orderData.id;
+            console.log(`[Paymob] Order Registered: ${orderId}`);
 
             // 3. Request Payment Key & Determine Integration ID
             let integrationId = process.env.PAYMOB_INTEGRATION_ID_CARD; // Default to Card
@@ -42,7 +56,7 @@ export async function POST(request: Request) {
             // Ensure it's a number (Env vars are strings)
             const integrationIdInt = parseInt(integrationId || '0', 10);
 
-            console.log(`[Paymob] Requesting Key for Order ${orderId} using Integration ID: ${integrationIdInt} (Provider: ${provider})`);
+            console.log(`[Paymob] Step 3: Key Request (Order: ${orderId}, Integration: ${integrationIdInt})`);
 
             const keyResponse = await fetch('https://accept.paymob.com/api/acceptance/payment_keys', {
                 method: 'POST',
@@ -73,14 +87,16 @@ export async function POST(request: Request) {
             });
             const keyData = await keyResponse.json();
 
-            // Log error detail if present
             if (!keyData.token) {
                 console.error("[Paymob] Key Request Failed:", JSON.stringify(keyData));
+                throw new Error(`Paymob Key Failed: ${keyData.detail || 'check logs'}`);
             }
+            console.log('[Paymob] Key Generated Successfully');
 
             // 4. Handle Based on Type
             // A) WALLET: Must confirm payment server-side
             if (provider === 'paymob_wallet') {
+                console.log('[Paymob] Initiating Wallet Payment...');
                 const payResponse = await fetch('https://accept.paymob.com/api/acceptance/payments/pay', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

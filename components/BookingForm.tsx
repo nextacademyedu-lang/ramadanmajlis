@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, Upload, AlertCircle, CheckCircle2, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -304,8 +304,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                                                 : "border-white/10 bg-white/5 text-gray-400"
                                                         )}
                                                     >
-                                                        <div className="font-bold">{night.title || night.label}</div>
-                                                        <div className="text-xs opacity-70">{night.subtitle || format(new Date(night.date), 'd MMM')}</div>
+                                                        <div className="font-bold text-lg">{night.title || night.label}</div>
+                                                        <div className="text-sm text-emerald-400 font-medium mb-1">
+                                                            {format(new Date(night.date), 'd MMM yyyy')}
+                                                        </div>
+                                                        <div className="text-xs opacity-70">{night.subtitle}</div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -317,6 +320,36 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                             <p className="text-sm text-gray-300">Access to all 3 nights + Exclusive Networking + Priority Seating</p>
                                             <div className="text-2xl font-bold text-white pt-2">{FULL_PACKAGE_PRICE.toLocaleString()} EGP <span className="text-sm text-gray-500 line-through">{(SINGLE_NIGHT_PRICE * 3).toLocaleString()} EGP</span></div>
                                         </div>
+                                    )}
+                                </div>
+
+                                {/* Dynamic Location Preview */}
+                                <div className="bg-black/20 rounded-lg p-4 text-sm space-y-2 border border-white/5">
+                                    <div className="flex items-center gap-2 text-emerald-400 mb-2">
+                                        <MapPin className="w-4 h-4" />
+                                        <span className="font-bold">Locations & Dates</span>
+                                    </div>
+                                    {ticketType === 'package' ? (
+                                        (nights.length > 0 ? nights : NIGHTS).map((night: any) => (
+                                            <div key={night.date} className="flex justify-between items-center text-gray-300">
+                                                <span>{format(new Date(night.date), 'd MMM')}: {night.title}</span>
+                                                <span className="text-white opacity-80">{night.location || 'Creativa Hub'}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        selectedNights.length > 0 ? (
+                                            selectedNights.sort().map((date: string) => {
+                                                const n = (nights.length > 0 ? nights : NIGHTS).find((night: any) => night.date === date);
+                                                return (
+                                                    <div key={date} className="flex justify-between items-center text-gray-300">
+                                                        <span>{format(new Date(date), 'd MMM')}: {n?.title}</span>
+                                                        <span className="text-white opacity-80">{n?.location || 'Creativa Hub'}</span>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="text-gray-500 italic">Select a night to see location details</div>
+                                        )
                                     )}
                                 </div>
 

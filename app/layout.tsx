@@ -40,7 +40,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" dir="ltr">
-      <body className={outfit.className}>{children}</body>
+      <body className={outfit.className} suppressHydrationWarning={true}>{children}</body>
     </html>
   );
 }

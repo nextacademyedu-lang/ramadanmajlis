@@ -26,20 +26,13 @@ const textVariations = {
 
 export async function GET(request: Request) {
   try {
-    const { searchParams, origin } = new URL(request.url);
+    // Reliable Origin Detection for Vercel Edge
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const host = request.headers.get('host');
+    const origin = `${protocol}://${host}`;
 
-    // Get Parameters from URL
-    const name = searchParams.get('name') || 'Guest';
-    const title = searchParams.get('title') || 'Entrepreneur';
-    const company = searchParams.get('company') || '';
-    const date = searchParams.get('date') || 'Ramadan 2026';
-    const night = searchParams.get('night') || '';
-    const location = searchParams.get('location') || 'Creativa Innovation Hub';
-    const imagePath = searchParams.get('image');
-
-    // Random Design Selection
-    const designs = ['mocup1.png', 'mocup2.png'];
-    const randomDesign = designs[Math.floor(Math.random() * designs.length)];
+    // Fixed Design
+    const randomDesign = 'mocup1.png';
     const bgUrl = `${origin}/${randomDesign}`;
 
     // Random Text Selection

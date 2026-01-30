@@ -49,12 +49,11 @@ export default function BookingsPage() {
     const fetchBookings = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('bookings')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (data) setBookings(data);
+            const res = await fetch('/api/admin/bookings');
+            if (res.ok) {
+                const data = await res.json();
+                setBookings(data);
+            }
         } catch (err) {
             console.error("Failed to fetch bookings");
         } finally {

@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Loader2 } from 'lucide-react';
+import { Lock, Loader2, Mail, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function AdminLogin() {
-    const [token, setToken] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
@@ -22,7 +23,7 @@ export default function AdminLogin() {
             const res = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token }),
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
@@ -31,7 +32,7 @@ export default function AdminLogin() {
                 router.push('/admin');
                 router.refresh(); // Refresh middleware/server components
             } else {
-                setError(data.message || 'Invalid Token');
+                setError(data.message || 'Invalid Credentials');
             }
         } catch (err) {
             setError('Something went wrong');
@@ -48,18 +49,31 @@ export default function AdminLogin() {
                         <Lock size={24} />
                     </div>
                     <CardTitle className="text-2xl font-bold text-white">Admin Access</CardTitle>
-                    <CardDescription>Enter your secure token to continue</CardDescription>
+                    <CardDescription>Sign in to manage the event</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                            <Input
-                                type="password"
-                                placeholder="Secret Token"
-                                value={token}
-                                onChange={(e) => setToken(e.target.value)}
-                                className="bg-black/50 border-white/10 text-center text-lg tracking-widest"
-                            />
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    type="email"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="pl-10 bg-black/50 border-white/10"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="pl-10 bg-black/50 border-white/10"
+                                />
+                            </div>
                         </div>
 
                         {error && (
@@ -71,9 +85,9 @@ export default function AdminLogin() {
                         <Button
                             type="submit"
                             className="w-full font-bold"
-                            disabled={loading || !token}
+                            disabled={loading || !email || !password}
                         >
-                            {loading ? <Loader2 className="animate-spin" /> : 'Unlock Dashboard'}
+                            {loading ? <Loader2 className="animate-spin" /> : 'Log In'}
                         </Button>
                     </form>
                 </CardContent>

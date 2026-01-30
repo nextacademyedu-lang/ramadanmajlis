@@ -31,6 +31,17 @@ export async function GET(request: Request) {
     const host = request.headers.get('host');
     const origin = `${protocol}://${host}`;
 
+    const { searchParams } = new URL(request.url);
+
+    // Get Parameters from URL
+    const name = searchParams.get('name') || 'Guest';
+    const title = searchParams.get('title') || 'Entrepreneur';
+    const company = searchParams.get('company') || '';
+    const date = searchParams.get('date') || 'Ramadan 2026';
+    const night = searchParams.get('night') || '';
+    const location = searchParams.get('location') || 'Creativa Innovation Hub';
+    const imagePath = searchParams.get('image');
+
     // Fixed Design
     const randomDesign = 'mocup1.png';
     const bgUrl = `${origin}/${randomDesign}`;

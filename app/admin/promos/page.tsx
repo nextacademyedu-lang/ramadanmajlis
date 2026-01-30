@@ -45,9 +45,17 @@ export default function PromosPage() {
 
     const fetchPromos = async () => {
         setLoading(true);
-        const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false });
-        if (data) setPromos(data);
-        setLoading(false);
+        try {
+            const res = await fetch('/api/admin/promos');
+            if (res.ok) {
+                const data = await res.json();
+                setPromos(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch promos");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSave = async () => {

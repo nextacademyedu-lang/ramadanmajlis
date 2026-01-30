@@ -32,27 +32,25 @@ export async function POST(request: Request) {
         }
 
         if (bookingId && isSuccess) {
-            console.log(`Payment Success for Booking: ${bookingId}`);
+            console.log(`✅ Payment Success for Booking: ${bookingId}, Provider: ${provider}`);
 
             // Update Booking Status
-            // Note: 'customerReference' might be a timestamp for EasyKash now, so we need to match carefully.
-            // If we used a timestamp, we might not find the record by ID directly if we didn't store the timestamp.
-            // Correction: For EasyKash we changed customerReference to Date.now(). 
-            // This makes linking back to the Booking ID via Webhook impossible if we don't store that timestamp!
-            // CRITICAL FIX needed in `create-booking`: Store the `payment_ref` (timestamp) in the bookings table.
-
-            // Assuming for now Paymob works with proper ID. 
-            // For EasyKash, since we used a timestamp to fix the crash, we effectively broke the link for the webhook unless we save that timestamp.
-
-            // For now, let's just log it. 
-            // In a real app, we should add `payment_ref` column to bookings and save the Date.now() value there first.
-
-            await supabaseAdmin
+            const { error: updateError } = await supabaseAdmin
                 .from('bookings')
-                .update({ payment_status: 'paid' })
-                .eq('id', bookingId); // This works for Paymob
+                .update({
+                    payment_status: 'paid',
+                    status: 'confirmed',
+                    paid_at: new Date().toISOString()
+                })
+                .eq('id', bookingId);
 
-            return NextResponse.json({ received: true });
+            if (updateError) {
+                console.error('❌ Failed to update booking:', updateError);
+            } else {
+                console.log(`✅ Booking ${bookingId} marked as PAID and CONFIRMED`);
+            }
+
+            return NextResponse.json({ received: true, status: 'success' });
         }
 
         return NextResponse.json({ received: true, ignored: true });

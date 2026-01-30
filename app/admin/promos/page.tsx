@@ -170,7 +170,7 @@ export default function PromosPage() {
                                 <Label>Type</Label>
                                 <Select
                                     value={formData.discount_type}
-                                    onValueChange={(v) => setFormData({ ...formData, discount_type: v })}
+                                    onValueChange={(v: string) => setFormData({ ...formData, discount_type: v })}
                                 >
                                     <SelectTrigger className="bg-white/5 border-white/10">
                                         <SelectValue />

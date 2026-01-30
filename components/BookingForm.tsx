@@ -471,7 +471,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
 
                                 <div className="space-y-2">
                                     <Label>Industry</Label>
-                                    <Select onValueChange={(val) => setValue('industry', val)}>
+                                    <Select onValueChange={(val: string) => setValue('industry', val)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Industry" />
                                         </SelectTrigger>

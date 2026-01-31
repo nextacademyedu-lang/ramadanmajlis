@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Calendar, MapPin, ArrowLeft, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X } from "lucide-react";
+import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X } from "lucide-react";
 import BookingForm from '@/components/BookingForm';
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 // Generate stars
 const generateStars = (count: number) =>
@@ -21,194 +22,17 @@ const generateStars = (count: number) =>
 export default function Home() {
   const [stars, setStars] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [ticketData, setTicketData] = useState({ name: '', title: '', company: '', date: '', photo: '', night: '', location: '' });
+  const router = useRouter();
 
   useEffect(() => {
-    // Check for success param
+    // Check for success param and redirect to success page
     const params = new URLSearchParams(window.location.search);
     if (params.get('status') === 'success') {
-      setShowSuccess(true);
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
-
-      // Load ticket data
-      setTicketData({
-        name: localStorage.getItem('booking_name') || 'Guest',
-        title: localStorage.getItem('booking_title') || 'Entrepreneur',
-        company: localStorage.getItem('booking_company') || '',
-        date: localStorage.getItem('booking_date') || 'Ramadan 2026',
-        photo: localStorage.getItem('booking_photo') || '',
-        night: localStorage.getItem('booking_night_title') || 'Ramadan Majlis',
-        location: localStorage.getItem('booking_location') || 'Creativa Innovation Hub',
-      });
+      router.replace('/success');
+      return;
     }
     setStars(generateStars(60));
-  }, []);
-
-  // ... (existing code) ...
-
-  const ticketUrl = useMemo(() => {
-    const params = new URLSearchParams();
-    params.set('name', ticketData.name);
-    params.set('title', ticketData.title);
-    params.set('company', ticketData.company);
-    params.set('date', ticketData.date);
-    params.set('night', ticketData.night);
-    params.set('location', ticketData.location);
-
-    if (ticketData.photo) {
-      params.set('image', ticketData.photo);
-    }
-    return `/api/og/ticket?${params.toString()}`;
-  }, [ticketData]);
-
-  // ... (inside Return) ...
-
-  {
-    showSuccess && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
-      >
-        <motion.div
-          initial={{ scale: 0.9, y: 20 }}
-          animate={{ scale: 1, y: 0 }}
-          className="bg-[#0a201b] border border-emerald-500/30 rounded-3xl p-6 md:p-8 max-w-2xl w-full text-center shadow-2xl relative overflow-hidden my-8"
-        >
-          <div className="absolute inset-0 bg-emerald-500/10 blur-[50px] pointer-events-none" />
-
-          {/* Close Button */}
-          <button
-            onClick={() => setShowSuccess(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white z-10"
-          >
-            <X size={24} />
-          </button>
-
-          {/* Success Icon */}
-          <div className="relative z-10 mb-4">
-            <div className="w-16 h-16 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-emerald-400" />
-            </div>
-          </div>
-
-          <h3 className="relative z-10 text-3xl font-bold text-white mb-2">Booking Confirmed!</h3>
-          <p className="relative z-10 text-emerald-200/70 mb-4">
-            We can&apos;t wait to see you. A confirmation email has been sent to you.
-          </p>
-
-          {/* 10% Discount Banner */}
-          <div className="relative z-10 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-xl p-3 mb-6">
-            <p className="text-amber-200 font-semibold text-sm flex items-center justify-center gap-2">
-              <Star className="w-5 h-5 text-amber-400" />
-              Share on social media to unlock <span className="text-amber-400 font-bold">10% OFF</span> your next booking!
-            </p>
-          </div>
-
-          <div className="relative z-10 flex flex-col gap-6">
-            {/* Ticket Preview */}
-            <div className="bg-[#0d2b24] border border-emerald-500/20 rounded-xl p-4">
-              <p className="text-sm text-gray-400 mb-3 font-medium">Your Ticket</p>
-              <div className="relative w-full aspect-[1] rounded-lg overflow-hidden shadow-lg border border-emerald-500/30">
-                <img
-                  src={ticketUrl}
-                  alt="Your Ticket"
-                  className="w-full h-full object-contain bg-[#0a201b]"
-                />
-              </div>
-            </div>
-
-            {/* Download Button */}
-            <a
-              href={ticketUrl}
-              download="my-ramadan-ticket.png"
-              target="_blank"
-              className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
-            >
-              Download Ticket 📥
-            </a>
-
-            {/* Share Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  // Construct absolute URL for the ticket image
-                  const params = new URLSearchParams();
-                  params.set('name', ticketData.name);
-                  params.set('title', ticketData.title);
-                  params.set('company', ticketData.company);
-                  const shareImageUrl = `${window.location.origin}/api/og/ticket?${params.toString()}`;
-
-                  window.open(
-                    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareImageUrl)}`,
-                    '_blank',
-                    'width=600,height=600'
-                  );
-                }}
-                className="flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006399] text-white py-3 rounded-xl font-semibold transition-all hover:scale-105"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                </svg>
-                LinkedIn
-              </button>
-
-              <button
-                onClick={() => {
-                  const shareUrl = `https://ramadanmajlis.nextacademyedu.com/`;
-                  window.open(
-                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                    '_blank',
-                    'width=600,height=600'
-                  );
-                }}
-                className="flex items-center justify-center gap-2 bg-[#1877f2] hover:bg-[#166fe5] text-white py-3 rounded-xl font-semibold transition-all hover:scale-105"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-                Facebook
-              </button>
-            </div>
-
-            {/* Copy Text Button */}
-            <button
-              onClick={() => {
-                const shareText = `Officially registered for Ramadan Majlis 2026! 🌙
-
-Three transformative Thursday nights with 12 world-class experts, strategic networking over premium Suhoor, and hands-on learning circles.
-
-📍 Night 1: Tolip Hotel, New Cairo | 🗓 Feb 26 – The Compass
-📍 Night 2: Pyramids Hotel, Dokki | 🗓 Mar 5 – The Resilience
-📍 Night 3: Hyatt Regency, 6th October | 🗓 Mar 12 – The Legacy
-
-Register: https://ramadanmajlis.nextacademyedu.com/
-#RamadanMajlis2026 #TheMajlis #NextAcademy`;
-                navigator.clipboard.writeText(shareText);
-                alert('✅ Text copied to clipboard!');
-              }}
-              className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all"
-            >
-              📋 Copy Share Text
-            </button>
-
-            {/* Close */}
-            <button
-              onClick={() => setShowSuccess(false)}
-              className="text-sm text-emerald-400 hover:text-white transition-colors"
-            >
-              Close
-            </button>
-          </div>
-
-        </motion.div>
-      </motion.div>
-    )
-  }
+  }, [router]);
 
   useEffect(() => {
     const targetDate = new Date('2026-03-20T00:00:00').getTime();
@@ -484,64 +308,6 @@ Register: https://ramadanmajlis.nextacademyedu.com/
       <SponsorshipSection />
       <FaqSection />
       <Footer />
-
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-[#0a201b] border border-emerald-500/30 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-emerald-500/10 blur-[50px] pointer-events-none" />
-
-              <div className="w-20 h-20 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
-                <CheckCircle className="w-10 h-10 text-emerald-400" />
-              </div>
-
-              <h3 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h3>
-              <p className="text-emerald-200/70 mb-8">We can't wait to see you. A confirmation email has been sent to you.</p>
-
-              <div className="flex flex-col items-center gap-6">
-                {/* Dynamic Ticket Preview */}
-                <div className="relative w-64 h-64 rounded-xl overflow-hidden shadow-2xl border border-emerald-500/30 group">
-                  <img
-                    src={ticketUrl}
-                    alt="Your Ticket"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-white text-sm font-bold">Preview</span>
-                  </div>
-                </div>
-
-                <div className="w-full space-y-3">
-                  <a
-                    href={ticketUrl}
-                    download={`ramadan-ticket-${ticketData.name.replace(/\s+/g, '-').toLowerCase() || 'guest'}.png`}
-                    target="_blank"
-                    className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
-                  >
-                    Download Ticket 📥
-                  </a>
-
-                  <button
-                    onClick={() => setShowSuccess(false)}
-                    className="block w-full text-sm text-emerald-400 hover:text-white transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
     </main>
   );

@@ -46,6 +46,13 @@ export default function SuccessPage() {
     const posterUrl = useMemo(() => {
         const params = new URLSearchParams();
         params.set('name', bookingData.name);
+        params.set('title', bookingData.title);
+        params.set('company', bookingData.company);
+        params.set('night', bookingData.night);
+        params.set('location', bookingData.location);
+        if (bookingData.photo) {
+            params.set('photo', bookingData.photo);
+        }
         return `/api/og/social-share?${params.toString()}`;
     }, [bookingData]);
 

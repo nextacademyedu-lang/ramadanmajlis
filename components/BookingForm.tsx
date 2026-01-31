@@ -433,7 +433,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Full Name</Label>
-                                        <Input {...register('fullName')} placeholder="John Doe" />
+                                        <Input {...register('fullName')} placeholder="John Doe" englishOnly={true} />
                                         {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
@@ -459,12 +459,12 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Job Title</Label>
-                                        <Input {...register('jobTitle')} placeholder="e.g. Senior Manager" />
+                                        <Input {...register('jobTitle')} placeholder="e.g. Senior Manager" englishOnly={true} />
                                         {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Company</Label>
-                                        <Input {...register('company')} placeholder="Company Name" />
+                                        <Input {...register('company')} placeholder="Company Name" englishOnly={true} />
                                         {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}
                                     </div>
                                 </div>

@@ -2,10 +2,23 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface InputProps
-    extends React.InputHTMLAttributes<HTMLInputElement> { }
+    extends React.InputHTMLAttributes<HTMLInputElement> {
+    englishOnly?: boolean;
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type, ...props }, ref) => {
+    ({ className, type, englishOnly = false, onChange, ...props }, ref) => {
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            if (englishOnly) {
+                // Allow only English letters, numbers, spaces, and common punctuation
+                const englishOnlyRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{}|;:'",.<>\/\\`~]*$/;
+                if (!englishOnlyRegex.test(e.target.value) && e.target.value !== '') {
+                    return; // Don't update if non-English characters
+                }
+            }
+            onChange?.(e);
+        };
+
         return (
             <input
                 type={type}
@@ -14,6 +27,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     className
                 )}
                 ref={ref}
+                onChange={handleChange}
                 {...props}
             />
         )

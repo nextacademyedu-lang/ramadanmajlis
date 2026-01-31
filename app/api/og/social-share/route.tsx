@@ -1,17 +1,19 @@
 import { ImageResponse } from '@vercel/og';
-import { MOCUP_BASE64 } from './mocup-image';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
+        const { searchParams, origin } = new URL(request.url);
         const name = searchParams.get('name') || 'Guest';
         const title = searchParams.get('title') || '';
         const company = searchParams.get('company') || '';
         const night = searchParams.get('night') || '';
         const location = searchParams.get('location') || '';
         const photo = searchParams.get('photo') || '';
+
+        // Use the mocup image from public folder via URL
+        const mocupUrl = `${origin}/mocup1.png`;
 
         return new ImageResponse(
             (
@@ -24,7 +26,7 @@ export async function GET(request: Request) {
                 }}>
                     {/* Background Image */}
                     <img
-                        src={MOCUP_BASE64}
+                        src={mocupUrl}
                         style={{
                             position: 'absolute',
                             top: 0,

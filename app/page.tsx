@@ -113,11 +113,11 @@ export default function Home() {
             {/* Ticket Preview */}
             <div className="bg-[#0d2b24] border border-emerald-500/20 rounded-xl p-4">
               <p className="text-sm text-gray-400 mb-3 font-medium">Your Ticket</p>
-              <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden shadow-lg border border-emerald-500/30">
+              <div className="relative w-full aspect-[1] rounded-lg overflow-hidden shadow-lg border border-emerald-500/30">
                 <img
                   src={ticketUrl}
                   alt="Your Ticket"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-[#0a201b]"
                 />
               </div>
             </div>
@@ -132,26 +132,19 @@ export default function Home() {
               Download Ticket 📥
             </a>
 
-            {/* Social Share Image Preview */}
-            <div className="bg-[#0d2b24] border border-emerald-500/20 rounded-xl p-4">
-              <p className="text-sm text-gray-400 mb-3 font-medium">Share This Image</p>
-              <div className="relative w-full aspect-[1200/630] rounded-lg overflow-hidden shadow-lg border border-emerald-500/30">
-                <img
-                  src={`/api/og/social-share?name=${encodeURIComponent(ticketData.name)}`}
-                  alt="Share on social media"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
             {/* Share Buttons */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => {
-                  const shareUrl = `${window.location.origin}/api/og/social-share?name=${encodeURIComponent(ticketData.name)}`;
-                  const text = `Officially registered for Ramadan Majlis 2026! 🌙%0A%0AThree transformative Thursday nights with world-class experts.%0A%0ARegister: https://ramadanmajlis.nextacademyedu.com/`;
+                  // Construct absolute URL for the ticket image
+                  const params = new URLSearchParams();
+                  params.set('name', ticketData.name);
+                  params.set('title', ticketData.title);
+                  params.set('company', ticketData.company);
+                  const shareImageUrl = `${window.location.origin}/api/og/ticket?${params.toString()}`;
+
                   window.open(
-                    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareImageUrl)}`,
                     '_blank',
                     'width=600,height=600'
                   );

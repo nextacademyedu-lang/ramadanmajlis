@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,7 +65,7 @@ const NIGHTS = [
 ];
 
 interface BookingFormProps {
-    nights?: any[];
+    nights?: any[]; // Using any[] to allow flexible night object structure
     packagePrice?: number;
 }
 
@@ -148,6 +149,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                 setPromoApplied(null);
             }
         } catch (err) {
+            console.error(err); // Log error to use the variable
             setPromoError("Failed to validate code");
         } finally {
             setPromoLoading(false);
@@ -178,8 +180,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                 .getPublicUrl(filePath);
 
             setPhotoUrl(publicUrl);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Upload failed";
+            setError(message);
         } finally {
             setUploading(false);
         }
@@ -280,8 +283,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
             // Redirect
             window.location.href = paymentUrl;
 
-        } catch (err: any) {
-            setError(err.message || "Something went wrong");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Something went wrong";
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -513,7 +517,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                     <Label>Profile Photo <span className="text-xs text-muted-foreground">(Required for Networking)</span></Label>
                                     <div className="flex items-center gap-4">
                                         {photoUrl ? (
-                                            <img src={photoUrl} alt="Profile" className="w-16 h-16 rounded-full object-cover border-2 border-primary" />
+                                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary">
+                                                <Image src={photoUrl} alt="Profile" fill className="object-cover" />
+                                            </div>
                                         ) : (
                                             <div className="w-16 h-16 rounded-full bg-white/5 border border-dashed border-white/20 flex items-center justify-center">
                                                 <Upload className="w-6 h-6 opacity-50" />
@@ -607,10 +613,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                     <Label>Payment Method</Label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div
-                                            onClick={() => setValue('paymentProvider', 'paymob_card' as any)}
+                                            onClick={() => setValue('paymentProvider', 'paymob_card')}
                                             className={cn(
                                                 "cursor-pointer rounded-lg border p-4 text-center transition-all",
-                                                paymentProvider === 'paymob_card' as any
+                                                paymentProvider === 'paymob_card'
                                                     ? "border-primary bg-primary/20 text-white"
                                                     : "border-white/10 bg-white/5 opacity-50 hover:opacity-100"
                                             )}
@@ -619,10 +625,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                             <div className="text-xs">Paymob</div>
                                         </div>
                                         <div
-                                            onClick={() => setValue('paymentProvider', 'paymob_wallet' as any)}
+                                            onClick={() => setValue('paymentProvider', 'paymob_wallet')}
                                             className={cn(
                                                 "cursor-pointer rounded-lg border p-4 text-center transition-all",
-                                                paymentProvider === 'paymob_wallet' as any
+                                                paymentProvider === 'paymob_wallet'
                                                     ? "border-primary bg-primary/20 text-white"
                                                     : "border-white/10 bg-white/5 opacity-50 hover:opacity-100"
                                             )}

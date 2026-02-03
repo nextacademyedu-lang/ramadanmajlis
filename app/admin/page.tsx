@@ -3,13 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CreditCard, QrCode, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// Init Supabase (Client Side)
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+ 
 
 export default function AdminOverview() {
     const [stats, setStats] = useState({
@@ -18,7 +12,7 @@ export default function AdminOverview() {
         totalCheckins: 0,
         avgOrderValue: 0
     });
-    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchStats();
@@ -26,27 +20,19 @@ export default function AdminOverview() {
 
     const fetchStats = async () => {
         try {
-            const { data: bookings, error } = await supabase
-                .from('bookings')
-                .select('total_amount, payment_status, ticket_count')
-                .eq('payment_status', 'paid');
-
-            if (error) throw error;
-
-            const totalRevenue = bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
-            const totalBookings = bookings.length;
-            const avgOrderValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
-
+            setError(null);
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to load stats");
             setStats({
-                totalRevenue,
-                totalBookings,
-                totalCheckins: 0, // Need to implement check-in flag later
-                avgOrderValue
+                totalRevenue: data.totalRevenue || 0,
+                totalBookings: data.totalBookings || 0,
+                totalCheckins: data.totalCheckins || 0,
+                avgOrderValue: data.avgOrderValue || 0
             });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to load stats";
+            setError(message);
         }
     };
 
@@ -56,6 +42,11 @@ export default function AdminOverview() {
                 <h1 className="text-3xl font-bold">Dashboard Overview</h1>
                 <div className="text-sm text-gray-400">Live Updates</div>
             </div>
+            {error && (
+                <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm">
+                    {error}
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -107,7 +98,14 @@ export default function AdminOverview() {
     );
 }
 
-function StatsCard({ title, value, icon: Icon, trend }: any) {
+type StatsCardProps = {
+    title: string;
+    value: string;
+    icon: React.ComponentType<{ size?: number }>;
+    trend?: string;
+};
+
+function StatsCard({ title, value, icon: Icon, trend }: StatsCardProps) {
     return (
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardContent className="p-6">

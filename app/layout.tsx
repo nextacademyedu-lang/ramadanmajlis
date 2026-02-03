@@ -5,6 +5,7 @@ import './globals.css';
 const outfit = Outfit({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.ramadanmajlis.nextacademyedu.com'),
   title: 'Ramadan Majlis 2026',
   description: 'Ramadan Majlis for Entrepreneurs - An exceptional experience combining spirituality and growth',
   icons: {

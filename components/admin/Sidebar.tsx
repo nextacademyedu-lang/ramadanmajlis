@@ -8,17 +8,17 @@ import {
     Tags,
     Factory,
     QrCode,
-    Settings,
+    Mic,
     LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 
 const menuItems = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Bookings', href: '/admin/bookings', icon: Users },
     { name: 'Promo Codes', href: '/admin/promos', icon: Tags },
     { name: 'Industries', href: '/admin/industries', icon: Factory },
+    { name: 'Speakers', href: '/admin/speakers', icon: Mic },
     { name: 'Scanner', href: '/admin/scan', icon: QrCode },
 ];
 
@@ -29,7 +29,7 @@ export function AdminSidebar() {
         <div className="w-64 border-r border-white/10 bg-black/60 backdrop-blur-xl h-screen fixed left-0 top-0 flex flex-col z-50">
             {/* Header */}
             <div className="p-6 border-b border-white/10">
-                <div className="text-xl font-bold bg-gradient-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
+                <div className="text-xl font-bold bg-linear-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
                     Ramadan Nights
                 </div>
                 <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Admin Control</div>

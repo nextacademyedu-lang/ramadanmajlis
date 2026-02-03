@@ -26,13 +26,15 @@ export async function POST(request: Request) {
 
             // 2. Register Order
             console.log('[Paymob] Step 2: Registering Order...');
+            const amountCents = Math.round(amount * 100);
+            
             const orderResponse = await fetch('https://accept.paymob.com/api/ecommerce/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     auth_token: token,
                     delivery_needed: "false",
-                    amount_cents: amount * 100,
+                    amount_cents: amountCents,
                     currency: "EGP",
                     items: [],
                     merchant_order_id: bookingId
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
 
             if (!orderData.id) {
                 console.error('[Paymob] Order Failed:', JSON.stringify(orderData));
-                throw new Error(`Paymob Order Failed: ${orderData.detail || 'check logs'}`);
+                throw new Error(`Paymob Order Failed: ${JSON.stringify(orderData)}`);
             }
             const orderId = orderData.id;
             console.log(`[Paymob] Order Registered: ${orderId}`);
@@ -55,6 +57,9 @@ export async function POST(request: Request) {
 
             // Ensure it's a number (Env vars are strings)
             const integrationIdInt = parseInt(integrationId || '0', 10);
+            if (!integrationIdInt || integrationIdInt === 0) {
+                 throw new Error(`Invalid Paymob Integration ID: ${integrationId}`);
+            }
 
             console.log(`[Paymob] Step 3: Key Request (Order: ${orderId}, Integration: ${integrationIdInt})`);
 
@@ -63,7 +68,7 @@ export async function POST(request: Request) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     auth_token: token,
-                    amount_cents: amount * 100,
+                    amount_cents: amountCents,
                     expiration: 3600,
                     order_id: orderId,
                     billing_data: {
@@ -89,7 +94,7 @@ export async function POST(request: Request) {
 
             if (!keyData.token) {
                 console.error("[Paymob] Key Request Failed:", JSON.stringify(keyData));
-                throw new Error(`Paymob Key Failed: ${keyData.detail || 'check logs'}`);
+                throw new Error(`Paymob Key Failed: ${JSON.stringify(keyData)}`);
             }
             console.log('[Paymob] Key Generated Successfully');
 

@@ -27,11 +27,17 @@ import { INDUSTRIES } from '@/types';
 // Validation Schema
 const formSchema = z.object({
     ticketType: z.enum(['single', 'package']),
-    fullName: z.string().min(2, "Name is too short"),
+    fullName: z.string()
+        .min(2, "Name is too short")
+        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
     email: z.string().email("Invalid email"),
     phone: z.string().min(10, "Invalid phone number"),
-    jobTitle: z.string().min(2, "Required"),
-    company: z.string().min(2, "Required"),
+    jobTitle: z.string()
+        .min(2, "Required")
+        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
+    company: z.string()
+        .min(2, "Required")
+        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
     linkedin: z.string().url("Must be a valid URL").refine(
         (val) => val.includes("linkedin.com"),
         "Must be a LinkedIn URL"

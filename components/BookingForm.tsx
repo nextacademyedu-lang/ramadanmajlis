@@ -38,7 +38,7 @@ const formSchema = z.object({
     ),
     industry: z.string().min(1, "Please select an industry"),
     selectedNights: z.array(z.string()).optional(),
-    paymentProvider: z.enum(['paymob_card', 'paymob_wallet', 'easykash']),
+    paymentProvider: z.enum(['paymob_card', 'paymob_wallet']),
 }).refine(data => {
     if (data.ticketType === 'single' && (!data.selectedNights || data.selectedNights.length === 0)) {
         return false;
@@ -581,7 +581,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
 
                                 <div className="space-y-3">
                                     <Label>Payment Method</Label>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div
                                             onClick={() => setValue('paymentProvider', 'paymob_card' as any)}
                                             className={cn(
@@ -605,18 +605,6 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         >
                                             <div className="font-bold">Wallet</div>
                                             <div className="text-xs">Vodafone/Etisalat</div>
-                                        </div>
-                                        <div
-                                            onClick={() => setValue('paymentProvider', 'easykash')}
-                                            className={cn(
-                                                "cursor-pointer rounded-lg border p-4 text-center transition-all",
-                                                paymentProvider === 'easykash'
-                                                    ? "border-accent bg-accent/20 text-white"
-                                                    : "border-white/10 bg-white/5 opacity-50 hover:opacity-100"
-                                            )}
-                                        >
-                                            <div className="font-bold">EasyKash</div>
-                                            <div className="text-xs">Fast Checkout</div>
                                         </div>
                                     </div>
                                 </div>

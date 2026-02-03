@@ -128,40 +128,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ paymentUrl });
         }
 
-        // --- EASYKASH INTEGRATION ---
-        else if (provider === 'easykash') {
-            const payload = {
-                amount: amount,
-                currency: "EGP",
-                name: customer.first_name + ' ' + customer.last_name,
-                email: customer.email,
-                mobile: customer.phone,
-                redirectUrl: `${request.headers.get('origin')}/?status=success`,
-                // EasyKash crashes if this is a UUID string. It expects a Number.
-                // Using timestamp as a temporary unique number.
-                customerReference: Date.now()
-            };
-
-            const res = await fetch("https://back.easykash.net/api/directpayv1/pay", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "authorization": (process.env.EASYKASH_API_KEY || '').trim() // Trim to avoid spaces
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-
-            // EasyKash might return just { redirectUrl: ... } without status 'success'
-            if (data.url || data.redirectUrl) {
-                return NextResponse.json({ paymentUrl: data.url || data.redirectUrl });
-            } else {
-                console.error("EasyKash Error:", data);
-                return NextResponse.json({ error: JSON.stringify(data) }, { status: 400 });
-            }
-        }
-
         else {
             return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
         }

@@ -17,7 +17,7 @@ export interface Booking {
     selected_nights: string[];
     ticket_count: number;
     total_amount: number;
-    payment_provider: 'paymob' | 'easykash';
+    payment_provider: 'paymob';
     payment_status: 'pending' | 'paid';
     status: 'pending' | 'confirmed' | 'cancelled';
     profile_image_url?: string; // New

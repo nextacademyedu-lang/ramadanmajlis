@@ -233,7 +233,7 @@ export default function SpeakersPage() {
                             <Label>Night</Label>
                             <Select
                                 value={formData.night_id || "none"}
-                                onValueChange={(val) => setFormData({ ...formData, night_id: val === "none" ? "" : val })}
+                                onValueChange={(val: string) => setFormData({ ...formData, night_id: val === "none" ? "" : val })}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Assign to a night" />

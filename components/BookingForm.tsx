@@ -287,6 +287,15 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
         }
     };
 
+    // Helper to allow only English characters
+    const handleEnglishInput = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+        const value = e.target.value;
+        // Allow English letters, numbers, spaces, and basic punctuation
+        if (/^[a-zA-Z0-9\s\.,'-]*$/.test(value) || value === '') {
+            field.onChange(e);
+        }
+    };
+
     const nextStep = async () => {
         let valid = false;
         if (step === 1) {
@@ -439,7 +448,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Full Name</Label>
-                                        <Input {...register('fullName')} placeholder="John Doe" englishOnly={true} />
+                                        <Input
+                                            {...register('fullName')}
+                                            onChange={(e) => handleEnglishInput(e, register('fullName'))}
+                                            placeholder="John Doe"
+                                        />
                                         {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
@@ -465,19 +478,32 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Job Title</Label>
-                                        <Input {...register('jobTitle')} placeholder="e.g. Senior Manager" englishOnly={true} />
+                                        <Input
+                                            {...register('jobTitle')}
+                                            onChange={(e) => handleEnglishInput(e, register('jobTitle'))}
+                                            placeholder="e.g. Senior Manager"
+                                        />
                                         {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Company</Label>
-                                        <Input {...register('company')} placeholder="Company Name" englishOnly={true} />
+                                        <Input
+                                            {...register('company')}
+                                            onChange={(e) => handleEnglishInput(e, register('company'))}
+                                            placeholder="Company Name"
+                                        />
                                         {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label>Industry</Label>
-                                    <Select onValueChange={(val: string) => setValue('industry', val)}>
+                                    <Select 
+                                        value={watch('industry')} 
+                                        onValueChange={(val: string) => {
+                                            setValue('industry', val, { shouldValidate: true });
+                                        }}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Industry" />
                                         </SelectTrigger>

@@ -61,6 +61,32 @@ export default function BookingsPage() {
         }
     };
 
+    const updateBookingStatus = async (bookingId: string, status: 'paid' | 'pending') => {
+        if (!confirm(`Are you sure you want to mark this booking as ${status.toUpperCase()}?`)) return;
+
+        try {
+            const res = await fetch('/api/admin/bookings/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId, status })
+            });
+
+            if (res.ok) {
+                // Optimistic update
+                setBookings(bookings.map(b => 
+                    b.id === bookingId 
+                        ? { ...b, payment_status: status, status: status === 'paid' ? 'confirmed' : 'pending' } 
+                        : b
+                ));
+            } else {
+                alert("Failed to update status");
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Error updating status");
+        }
+    };
+
     // Client-side filtering for simplicity (or move to DB if large dataset)
     const filteredBookings = bookings.filter(b => {
         const matchesSearch =
@@ -179,6 +205,12 @@ export default function BookingsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="bg-black border-white/20 text-white">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        className="hover:bg-white/10 cursor-pointer"
+                                                        onClick={() => updateBookingStatus(booking.id, 'paid')}
+                                                    >
+                                                        Mark as Paid
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         className="hover:bg-white/10 cursor-pointer"
                                                         onClick={() => navigator.clipboard.writeText(booking.id)}

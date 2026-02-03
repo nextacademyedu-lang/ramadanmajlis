@@ -1,0 +1,52 @@
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+
+// Init Supabase Admin
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+        auth: {
+            persistSession: false
+        }
+    }
+);
+
+export async function POST(req: NextRequest) {
+    try {
+        // 1. Check Admin Auth
+        const cookieStore = await cookies();
+        const adminSession = cookieStore.get('admin_session');
+        if (!adminSession && process.env.NODE_ENV === 'production') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { bookingId, status } = await req.json();
+
+        if (!bookingId || !status) {
+            return NextResponse.json({ error: 'Missing bookingId or status' }, { status: 400 });
+        }
+
+        // 2. Update Booking
+        const { error } = await supabaseAdmin
+            .from('bookings')
+            .update({
+                payment_status: status === 'paid' ? 'paid' : 'pending',
+                status: status === 'paid' ? 'confirmed' : 'pending',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', bookingId);
+
+        if (error) {
+            console.error("Update Error:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (err: any) {
+        console.error("Mark Paid API Error:", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}

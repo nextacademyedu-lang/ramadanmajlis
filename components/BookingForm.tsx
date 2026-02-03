@@ -448,7 +448,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Email</Label>
-                                        <Input {...register('email')} placeholder="john@example.com" />
+                                        <Input {...register('email')} englishOnly={true} placeholder="john@example.com" />
                                         {errors.email && <p className="text-red-400 text-xs">{errors.email.message}</p>}
                                     </div>
                                 </div>
@@ -461,7 +461,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                     </div>
                                     <div className="space-y-2">
                                         <Label>LinkedIn URL</Label>
-                                        <Input {...register('linkedin')} placeholder="https://linkedin.com/in/..." />
+                                        <Input {...register('linkedin')} englishOnly={true} placeholder="https://linkedin.com/in/..." />
                                         {errors.linkedin && <p className="text-red-400 text-xs">{errors.linkedin.message}</p>}
                                     </div>
                                 </div>
@@ -577,6 +577,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                             <Input
                                                 value={promoCode}
                                                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                englishOnly={true}
                                                 placeholder="ENTER CODE"
                                                 disabled={!!promoApplied || promoLoading}
                                                 className={cn(

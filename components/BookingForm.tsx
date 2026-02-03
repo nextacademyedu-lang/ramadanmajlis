@@ -287,15 +287,6 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
         }
     };
 
-    // Helper to allow only English characters
-    const handleEnglishInput = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
-        const value = e.target.value;
-        // Allow English letters, numbers, spaces, and basic punctuation
-        if (/^[a-zA-Z0-9\s\.,'-]*$/.test(value) || value === '') {
-            field.onChange(e);
-        }
-    };
-
     const nextStep = async () => {
         let valid = false;
         if (step === 1) {
@@ -450,7 +441,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         <Label>Full Name</Label>
                                         <Input
                                             {...register('fullName')}
-                                            onChange={(e) => handleEnglishInput(e, register('fullName'))}
+                                            englishOnly={true}
                                             placeholder="John Doe"
                                         />
                                         {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
@@ -480,7 +471,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         <Label>Job Title</Label>
                                         <Input
                                             {...register('jobTitle')}
-                                            onChange={(e) => handleEnglishInput(e, register('jobTitle'))}
+                                            englishOnly={true}
                                             placeholder="e.g. Senior Manager"
                                         />
                                         {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
@@ -489,7 +480,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         <Label>Company</Label>
                                         <Input
                                             {...register('company')}
-                                            onChange={(e) => handleEnglishInput(e, register('company'))}
+                                            englishOnly={true}
                                             placeholder="Company Name"
                                         />
                                         {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}

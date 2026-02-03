@@ -10,12 +10,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className, type, englishOnly = false, onChange, ...props }, ref) => {
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             if (englishOnly) {
-                // Allow only English letters, numbers, spaces, and common punctuation
-                const englishOnlyRegex = /^[a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{}|;:'",.<>\/\\`~]*$/;
-                if (!englishOnlyRegex.test(e.target.value) && e.target.value !== '') {
-                    return; // Don't update if non-English characters
+                // Remove any non-English characters immediately
+                const originalValue = e.target.value;
+                // Keep only English letters, numbers, spaces, and basic symbols
+                const sanitizedValue = originalValue.replace(/[^a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{}|;:'",.<>\/\\`~]/g, '');
+                
+                if (originalValue !== sanitizedValue) {
+                    e.target.value = sanitizedValue;
                 }
             }
+            // Always call the original onChange (from react-hook-form or parent)
             onChange?.(e);
         };
 

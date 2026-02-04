@@ -10,6 +10,8 @@ const supabaseAdmin = createClient(
 export async function POST(request: Request) {
     try {
         const data = await request.json();
+        console.log('🔔 Webhook Received:', JSON.stringify(data, null, 2));
+
         const { type, obj, success, paid, transaction } = data; // Payload structure varies by provider
 
         let bookingId = '';
@@ -17,9 +19,10 @@ export async function POST(request: Request) {
         let provider = '';
 
         // --- PAYMOB WEBHOOK LOGIC ---
-        if (obj && obj.order) {
+        if (obj) {
             provider = 'paymob';
-            bookingId = obj.merchant_order_id; // We sent bookingId here
+            // Check both locations for merchant_order_id to be safe
+            bookingId = obj.merchant_order_id || (obj.order && obj.order.merchant_order_id);
             isSuccess = obj.success === true;
         }
 

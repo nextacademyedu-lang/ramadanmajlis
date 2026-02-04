@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X } from "lucide-react";
 import BookingForm from '@/components/BookingForm';
@@ -56,7 +55,6 @@ export default function Home() {
   };
 
   const [nights, setNights] = useState<any[]>([]);
-  const [speakers, setSpeakers] = useState<any[]>([]);
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -67,11 +65,6 @@ export default function Home() {
         const { data: nightsData, error: nightsError } = await supabase.from('event_nights').select('*').order('date', { ascending: true });
         if (nightsError) throw nightsError;
         if (nightsData) setNights(nightsData);
-
-        // Fetch Speakers
-        const { data: speakersData, error: speakersError } = await supabase.from('speakers').select('*').order('display_order', { ascending: true });
-        if (speakersError) console.error("Speakers Error:", speakersError);
-        if (speakersData) setSpeakers(speakersData);
 
         // Fetch Event Config (Package Price)
         const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'ramadan-nights-2026').single();
@@ -168,18 +161,18 @@ export default function Home() {
 
             <p className="text-lg text-emerald-100/70 leading-relaxed max-w-xl mx-auto lg:mx-0">
               Join us for an exceptional experience combining the spirituality of the Holy Month with the ambition of future leaders.
-              <span className="text-amber-300 font-semibold mx-1">Taraweeh, Networking & Suhoor</span>
+              <span className="text-amber-300 font-semibold mx-1">and Networking</span>
               in a luxurious atmosphere worthy of you.
             </p>
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-emerald-200/60">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <Calendar size={16} className="text-amber-400" />
-                <span>Feb 26 - March 12, 2026</span>
+                <span>20 - 25 March 2026</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <MapPin size={16} className="text-emerald-400" />
-                <span>New Cairo, 6th of Oct, Dokki</span>
+                <span>Creativa Innovation Hub, Giza</span>
               </div>
             </div>
 
@@ -228,30 +221,6 @@ export default function Home() {
                 <h4 className="text-2xl font-bold text-white mb-2">{night.title}</h4>
                 <p className="text-emerald-100/60 font-medium mb-4 text-sm uppercase">{night.subtitle}</p>
                 <p className="text-emerald-100/80 text-sm leading-relaxed">{night.description}</p>
-                
-                {speakers.some(s => s.night_id === night.id) && (
-                  <div className="mt-4 mb-2">
-                    <p className="text-[10px] text-emerald-200/40 uppercase tracking-widest mb-2">Expert Panel</p>
-                    <div className="flex -space-x-3 overflow-hidden py-1 pl-1">
-                      {speakers.filter(s => s.night_id === night.id).map((s, i) => (
-                        <div key={i} className="relative group/tooltip cursor-help">
-                          <div className="relative inline-block h-10 w-10 rounded-full ring-2 ring-[#0a352a] overflow-hidden hover:scale-110 transition-transform">
-                            <Image 
-                              src={s.image_url} 
-                              alt={s.name} 
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover/tooltip:opacity-100 whitespace-nowrap pointer-events-none transition-opacity z-50">
-                            {s.name}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
                   <span className="text-white font-bold">{night.price} {night.currency}</span>
                   <span className="text-xs text-white/50">{night.capacity} Seats</span>
@@ -296,10 +265,26 @@ export default function Home() {
             animate={{ x: ["0%", "-50%"] }}
             transition={{ ease: "linear", duration: 40, repeat: Infinity }}
           >
-            {(speakers.length > 0 ? [...speakers, ...speakers] : []).map((speaker, idx) => (
+            {[
+              { name: "Abdelrahman Kandil", title: "Founder Next Academy", img: "/speakers/abdelrahman_kandil.jpeg" },
+              { name: "Kareem Turky", title: "CEO fulfly", img: "/speakers/karim_turky.jpeg" },
+              { name: "Khaled Abo Husienn", title: "Wellness Coach", img: "/speakers/khaled_abo_husienn.jpg" },
+              { name: "Salah Khalil", title: "Sales Leader", img: "/speakers/Salah_Khalil.jpg" },
+              { name: "Ahmed Hesham", title: "CEO moraqmen", img: "/speakers/Ahmed_Hesham_AL_Tablawy.jpg" },
+              { name: "Ayman Elsherbiny", title: "Founder STJEgypt", img: "/speakers/Ayman_Elsherbiny.jpg" },
+              { name: "Mohamed Abuelela", title: "Co-Founder AM ALTA MODA", img: "/speakers/Mohamed_Abuelela.png" },
+            ].concat([
+              { name: "Abdelrahman Kandil", title: "Founder Next Academy", img: "/speakers/abdelrahman_kandil.jpeg" },
+              { name: "Kareem Turky", title: "CEO fulfly", img: "/speakers/karim_turky.jpeg" },
+              { name: "Khaled Abo Husienn", title: "Wellness Coach", img: "/speakers/khaled_abo_husienn.jpg" },
+              { name: "Salah Khalil", title: "Sales Leader", img: "/speakers/Salah_Khalil.jpg" },
+              { name: "Ahmed Hesham", title: "CEO moraqmen", img: "/speakers/Ahmed_Hesham_AL_Tablawy.jpg" },
+              { name: "Ayman Elsherbiny", title: "Founder STJEgypt", img: "/speakers/Ayman_Elsherbiny.jpg" },
+              { name: "Mohamed Abuelela", title: "Co-Founder AM ALTA MODA", img: "/speakers/Mohamed_Abuelela.png" },
+            ]).map((speaker, idx) => (
               <div key={idx} className="w-[200px] text-center flex-shrink-0">
-                <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-emerald-500/20 mb-4 bg-emerald-900/20">
-                  <Image src={speaker.image_url || speaker.img} alt={speaker.name} fill className="object-cover" />
+                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-emerald-500/20 mb-4 bg-emerald-900/20">
+                  <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-white font-bold">{speaker.name}</h3>
                 <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
@@ -314,54 +299,17 @@ export default function Home() {
         <div className="container mx-auto px-4 max-w-7xl text-center">
           <p className="text-emerald-200/40 text-sm uppercase tracking-widest mb-10">Our Partners</p>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-            <Image src="/Eventocity.png" alt="Eventocity" width={200} height={100} className="h-16 md:h-20 w-auto object-contain" />
-            <Image src="/ex.png" alt="Experience" width={200} height={100} className="h-16 md:h-20 w-auto object-contain" />
+            <img src="/Eventocity.png" alt="Eventocity" className="h-16 md:h-20 w-auto object-contain" />
+            <img src="/ex.png" alt="Experience" className="h-16 md:h-20 w-auto object-contain" />
           </div>
         </div>
       </section>
 
-      <AgendaSection />
       <SponsorshipSection />
       <FaqSection />
       <Footer />
 
     </main>
-  );
-}
-
-function AgendaSection() {
-  const schedule = [
-    { time: "09:00 PM – 09:30 PM", title: "Executive Reception", desc: "Guest arrival, premium Arabic coffee & dates, ambient music, and registration" },
-    { time: "09:30 PM – 11:30 PM", title: "The Power Panel", desc: "Moderated discussion with four industry experts focused on the night’s theme" },
-    { time: "11:30 PM – 12:30 AM", title: "Learning Circles", desc: "Hands-on, expert-led activities to transition from theory to practice" },
-    { time: "12:30 AM – Onwards", title: "Strategic Networking & Suhoor", desc: "Premium Suhoor experience with curated networking activities (The Opportunity Exchange)" }
-  ];
-
-  return (
-    <section className="py-24 relative overflow-hidden border-t border-emerald-500/10">
-      <div className="container mx-auto px-4 max-w-4xl relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Evening Program</h2>
-          <p className="text-emerald-200/60">A perfectly timed schedule for maximum impact</p>
-        </div>
-
-        <div className="space-y-6">
-          {schedule.map((item, idx) => (
-            <div key={idx} className="flex flex-col md:flex-row gap-6 p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-              <div className="min-w-[180px] flex items-center">
-                <div className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold whitespace-nowrap text-sm">
-                  {item.time}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-emerald-100/70">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -377,7 +325,7 @@ function SponsorshipSection() {
       id: 'platinum',
       name: "Platinum",
       price: "50,000",
-      tickets: "10 Tickets",
+      tickets: "10 تذاكر",
       color: "from-slate-200 via-slate-100 to-slate-300",
       borderColor: "border-slate-300",
       icon: Crown,

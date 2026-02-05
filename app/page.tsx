@@ -36,7 +36,9 @@ export default function Home() {
   }, [router]);
 
   useEffect(() => {
-    const targetDate = new Date('2026-03-20T00:00:00').getTime();
+    if (!eventConfig?.start_date) return;
+    
+    const targetDate = new Date(eventConfig.start_date).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const difference = targetDate - now;
@@ -49,7 +51,7 @@ export default function Home() {
       setTimeLeft({ days: d > 0 ? d : 0, hours: h > 0 ? h : 0, minutes: m > 0 ? m : 0, seconds: s > 0 ? s : 0 });
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [eventConfig]);
 
   const scrollToBooking = () => {
     document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });

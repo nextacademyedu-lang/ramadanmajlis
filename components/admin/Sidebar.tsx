@@ -61,7 +61,7 @@ export function AdminSidebar() {
                 <div className="p-6 border-b border-white/10 flex items-center justify-between">
                     <div>
                         <div className="text-xl font-bold bg-gradient-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
-                            Ramadan Nights
+                            Ramadan Majlis
                         </div>
                         <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider">Admin Control</div>
                     </div>

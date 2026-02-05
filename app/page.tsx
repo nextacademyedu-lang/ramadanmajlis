@@ -35,6 +35,19 @@ export default function Home() {
     setStars(generateStars(60));
   }, [router]);
 
+
+
+  const scrollToBooking = () => {
+    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const [nights, setNights] = useState<any[]>([]);
+  const [industries, setIndustries] = useState<string[]>([]);
+  const [speakers, setSpeakers] = useState<any[]>([]); 
+  const [eventConfig, setEventConfig] = useState<any>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [activeNight, setActiveNight] = useState<any>(null);
+
   useEffect(() => {
     if (!eventConfig?.start_date) return;
     
@@ -52,17 +65,6 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(interval);
   }, [eventConfig]);
-
-  const scrollToBooking = () => {
-    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const [nights, setNights] = useState<any[]>([]);
-  const [industries, setIndustries] = useState<string[]>([]);
-  const [speakers, setSpeakers] = useState<any[]>([]); 
-  const [eventConfig, setEventConfig] = useState<any>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeNight, setActiveNight] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {

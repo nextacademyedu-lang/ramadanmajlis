@@ -42,6 +42,22 @@ export async function POST(request: Request) {
         if (bookingId && isSuccess) {
             console.log(`✅ Payment Success for Booking: ${bookingId}, Provider: ${provider}`);
 
+            // Verify if booking exists and is already paid (Idempotency)
+            const { data: existingBooking } = await supabaseAdmin
+                .from('bookings')
+                .select('*')
+                .eq('id', bookingId)
+                .single();
+
+            if (existingBooking && existingBooking.status === 'confirmed') {
+                console.log(`⚠️ Booking ${bookingId} already confirmed, skipping webhook processing.`);
+                return NextResponse.json({ 
+                    received: true, 
+                    status: 'already_processed',
+                    message: 'Booking already confirmed' 
+                });
+            }
+
             // Generate unique QR code for this booking
             const qrCode = crypto.randomUUID();
 

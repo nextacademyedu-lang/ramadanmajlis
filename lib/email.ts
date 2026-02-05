@@ -16,6 +16,7 @@ interface BookingData {
     industry: string;
     selected_nights: string[];
     total_amount: number;
+    profile_image_url?: string;
 }
 
 interface TicketData {
@@ -33,6 +34,18 @@ export async function sendWelcomeEmail(booking: BookingData) {
         .join('\n');
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
+
+    const params = new URLSearchParams({
+        name: booking.customer_name,
+        title: booking.job_title,
+        company: booking.company || '',
+        industry: booking.industry,
+        photo: booking.profile_image_url || ''
+    });
+    const socialImageUrl = `${appUrl}/api/og/social-share?${params.toString()}`;
+
+    const shareCaption = `Officially registered for Ramadan Majlis 2026! 🌙 %0A%0AThree transformative Thursday nights with 12 world-class experts. %0A%0AJoin me: ${appUrl} %0A%0A#ThaMajlis #RamadanNights2026`;
+    const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareCaption}`;
 
     const { data, error } = await resend.emails.send({
         from: 'Tha Majlis <noreply@ramadanmajlis.nextacademyedu.com>',
@@ -92,10 +105,10 @@ export async function sendWelcomeEmail(booking: BookingData) {
                 <h3 style="color: #f59e0b; margin: 0 0 10px;">📣 Share the News!</h3>
                 <p style="margin: 0; font-size: 14px; color: #d1fae5;">Let your network know you are attending Tha Majlis.</p>
                 <div style="margin: 20px 0;">
-                    <img src="${appUrl}/mocup1.png" alt="I'm Attending Tha Majlis" width="100%" style="border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);" />
+                    <img src="${socialImageUrl}" alt="I'm Attending Tha Majlis" width="100%" style="border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);" />
                 </div>
                 <p style="font-style: italic; color: #9ca3af; font-size: 13px;">"I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business."</p>
-                <a href="https://linkedin.com" class="share-btn">Share on LinkedIn</a>
+                <a href="${linkedinUrl}" target="_blank" class="share-btn">Share on LinkedIn</a>
             </div>
             
             <p style="text-align: center; margin-top: 30px; color: #d1fae5;">

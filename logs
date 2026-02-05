@@ -1,0 +1,165 @@
+2026-02-05T00:02:59.000000000Z [inf]  Starting Container
+2026-02-05T00:03:00.706075511Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:00.706078481Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:00.706081241Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:00.893276708Z [inf]  
+2026-02-05T00:03:00.893673638Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:00.893678098Z [err]  
+2026-02-05T00:03:00.893681248Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:00.913024118Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:00.922246940Z [err]  npm notice
+2026-02-05T00:03:00.922251790Z [err]  npm notice New major version of npm available! 10.8.2 -> 11.9.0
+2026-02-05T00:03:00.922254960Z [err]  npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.9.0
+2026-02-05T00:03:00.922257590Z [err]  npm notice To update run: npm install -g npm@11.9.0
+2026-02-05T00:03:00.922260860Z [err]  npm notice
+2026-02-05T00:03:00.926340257Z [inf]  Migration failed
+2026-02-05T00:03:01.280557182Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:01.280567312Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:01.374395654Z [inf]  
+2026-02-05T00:03:01.374399944Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:01.374404384Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:01.374407554Z [inf]  
+2026-02-05T00:03:01.924283631Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:01.924287341Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:01.924290891Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:01.982335622Z [inf]  
+2026-02-05T00:03:01.982339982Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:01.982342722Z [err]  
+2026-02-05T00:03:01.982346272Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:02.001361564Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:02.011368413Z [inf]  Migration failed
+2026-02-05T00:03:02.645493881Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:02.645496961Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:02.744016319Z [inf]  
+2026-02-05T00:03:02.744021069Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:02.744027269Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:02.744031839Z [inf]  
+2026-02-05T00:03:03.295379541Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:03.295384641Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:03.295387791Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:03.409600291Z [err]  
+2026-02-05T00:03:03.409606301Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:03.409660101Z [inf]  
+2026-02-05T00:03:03.409663061Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:03.417552137Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:03.432382960Z [inf]  Migration failed
+2026-02-05T00:03:03.824545169Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:03.824550039Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:03.931716351Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:03.931725711Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:03.931731421Z [inf]  
+2026-02-05T00:03:03.931766891Z [inf]  
+2026-02-05T00:03:04.404450563Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:04.404455753Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:04.408614621Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:04.464549099Z [inf]  
+2026-02-05T00:03:04.464552409Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:04.464555149Z [err]  
+2026-02-05T00:03:04.464557509Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:04.481770597Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:04.491809666Z [inf]  Migration failed
+2026-02-05T00:03:04.859989168Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:04.859993378Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:04.938291888Z [inf]  
+2026-02-05T00:03:04.938302388Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:04.938307918Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:04.938313798Z [inf]  
+2026-02-05T00:03:05.434293719Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:05.434303339Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:05.437429279Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:05.637003028Z [inf]  
+2026-02-05T00:03:05.637756435Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:05.637760945Z [err]  
+2026-02-05T00:03:05.637763735Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:05.656969537Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:05.667848384Z [inf]  Migration failed
+2026-02-05T00:03:06.274754844Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:06.274757744Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:06.375900375Z [inf]  
+2026-02-05T00:03:06.375904215Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:06.375907075Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:06.375909794Z [inf]  
+2026-02-05T00:03:06.886009792Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:06.886534330Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:06.896423510Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:06.934594554Z [inf]  
+2026-02-05T00:03:06.935034612Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:06.935038282Z [err]  
+2026-02-05T00:03:06.935041982Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:06.950540795Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:06.960973913Z [inf]  Migration failed
+2026-02-05T00:03:07.371340646Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:07.371344776Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:07.460448873Z [inf]  
+2026-02-05T00:03:07.460453243Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:07.460456723Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:07.460459793Z [inf]  
+2026-02-05T00:03:07.985284225Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:07.985287525Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:07.985290215Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:08.200767325Z [inf]  
+2026-02-05T00:03:08.200770895Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:08.200773365Z [err]  
+2026-02-05T00:03:08.200775855Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:08.220623744Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:08.230727053Z [inf]  Migration failed
+2026-02-05T00:03:08.623426771Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:08.623429021Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:08.704728401Z [inf]  
+2026-02-05T00:03:08.704745581Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:08.704748711Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:08.704751851Z [inf]  
+2026-02-05T00:03:09.208879637Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:09.208885657Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:09.208889527Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:09.248266956Z [inf]  
+2026-02-05T00:03:09.248270656Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:09.248274006Z [err]  
+2026-02-05T00:03:09.248277726Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:09.262713092Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:09.272411993Z [inf]  Migration failed
+2026-02-05T00:03:09.611998632Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:09.612001522Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:09.723798110Z [inf]  
+2026-02-05T00:03:09.723803520Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:09.723807900Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:09.723813130Z [inf]  
+2026-02-05T00:03:10.215240815Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:10.215243515Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:10.225016925Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:10.415719911Z [inf]  
+2026-02-05T00:03:10.415723291Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:10.415726541Z [err]  
+2026-02-05T00:03:10.415730751Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:10.429617768Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:10.439510217Z [inf]  Migration failed
+2026-02-05T00:03:10.932921966Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:10.932927956Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:10.953330144Z [inf]  
+2026-02-05T00:03:10.953332954Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:10.953336304Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:10.953340104Z [inf]  
+2026-02-05T00:03:11.464528238Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:11.469122044Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:11.474088679Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:11.540616865Z [inf]  
+2026-02-05T00:03:11.541066104Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:11.541070044Z [err]  
+2026-02-05T00:03:11.541072504Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:11.561304141Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:11.566636366Z [inf]  Migration failed
+2026-02-05T00:03:11.948984025Z [inf]  Deploying migrations for postgresql
+2026-02-05T00:03:11.948989565Z [inf]  Database URL: postgresql://postgres:tmnwTGPfblVxyqTVCPuLhncayANeMLPj@postgres.railway.internal:5432/railway
+2026-02-05T00:03:12.022341470Z [inf]  
+2026-02-05T00:03:12.022345360Z [inf]  > evolution-api@2.2.0 db:deploy
+2026-02-05T00:03:12.022349150Z [inf]  > node runWithProvider.js "rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/DATABASE_PROVIDER-schema.prisma"
+2026-02-05T00:03:12.022351780Z [inf]  
+2026-02-05T00:03:12.525225309Z [inf]  Environment variables loaded from .env
+2026-02-05T00:03:12.525230609Z [inf]  Prisma schema loaded from prisma/postgresql-schema.prisma
+2026-02-05T00:03:12.529589386Z [inf]  Datasource "db": PostgreSQL database "railway", schema "public" at "postgres.railway.internal:5432"
+2026-02-05T00:03:12.766640090Z [inf]  
+2026-02-05T00:03:12.766643580Z [err]  Error: P1000: Authentication failed against database server at `postgres.railway.internal`, the provided database credentials for `postgres` are not valid.
+2026-02-05T00:03:12.766646470Z [err]  
+2026-02-05T00:03:12.766649590Z [err]  Please make sure to provide valid database credentials for the database server at `postgres.railway.internal`.
+2026-02-05T00:03:12.766652140Z [err]  Error executing command: rm -rf ./prisma/migrations && cp -r ./prisma/postgresql-migrations ./prisma/migrations && npx prisma migrate deploy --schema ./prisma/postgresql-schema.prisma
+2026-02-05T00:03:12.775870211Z [inf]  Migration failed

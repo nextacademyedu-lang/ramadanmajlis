@@ -24,14 +24,32 @@ export async function GET(request: Request) {
             { auth: { persistSession: false } }
         );
 
-        // Fetch Booking
-        const { data: booking, error: bookingError } = await supabase
+        // Fetch Booking - try by ID first, then by QR code
+        let booking = null;
+        let bookingError = null;
+
+        // Try to find by UUID (booking ID)
+        const { data: byId, error: idError } = await supabase
             .from('bookings')
             .select('*')
             .eq('id', id)
             .single();
 
-        if (bookingError || !booking) {
+        if (byId) {
+            booking = byId;
+        } else {
+            // Try to find by QR code
+            const { data: byQr, error: qrError } = await supabase
+                .from('bookings')
+                .select('*')
+                .eq('qr_code', id)
+                .single();
+            
+            booking = byQr;
+            bookingError = qrError;
+        }
+
+        if (!booking) {
             return NextResponse.json({ message: 'Booking Not Found' }, { status: 404 });
         }
 

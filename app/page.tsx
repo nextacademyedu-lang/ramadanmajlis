@@ -55,6 +55,7 @@ export default function Home() {
   };
 
   const [nights, setNights] = useState<any[]>([]);
+  const [industries, setIndustries] = useState<string[]>([]);
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -65,6 +66,11 @@ export default function Home() {
         const { data: nightsData, error: nightsError } = await supabase.from('event_nights').select('*').order('date', { ascending: true });
         if (nightsError) throw nightsError;
         if (nightsData) setNights(nightsData);
+
+        // Fetch Industries
+        const { data: industriesData, error: industriesError } = await supabase.from('industries').select('name').order('name');
+        if (industriesError) console.error("Industries Fetch Error:", industriesError);
+        if (industriesData) setIndustries(industriesData.map(i => i.name));
 
         // Fetch Event Config (Package Price)
         const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'ramadan-nights-2026').single();
@@ -189,7 +195,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full -z-10" />
 
             <div className="relative" id="booking-form">
-              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} />
+              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} industries={industries} />
             </div>
           </motion.div>
 

@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { sendWelcomeEmail, sendTicketEmail } from '@/lib/email';
+import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
 
 // Initialize Supabase Admin Client (needed to update bookings secureley)
 const supabaseAdmin = createClient(
@@ -37,20 +39,74 @@ export async function POST(request: Request) {
         if (bookingId && isSuccess) {
             console.log(`✅ Payment Success for Booking: ${bookingId}, Provider: ${provider}`);
 
-            // Update Booking Status
-            const { error: updateError } = await supabaseAdmin
+            // Generate unique QR code for this booking
+            const qrCode = crypto.randomUUID();
+
+            // Update Booking Status with QR Code
+            const { data: updatedBooking, error: updateError } = await supabaseAdmin
                 .from('bookings')
                 .update({
                     payment_status: 'paid',
                     status: 'confirmed',
-                    paid_at: new Date().toISOString()
+                    paid_at: new Date().toISOString(),
+                    qr_code: qrCode
                 })
-                .eq('id', bookingId);
+                .eq('id', bookingId)
+                .select('*')
+                .single();
 
             if (updateError) {
                 console.error('❌ Failed to update booking:', updateError);
-            } else {
-                console.log(`✅ Booking ${bookingId} marked as PAID and CONFIRMED`);
+            } else if (updatedBooking) {
+                console.log(`✅ Booking ${bookingId} marked as PAID.`);
+                
+                // 1. Create Tickets for each night
+                const ticketsToCreate = [];
+                const nights = Array.isArray(updatedBooking.selected_nights) 
+                    ? updatedBooking.selected_nights 
+                    : JSON.parse(updatedBooking.selected_nights || '[]');
+
+                for (const night of nights) {
+                    ticketsToCreate.push({
+                        booking_id: bookingId,
+                        night_date: night,
+                        qr_code: crypto.randomUUID(),
+                        status: 'pending'
+                    });
+                }
+
+                // Insert tickets into DB
+                const { data: createdTickets, error: ticketError } = await supabaseAdmin
+                    .from('tickets')
+                    .insert(ticketsToCreate)
+                    .select();
+
+                if (ticketError) {
+                    console.error('❌ Failed to create tickets:', ticketError);
+                } else {
+                    console.log(`✅ Created ${createdTickets.length} tickets for booking ${bookingId}`);
+
+                    // 2. Send Notifications
+                    Promise.all([
+                        // A. Immediate Welcome Email (No QR)
+                        sendWelcomeEmail(updatedBooking).catch(err => console.error('Welcome Email error:', err)),
+                        
+                        // B. Ticket Emails (One per night)
+                        ...createdTickets.map(ticket => 
+                            sendTicketEmail(updatedBooking, ticket).catch(err => console.error('Ticket Email error:', err))
+                        ),
+
+                        // C. WhatsApp Welcome Message (No QR)
+                        sendWhatsAppMessage(updatedBooking).catch(err => console.error('WhatsApp text error:', err)),
+
+                        // D. WhatsApp Tickets (One per night)
+                        ...createdTickets.map(ticket => 
+                            sendWhatsAppTicket(updatedBooking, ticket).catch(err => console.error('WhatsApp Ticket error:', err))
+                        )
+                    ]).then(() => {
+                        console.log(`📧📱 Notifications triggered for booking ${bookingId}`);
+                    });
+                }
             }
 
             return NextResponse.json({ received: true, status: 'success' });

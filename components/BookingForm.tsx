@@ -67,9 +67,10 @@ const NIGHTS = [
 interface BookingFormProps {
     nights?: any[]; // Using any[] to allow flexible night object structure
     packagePrice?: number;
+    industries?: string[];
 }
 
-export default function BookingForm({ nights = [], packagePrice = 4999 }: BookingFormProps) {
+export default function BookingForm({ nights = [], packagePrice = 4999, industries = [] }: BookingFormProps) {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -504,7 +505,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999 }: Bookin
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
-                                                {INDUSTRIES.map(ind => (
+                                                {(industries.length > 0 ? industries : INDUSTRIES).map(ind => (
                                                     <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                                                 ))}
                                             </SelectGroup>

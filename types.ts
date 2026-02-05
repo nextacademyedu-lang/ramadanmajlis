@@ -23,7 +23,8 @@ export interface Booking {
     profile_image_url?: string; // New
     generated_card_url?: string; // New
     share_token?: string; // New
-    qr_code_url?: string;
+    qr_code?: string; // New: Unique code for check-in
+    checked_in_at?: string; // New: Timestamp of check-in
     created_at?: string;
 }
 

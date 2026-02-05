@@ -4,36 +4,23 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
-const getServiceSupabase = () => {
-    const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!sbKey) {
-        throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing in .env.local");
-    }
-    return createClient(sbUrl, sbKey, {
-        auth: { persistSession: false }
-    });
-};
-
-async function checkAuth() {
-    if (process.env.NODE_ENV !== "production") return;
-    const cookieStore = await cookies();
-    const adminSession = cookieStore.get("admin_session");
-    if (!adminSession) throw new Error("Unauthorized");
-}
-
 export async function GET() {
     try {
-        await checkAuth();
-        let supabase;
-        try {
-            supabase = getServiceSupabase();
-        } catch {
-            supabase = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-            );
+        const cookieStore = await cookies();
+        const adminSession = cookieStore.get("admin_session");
+        if (!adminSession) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!sbKey) {
+            console.error("SUPABASE_SERVICE_ROLE_KEY missing");
+            return NextResponse.json({ message: "Server Config Error" }, { status: 500 });
         }
+
+        const supabase = createClient(sbUrl, sbKey, {
+            auth: { persistSession: false }
+        });
+
         const { data, error } = await supabase
             .from("event_nights")
             .select("id, title, date")
@@ -41,9 +28,8 @@ export async function GET() {
 
         if (error) throw error;
         return NextResponse.json(data);
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("Admin nights error:", message);
-        return NextResponse.json({ message }, { status: message === "Unauthorized" ? 401 : 500 });
+    } catch (err: any) {
+        console.error("Admin nights GET error:", err);
+        return NextResponse.json({ message: err.message || "Internal Server Error" }, { status: 500 });
     }
 }

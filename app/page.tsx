@@ -81,7 +81,7 @@ export default function Home() {
         if (speakersData) setSpeakers(speakersData);
 
         // Fetch Event Config (Package Price)
-        const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'ramadan-nights-2026').single();
+        const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'Ramadan Majlis Package').single();
         if (eventError) console.error("Event Config Error:", eventError);
         if (eventData) setEventConfig(eventData);
 

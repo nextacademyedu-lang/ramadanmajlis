@@ -1,6 +1,6 @@
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-production-8da6.up.railway.app';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'ramadan-majlis';
+const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'RamadanEvent';
 
 interface BookingData {
     id: string;
@@ -57,19 +57,16 @@ export async function sendWhatsAppMessage(booking: BookingData) {
     
     const imageUrl = `${baseUrl}/api/og/social-share?${params.toString()}`;
 
-    const caption = `🌟 Share this poster with the caption below to unlock *10% OFF* your next booking!
-
----
-
+    const caption = `Salam ${booking.customer_name},
+    
 Officially registered for Ramadan Majlis 2026! 🌙
 
-Three transformative Thursday nights with 12 world-class experts, strategic networking over premium Suhoor, and hands-on learning circles.
+Three transformative Thursday nights with 12 world-class experts.
 
-📍  Tolip Hotel, New Cairo | 📅 Feb 26 - The Compass
+Your ticket is ready.
+See you there!
 
-I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business.
-
-#ThaMajlis #RamadanNights2026 #NextAcademy`;
+#RamadanMajlis #RamadanNights2026 #NextAcademy`;
 
     try {
         const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {

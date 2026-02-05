@@ -44,13 +44,13 @@ export async function sendWelcomeEmail(booking: BookingData) {
     });
     const socialImageUrl = `${appUrl}/api/og/social-share?${params.toString()}`;
 
-    const shareCaption = `Officially registered for Ramadan Majlis 2026! 🌙 %0A%0AThree transformative Thursday nights with 12 world-class experts. %0A%0AJoin me: ${appUrl} %0A%0A#ThaMajlis #RamadanNights2026`;
+    const shareCaption = `Officially registered for Ramadan Majlis 2026! 🌙 %0A%0AThree transformative Thursday nights with 12 world-class experts. %0A%0AJoin me: ${appUrl} %0A%0A#RamadanMajlis #RamadanNights2026`;
     const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareCaption}`;
 
     const { data, error } = await resend.emails.send({
-        from: 'Tha Majlis <noreply@ramadanmajlis.nextacademyedu.com>',
+        from: 'Ramadan Majlis <noreply@ramadanmajlis.nextacademyedu.com>',
         to: [booking.email],
-        subject: `🎉 Welcome to Tha Majlis - Booking Confirmed!`,
+        subject: `🎉 Welcome to Ramadan Majlis - Booking Confirmed!`,
         html: `
 <!DOCTYPE html>
 <html>
@@ -76,13 +76,13 @@ export async function sendWelcomeEmail(booking: BookingData) {
 <body>
     <div class="container">
         <div class="header">
-            <img src="${appUrl}/logo.svg" alt="Tha Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <img src="${appUrl}/logo.svg" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
             <h1 class="heading-text">Booking Confirmed!</h1>
         </div>
         
         <div class="content">
             <p>Assalamu Alaikum <strong>${booking.customer_name}</strong>,</p>
-            <p class="text-muted">We are thrilled to have you join us at <strong>Tha Majlis - Ramadan Nights 2026</strong>!</p>
+            <p class="text-muted">We are thrilled to have you join us at <strong>Ramadan Majlis 2026</strong>!</p>
             <p class="text-muted">Your spot is secured. You will receive separate emails shortly containing your entry tickets (QR Codes) for each night you booked.</p>
             
             <div class="details">
@@ -103,11 +103,11 @@ export async function sendWelcomeEmail(booking: BookingData) {
 
             <div class="social-share">
                 <h3 style="color: #f59e0b; margin: 0 0 10px;">📣 Share the News!</h3>
-                <p style="margin: 0; font-size: 14px; color: #d1fae5;">Let your network know you are attending Tha Majlis.</p>
+                <p style="margin: 0; font-size: 14px; color: #d1fae5;">Let your network know you are attending Ramadan Majlis.</p>
                 <div style="margin: 20px 0;">
-                    <img src="${socialImageUrl}" alt="I'm Attending Tha Majlis" width="100%" style="border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);" />
+                    <img src="${socialImageUrl}" alt="I'm Attending Ramadan Majlis" width="100%" style="border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);" />
                 </div>
-                <p style="font-style: italic; color: #9ca3af; font-size: 13px;">"I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business."</p>
+                <p style="font-style: italic; color: #9ca3af; font-size: 13px;">"I'm excited to attend Ramadan Majlis 2026! Join me accurately exploring the future of tech and business."</p>
                 <a href="${linkedinUrl}" target="_blank" class="share-btn">Share on LinkedIn</a>
             </div>
             
@@ -123,7 +123,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
                  <span style="color: #064e3b; font-size: 20px;">|</span>
                  <img src="${appUrl}/Eventocity.png" alt="Eventocity" height="30" />
             </div>
-            <p style="margin-top: 20px; color: #4b5563;">© 2026 Next Academy | Tha Majlis - Ramadan Nights</p>
+            <p style="margin-top: 20px; color: #4b5563;">© 2026 Next Academy | Ramadan Majlis</p>
         </div>
     </div>
 </body>
@@ -146,7 +146,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;
 
     const { data, error } = await resend.emails.send({
-        from: 'Tha Majlis <tickets@ramadanmajlis.nextacademyedu.com>',
+        from: 'Ramadan Majlis <tickets@ramadanmajlis.nextacademyedu.com>',
         to: [booking.email],
         subject: `🎟️ Your Ticket: ${ticket.night_date}`,
         html: `
@@ -172,7 +172,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
 <body>
     <div class="container">
         <div class="header">
-            <img src="${appUrl}/logo.svg" alt="Tha Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <img src="${appUrl}/logo.svg" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
             <h1 class="heading-text">Entry Ticket</h1>
             <p style="color: #10b981; margin: 10px 0 0; font-weight: bold;">${booking.customer_name}</p>
         </div>

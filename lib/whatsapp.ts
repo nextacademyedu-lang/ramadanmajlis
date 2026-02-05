@@ -42,39 +42,41 @@ export async function sendWhatsAppMessage(booking: BookingData) {
         return null;
     }
 
-    const nightsList = booking.selected_nights.join('\n• ');
     const formattedPhone = formatPhoneNumber(booking.phone);
+    
+    // Construct OG Image URL (dynamically generated personalized poster)
+    // We use the production URL base if available, starting with nextacademyedu.com
+    // Since we are server-side, we should use a public URL. 
+    // If running locally, this might fail to render if standard localhost is used, but for prod implies public.
+    // However, for the webhook to generate it, it needs to hit the API.
+    // The safest way for Evolution API to fetch it is a public URL.
+    // If not deployed yet, this image won't load for the user.
+    // But assuming the user is verifying on production (or using ngrok/tunnel):
+    
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
+    const params = new URLSearchParams({
+        name: booking.customer_name,
+        title: booking.job_title,
+        company: booking.company || '',
+        industry: booking.industry,
+        // photo: booking.profile_image_url // If we had this. For now, let it fallback to icon.
+    });
+    
+    // Using a reliable public example or the actual production one if available
+    const imageUrl = `${baseUrl}/api/og/social-share?${params.toString()}`;
 
-    const message = `🌙 *Tha Majlis - Ramadan Nights 2026*
+    const caption = `Officially registered for Ramadan Majlis 2026! 🌙
 
-Assalamu Alaikum *${booking.customer_name}*! 🎉
+Three transformative Thursday nights with 12 world-class experts, strategic networking over premium Suhoor, and hands-on learning circles.
 
-Your booking has been confirmed! ✅
+📍  Tolip Hotel, New Cairo | 📅 Feb 26 - The Compass
 
-📋 *Booking Details:*
-• Name: ${booking.customer_name}
-• Industry: ${booking.industry}
-• Total Paid: ${booking.total_amount} EGP
+I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business.
 
-🌙 *Your Nights:*
-• ${nightsList}
-
-🎫 *Tickets:*
-You will receive separate messages with your QR Code for each night shortly.
-
-We can't wait to see you there! ✨
-
----
-🎁 *SPECIAL OFFER: Get 10% OFF!*
-Share your attendance on LinkedIn or Instagram using the image above and tag us @NextAcademy. 
-Show the post at the gate to claim your discount coupon for future workshops! 🚀
-
-#ThaMajlis #RamadanNights2026
-
-_Questions? Just reply to this message._`;
+#ThaMajlis #RamadanNights2026 #NextAcademy`;
 
     try {
-        const response = await fetch(`${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE_NAME}`, {
+        const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -82,7 +84,9 @@ _Questions? Just reply to this message._`;
             },
             body: JSON.stringify({
                 number: formattedPhone,
-                text: message
+                mediatype: 'image',
+                media: imageUrl,
+                caption: caption
             })
         });
 

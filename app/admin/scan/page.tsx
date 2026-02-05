@@ -84,6 +84,11 @@ export default function ScannerPage() {
 
     // Handle QR code scan from camera
     const handleQRScan = (qrCode: string) => {
+        if (loading) return; // Prevent multiple triggers
+        
+        // Vibration feedback
+        if (navigator.vibrate) navigator.vibrate(200);
+        
         setScanInput(qrCode);
         // Auto-submit
         lookupBooking(qrCode);

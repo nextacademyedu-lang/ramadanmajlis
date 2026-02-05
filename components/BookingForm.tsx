@@ -356,7 +356,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 <div className="space-y-4">
                                     {ticketType === 'single' ? (
                                         <>
-                                            <Label>Select Nights ({SINGLE_NIGHT_PRICE.toLocaleString()} EGP / Night)</Label>
+                                            <Label className="flex justify-between items-center">
+                                                <span>Select Nights ({SINGLE_NIGHT_PRICE.toLocaleString()} EGP / Night)</span>
+                                                <span className="text-xs text-primary font-normal">(Select one or more)</span>
+                                            </Label>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                                 {(nights.length > 0 ? nights : NIGHTS).map((night: any) => (
                                                     <div
@@ -369,12 +372,17 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                                             setValue('selectedNights', newSelection);
                                                         }}
                                                         className={cn(
-                                                            "cursor-pointer rounded-lg border p-4 text-center transition-all hover:bg-primary/5",
+                                                            "relative cursor-pointer rounded-lg border p-4 text-center transition-all hover:bg-primary/5",
                                                             selectedNights?.includes(night.date)
                                                                 ? "border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(212,175,55,0.1)]"
                                                                 : "border-white/10 bg-white/5 text-gray-400"
                                                         )}
                                                     >
+                                                        {selectedNights?.includes(night.date) && (
+                                                            <div className="absolute top-2 right-2 text-primary animate-in zoom-in duration-200">
+                                                                <CheckCircle2 size={16} />
+                                                            </div>
+                                                        )}
                                                         <div className="font-bold text-lg">{night.title || night.label}</div>
                                                         <div className="text-sm text-emerald-400 font-medium mb-1">
                                                             {format(new Date(night.date), 'd MMM yyyy')}

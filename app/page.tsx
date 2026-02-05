@@ -56,6 +56,7 @@ export default function Home() {
 
   const [nights, setNights] = useState<any[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
+  const [speakers, setSpeakers] = useState<any[]>([]); // New State
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -72,9 +73,14 @@ export default function Home() {
         if (industriesError) console.error("Industries Fetch Error:", industriesError);
         if (industriesData) setIndustries(industriesData.map(i => i.name));
 
+        // Fetch Speakers
+        const { data: speakersData, error: speakersError } = await supabase.from('speakers').select('*').order('display_order', { ascending: true });
+        if (speakersError) console.error("Speakers Fetch Error:", speakersError);
+        if (speakersData) setSpeakers(speakersData);
+
         // Fetch Event Config (Package Price)
         const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'ramadan-nights-2026').single();
-        if (eventError) console.error("Event Config Error:", eventError); // Optional, maybe non-critical
+        if (eventError) console.error("Event Config Error:", eventError);
         if (eventData) setEventConfig(eventData);
 
       } catch (err: any) {
@@ -266,37 +272,33 @@ export default function Home() {
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#022c22] to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#022c22] to-transparent z-10" />
 
-          <motion.div
-            className="flex gap-8 w-max"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ ease: "linear", duration: 40, repeat: Infinity }}
-          >
-            {[
-              { name: "Abdelrahman Kandil", title: "Founder Next Academy", img: "/speakers/abdelrahman_kandil.jpeg" },
-              { name: "Kareem Turky", title: "CEO fulfly", img: "/speakers/karim_turky.jpeg" },
-              { name: "Khaled Abo Husienn", title: "Wellness Coach", img: "/speakers/khaled_abo_husienn.jpg" },
-              { name: "Salah Khalil", title: "Sales Leader", img: "/speakers/Salah_Khalil.jpg" },
-              { name: "Ahmed Hesham", title: "CEO moraqmen", img: "/speakers/Ahmed_Hesham_AL_Tablawy.jpg" },
-              { name: "Ayman Elsherbiny", title: "Founder STJEgypt", img: "/speakers/Ayman_Elsherbiny.jpg" },
-              { name: "Mohamed Abuelela", title: "Co-Founder AM ALTA MODA", img: "/speakers/Mohamed_Abuelela.png" },
-            ].concat([
-              { name: "Abdelrahman Kandil", title: "Founder Next Academy", img: "/speakers/abdelrahman_kandil.jpeg" },
-              { name: "Kareem Turky", title: "CEO fulfly", img: "/speakers/karim_turky.jpeg" },
-              { name: "Khaled Abo Husienn", title: "Wellness Coach", img: "/speakers/khaled_abo_husienn.jpg" },
-              { name: "Salah Khalil", title: "Sales Leader", img: "/speakers/Salah_Khalil.jpg" },
-              { name: "Ahmed Hesham", title: "CEO moraqmen", img: "/speakers/Ahmed_Hesham_AL_Tablawy.jpg" },
-              { name: "Ayman Elsherbiny", title: "Founder STJEgypt", img: "/speakers/Ayman_Elsherbiny.jpg" },
-              { name: "Mohamed Abuelela", title: "Co-Founder AM ALTA MODA", img: "/speakers/Mohamed_Abuelela.png" },
-            ]).map((speaker, idx) => (
-              <div key={idx} className="w-[200px] text-center flex-shrink-0">
-                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-emerald-500/20 mb-4 bg-emerald-900/20">
-                  <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover" />
-                </div>
-                <h3 className="text-white font-bold">{speaker.name}</h3>
-                <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
-              </div>
-            ))}
-          </motion.div>
+          {speakers.length > 0 ? (
+             <motion.div
+             className="flex gap-8 w-max"
+             animate={{ x: ["0%", "-50%"] }}
+             transition={{ ease: "linear", duration: 40, repeat: Infinity }}
+           >
+             {[...speakers, ...speakers].map((speaker, idx) => (
+               <div key={`${speaker.id}-${idx}`} className="w-[200px] text-center flex-shrink-0">
+                 <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-emerald-500/20 mb-4 bg-emerald-900/20 relative">
+                   <img 
+                      src={speaker.image_url || "/placeholder-user.jpg"} 
+                      alt={speaker.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                      }}
+                    />
+                 </div>
+                 <h3 className="text-white font-bold">{speaker.name}</h3>
+                 <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
+                 <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>
+               </div>
+             ))}
+           </motion.div>
+          ) : (
+            <div className="text-center text-emerald-200/40 py-12">Loading Speakers...</div>
+          )}
         </div>
       </section>
 

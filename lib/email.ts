@@ -32,6 +32,8 @@ export async function sendWelcomeEmail(booking: BookingData) {
         .map((n: string) => `• ${n}`)
         .join('\n');
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
+
     const { data, error } = await resend.emails.send({
         from: 'Tha Majlis <noreply@ramadanmajlis.nextacademyedu.com>',
         to: [booking.email],
@@ -42,34 +44,36 @@ export async function sendWelcomeEmail(booking: BookingData) {
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Arial', sans-serif; background: #0a0a0a; color: #ffffff; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; overflow: hidden; }
-        .header { background: linear-gradient(90deg, #d4af37, #f4d03f); padding: 30px; text-align: center; }
-        .header h1 { color: #000; margin: 0; font-size: 28px; }
+        body { font-family: 'Arial', sans-serif; background: #022c22; color: #ecfdf5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #022c22; border: 1px solid #064e3b; border-radius: 20px; overflow: hidden; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .header { padding: 40px 20px; text-align: center; border-bottom: 1px solid #064e3b; }
         .content { padding: 30px; }
-        .details { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .detail-label { color: #888; }
-        .detail-value { color: #d4af37; font-weight: bold; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .social-share { background: rgba(212,175,55,0.1); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
-        .share-btn { background: #d4af37; color: #000; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .details { background: rgba(6, 78, 59, 0.4); padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.1); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #d1fae5; }
+        .detail-value { color: #f59e0b; font-weight: bold; }
+        .footer { text-align: center; padding: 30px 20px; color: #666; font-size: 12px; border-top: 1px solid #064e3b; background: #012018; }
+        .social-share { background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .share-btn { background: #f59e0b; color: #022c22; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; transition: opacity 0.2s; }
+        .heading-text { color: #f59e0b; margin: 0; font-size: 24px; letter-spacing: -0.02em; }
+        .text-muted { color: #d1fae5; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌙 Tha Majlis - Ramadan Nights</h1>
-            <p style="color: #333; margin: 10px 0 0;">Booking Confirmed!</p>
+            <img src="${appUrl}/logo.svg" alt="Tha Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <h1 class="heading-text">Booking Confirmed!</h1>
         </div>
         
         <div class="content">
             <p>Assalamu Alaikum <strong>${booking.customer_name}</strong>,</p>
-            <p>We are thrilled to have you join us at <strong>Tha Majlis - Ramadan Nights 2026</strong>!</p>
-            <p>Your spot is secured. You will receive separate emails shortly containing your entry tickets (QR Codes) for each night you booked.</p>
+            <p class="text-muted">We are thrilled to have you join us at <strong>Tha Majlis - Ramadan Nights 2026</strong>!</p>
+            <p class="text-muted">Your spot is secured. You will receive separate emails shortly containing your entry tickets (QR Codes) for each night you booked.</p>
             
             <div class="details">
-                <h3 style="color: #d4af37; margin-top: 0;">📋 Booking Summary</h3>
+                <h3 style="color: #f59e0b; margin-top: 0; font-size: 18px;">📋 Booking Summary</h3>
                 <div class="detail-row">
                     <span class="detail-label">Name</span>
                     <span class="detail-value">${booking.customer_name}</span>
@@ -85,22 +89,28 @@ export async function sendWelcomeEmail(booking: BookingData) {
             </div>
 
             <div class="social-share">
-                <h3 style="color: #d4af37; margin: 0 0 10px;">📣 Share the News!</h3>
-                <p style="margin: 0; font-size: 14px; color: #ccc;">Let your network know you are attending Tha Majlis.</p>
+                <h3 style="color: #f59e0b; margin: 0 0 10px;">📣 Share the News!</h3>
+                <p style="margin: 0; font-size: 14px; color: #d1fae5;">Let your network know you are attending Tha Majlis.</p>
                 <div style="margin: 20px 0;">
-                    <img src="https://nextacademy.edu.eg/og-ramadan.png" alt="I'm Attending Tha Majlis" width="100%" style="border-radius: 10px;" />
+                    <img src="${appUrl}/mocup1.png" alt="I'm Attending Tha Majlis" width="100%" style="border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);" />
                 </div>
-                <p style="font-style: italic; color: #888; font-size: 12px;">"I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business."</p>
+                <p style="font-style: italic; color: #9ca3af; font-size: 13px;">"I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business."</p>
                 <a href="https://linkedin.com" class="share-btn">Share on LinkedIn</a>
             </div>
             
-            <p style="text-align: center; margin-top: 30px;">
+            <p style="text-align: center; margin-top: 30px; color: #d1fae5;">
                 Look out for your ticket emails next! 🎟️
             </p>
         </div>
         
         <div class="footer">
-            <p>© 2026 Next Academy | Tha Majlis - Ramadan Nights</p>
+            <p style="color: #9ca3af; margin-bottom: 15px;">Powered by</p>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                 <img src="${appUrl}/logo.svg" alt="Next Academy" height="30" />
+                 <span style="color: #064e3b; font-size: 20px;">|</span>
+                 <img src="${appUrl}/Eventocity.png" alt="Eventocity" height="30" />
+            </div>
+            <p style="margin-top: 20px; color: #4b5563;">© 2026 Next Academy | Tha Majlis - Ramadan Nights</p>
         </div>
     </div>
 </body>
@@ -116,6 +126,8 @@ export async function sendWelcomeEmail(booking: BookingData) {
 export async function sendTicketEmail(booking: BookingData, ticket: TicketData) {
     const resend = getResendClient();
     if (!resend) return null;
+    
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
 
     // Generate QR code URL
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;
@@ -130,37 +142,40 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: 'Arial', sans-serif; background: #0a0a0a; color: #ffffff; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; overflow: hidden; }
-        .header { background: linear-gradient(90deg, #d4af37, #f4d03f); padding: 30px; text-align: center; }
-        .header h1 { color: #000; margin: 0; font-size: 24px; }
+        body { font-family: 'Arial', sans-serif; background: #022c22; color: #ecfdf5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #022c22; border: 1px solid #064e3b; border-radius: 20px; overflow: hidden; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .header { padding: 40px 20px; text-align: center; border-bottom: 1px solid #064e3b; }
         .content { padding: 30px; text-align: center; }
-        .qr-section { background: #fff; padding: 20px; border-radius: 15px; display: inline-block; margin: 20px 0; }
+        .qr-section { background: #ffffff; padding: 20px; border-radius: 15px; display: inline-block; margin: 20px 0; border: 4px solid #f59e0b; }
         .qr-section img { display: block; }
-        .night-badge { background: #d4af37; color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; display: inline-block; margin-bottom: 20px; }
-        .agenda { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; text-align: left; margin-top: 20px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        .night-badge { background: #f59e0b; color: #022c22; padding: 8px 20px; border-radius: 20px; font-weight: bold; display: inline-block; margin-bottom: 20px; font-size: 16px; }
+        .agenda { background: rgba(6, 78, 59, 0.4); padding: 25px; border-radius: 15px; text-align: left; margin-top: 30px; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .agenda p { margin: 10px 0; color: #d1fae5; border-bottom: 1px dashed rgba(16, 185, 129, 0.2); padding-bottom: 10px; }
+        .agenda p:last-child { border-bottom: none; }
+        .footer { text-align: center; padding: 30px 20px; color: #666; font-size: 12px; border-top: 1px solid #064e3b; background: #012018; }
+        .heading-text { color: #f59e0b; margin: 0; font-size: 24px; letter-spacing: -0.02em; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌙 Entry Ticket</h1>
-            <p style="color: #333; margin: 5px 0 0;">${booking.customer_name}</p>
+            <img src="${appUrl}/logo.svg" alt="Tha Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <h1 class="heading-text">Entry Ticket</h1>
+            <p style="color: #10b981; margin: 10px 0 0; font-weight: bold;">${booking.customer_name}</p>
         </div>
         
         <div class="content">
             <div class="night-badge">📅 ${ticket.night_date}</div>
             
-            <p>This is your official entry ticket for <strong>${ticket.night_date}</strong>.</p>
-            <p>Please show this QR code at the gate.</p>
+            <p style="color: #ecfdf5; font-size: 16px;">This is your official entry ticket.</p>
+            <p style="color: #9ca3af; margin-top: 5px;">Please show this QR code at the gate.</p>
             
             <div class="qr-section">
                 <img src="${qrCodeImageUrl}" alt="QR Code" width="250" height="250" />
             </div>
 
             <div class="agenda">
-                <h3 style="color: #d4af37; margin-top: 0;">📋 Night Agenda</h3>
+                <h3 style="color: #f59e0b; margin-top: 0; margin-bottom: 15px;">📋 Night Agenda</h3>
                 <p>• 9:00 PM - Doors Open & Networking</p>
                 <p>• 9:30 PM - Keynote Speaker</p>
                 <p>• 10:30 PM - Panel Discussion</p>
@@ -169,15 +184,20 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
         </div>
         
         <div class="footer">
-            <p>Ticket ID: ${ticket.qr_code}</p>
-            <p>© 2026 Next Academy</p>
+            <p style="color: #6b7280; font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; display: inline-block;">ID: ${ticket.qr_code}</p>
+            <br/><br/>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                 <img src="${appUrl}/logo.svg" alt="Next Academy" height="25" />
+                 <span style="color: #064e3b; font-size: 20px;">|</span>
+                 <img src="${appUrl}/Eventocity.png" alt="Eventocity" height="25" />
+            </div>
         </div>
     </div>
 </body>
 </html>
         `,
     });
-
+    
     if (error) console.error('❌ Ticket email error:', error);
     return { data, error };
 }

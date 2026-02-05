@@ -33,7 +33,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
         .join('\n');
 
     const { data, error } = await resend.emails.send({
-        from: 'Ramadan Nights <noreply@nextacademyedu.com>',
+        from: 'Ramadan Nights <noreply@ramadanmajlis.nextacademyedu.com>',
         to: [booking.email],
         subject: `🎉 Welcome to Tha Majlis - Booking Confirmed!`,
         html: `
@@ -121,7 +121,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;
 
     const { data, error } = await resend.emails.send({
-        from: 'Ramadan Nights <tickets@nextacademyedu.com>',
+        from: 'Ramadan Nights <tickets@ramadanmajlis.nextacademyedu.com>',
         to: [booking.email],
         subject: `🎟️ Your Ticket: ${ticket.night_date}`,
         html: `

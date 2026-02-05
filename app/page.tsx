@@ -6,6 +6,7 @@ import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircl
 import BookingForm from '@/components/BookingForm';
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import NightDetailsModal from '@/components/NightDetailsModal';
 
 // Generate stars
 const generateStars = (count: number) =>
@@ -56,9 +57,10 @@ export default function Home() {
 
   const [nights, setNights] = useState<any[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
-  const [speakers, setSpeakers] = useState<any[]>([]); // New State
+  const [speakers, setSpeakers] = useState<any[]>([]); 
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [activeNight, setActiveNight] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,9 +151,9 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-              Ramadan <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">Majlis</span>
+              {eventConfig?.name?.split(' ')[0] || "Ramadan"} <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-yellow-200 to-amber-400">{eventConfig?.name?.split(' ').slice(1).join(' ') || "Majlis"}</span>
               <br />
-              <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block">For Entrepreneurs</span>
+              <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block">{eventConfig?.subtitle || "For Entrepreneurs"}</span>
             </h1>
 
             {/* Countdown Timer */}
@@ -172,19 +174,37 @@ export default function Home() {
             </div>
 
             <p className="text-lg text-emerald-100/70 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Join us for an exceptional experience combining the spirituality of the Holy Month with the ambition of future leaders.
-              <span className="text-amber-300 font-semibold mx-1">and Networking</span>
-              in a luxurious atmosphere worthy of you.
+              {eventConfig?.description || (
+                <>
+                Join us for an exceptional experience combining the spirituality of the Holy Month with the ambition of future leaders.
+                <span className="text-amber-300 font-semibold mx-1">and Networking</span>
+                in a luxurious atmosphere worthy of you.
+                </>
+              )}
             </p>
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-emerald-200/60">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <Calendar size={16} className="text-amber-400" />
-                <span>20 - 25 March 2026</span>
+                <span>
+                    {eventConfig?.start_date ? (
+                        <>
+                        {new Date(eventConfig.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        {' - '}
+                        {new Date(eventConfig.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </>
+                    ) : "Date TBD"}
+                </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-                <MapPin size={16} className="text-emerald-400" />
-                <span>Creativa Innovation Hub, Giza</span>
+                <a 
+                    href={eventConfig?.location_url || "#"} 
+                    target={eventConfig?.location_url ? "_blank" : "_self"}
+                    className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                >
+                    <MapPin size={16} className="text-emerald-400" />
+                    <span>{eventConfig?.location_name || "Location TBD"}</span>
+                </a>
               </div>
             </div>
 
@@ -225,22 +245,30 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + idx * 0.1 }}
-                className={`p-8 rounded-3xl border ${night.color_theme === 'blue' ? 'border-blue-400/20 bg-blue-400/10' : night.color_theme === 'amber' ? 'border-amber-400/20 bg-amber-400/10' : 'border-emerald-400/20 bg-emerald-400/10'} backdrop-blur-sm hover:shadow-2xl transition-all duration-300`}
+                onClick={() => setActiveNight(night)}
+                className={`group cursor-pointer relative p-8 rounded-3xl border ${night.color_theme === 'blue' ? 'border-blue-400/20 bg-blue-400/10' : night.color_theme === 'amber' ? 'border-amber-400/20 bg-amber-400/10' : 'border-emerald-400/20 bg-emerald-400/10'} backdrop-blur-sm hover:shadow-2xl transition-all duration-300 overflow-hidden`}
               >
+                {/* Hover Glow */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${night.color_theme === 'blue' ? 'from-blue-400/5' : night.color_theme === 'amber' ? 'from-amber-400/5' : 'from-emerald-400/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+
                 <div className={`p-4 rounded-2xl bg-black/20 w-fit mb-6 ${night.color_theme === 'blue' ? 'text-blue-400' : night.color_theme === 'amber' ? 'text-amber-400' : 'text-emerald-400'}`}>
                   <span className="text-2xl font-bold">{idx + 1}</span>
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">{night.title}</h4>
                 <p className="text-emerald-100/60 font-medium mb-4 text-sm uppercase">{night.subtitle}</p>
-                <p className="text-emerald-100/80 text-sm leading-relaxed">{night.description}</p>
-                <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
-                  <span className="text-white font-bold">{night.price} {night.currency}</span>
-                  <span className="text-xs text-white/50">{night.capacity} Seats</span>
+                <p className="text-emerald-100/80 text-sm leading-relaxed mb-6 line-clamp-3">{night.description}</p>
+                
+                <div className="pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
+                  <div>
+                    <span className="text-white font-bold block">{night.price} {night.currency}</span>
+                    <span className="text-xs text-white/50">{night.capacity} Seats</span>
+                  </div>
+                  <button className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors">
+                    Show Details
+                  </button>
                 </div>
               </motion.div>
             )) : (
-              // Fallback skeleton or loading state could go here, or just keep the old static list as initial state if preferred.
-              // For now, let's just show nothing until data loads to avoid flicker, or we could leave the static list as default state.
               <div className="col-span-3 text-center text-emerald-200/50">
                 {fetchError ? (
                   <span className="text-red-400">Error loading data: {fetchError}</span>
@@ -261,6 +289,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {activeNight && (
+            <NightDetailsModal 
+                night={activeNight} 
+                speakers={speakers} 
+                onClose={() => setActiveNight(null)} 
+            />
+        )}
+      </AnimatePresence>
 
       {/* ========== SPEAKERS SECTION ========== */}
       <section className="py-24 relative overflow-hidden">

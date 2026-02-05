@@ -76,7 +76,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
 <body>
     <div class="container">
         <div class="header">
-            <img src="${appUrl}/logo.svg" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <img src="${appUrl}/majlis_logo.png" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
             <h1 class="heading-text">Booking Confirmed!</h1>
         </div>
         
@@ -119,7 +119,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
         <div class="footer">
             <p style="color: #9ca3af; margin-bottom: 15px;">Powered by</p>
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
-                 <img src="${appUrl}/logo.svg" alt="Next Academy" height="30" />
+                 <img src="${appUrl}/og-image.png" alt="Next Academy" height="30" />
                  <span style="color: #064e3b; font-size: 20px;">|</span>
                  <img src="${appUrl}/Eventocity.png" alt="Eventocity" height="30" />
             </div>
@@ -172,7 +172,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
 <body>
     <div class="container">
         <div class="header">
-            <img src="${appUrl}/logo.svg" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
+            <img src="${appUrl}/majlis_logo.png" alt="Ramadan Majlis" width="180" style="display: block; margin: 0 auto 20px;" />
             <h1 class="heading-text">Entry Ticket</h1>
             <p style="color: #10b981; margin: 10px 0 0; font-weight: bold;">${booking.customer_name}</p>
         </div>
@@ -189,10 +189,10 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
 
             <div class="agenda">
                 <h3 style="color: #f59e0b; margin-top: 0; margin-bottom: 15px;">📋 Night Agenda</h3>
-                <p>• 9:00 PM - Doors Open & Networking</p>
-                <p>• 9:30 PM - Keynote Speaker</p>
-                <p>• 10:30 PM - Panel Discussion</p>
-                <p>• 11:30 PM - Suhoor & Networking</p>
+                <p>• 09:00 PM - Executive Coffee & Welcoming</p>
+                <p>• 09:30 PM - The Power Session (Panel & Hands-on Work)</p>
+                <p>• 12:30 AM - Strategic Networking & Suhoor</p>
+                <p>• 02:00 AM - Closing & Goodbyes</p>
             </div>
         </div>
         
@@ -200,7 +200,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
             <p style="color: #6b7280; font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; display: inline-block;">ID: ${ticket.qr_code}</p>
             <br/><br/>
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
-                 <img src="${appUrl}/logo.svg" alt="Next Academy" height="25" />
+                 <img src="${appUrl}/og-image.png" alt="Next Academy" height="25" />
                  <span style="color: #064e3b; font-size: 20px;">|</span>
                  <img src="${appUrl}/Eventocity.png" alt="Eventocity" height="25" />
             </div>

@@ -38,14 +38,35 @@ export async function GET(request: Request) {
         if (byId) {
             booking = byId;
         } else {
-            // Try to find by QR code
+            // Try 2: Find by Booking QR code
             const { data: byQr, error: qrError } = await supabase
                 .from('bookings')
                 .select('*')
                 .eq('qr_code', id)
                 .single();
             
-            booking = byQr;
+            if (byQr) {
+                booking = byQr;
+            } else {
+                // Try 3: Find by Ticket QR code
+                const { data: ticket, error: ticketError } = await supabase
+                    .from('tickets')
+                    .select('booking_id')
+                    .eq('qr_code', id)
+                    .single();
+
+                if (ticket) {
+                    const { data: bookingFromTicket, error: bookingResError } = await supabase
+                        .from('bookings')
+                        .select('*')
+                        .eq('id', ticket.booking_id)
+                        .single();
+                    
+                    if (bookingFromTicket) {
+                        booking = bookingFromTicket;
+                    }
+                }
+            }
             bookingError = qrError;
         }
 

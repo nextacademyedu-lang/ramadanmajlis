@@ -12,6 +12,7 @@ interface BookingData {
     industry: string;
     selected_nights: string[];
     total_amount: number;
+    profile_image_url?: string;
 }
 
 interface TicketData {
@@ -45,27 +46,22 @@ export async function sendWhatsAppMessage(booking: BookingData) {
     const formattedPhone = formatPhoneNumber(booking.phone);
     
     // Construct OG Image URL (dynamically generated personalized poster)
-    // We use the production URL base if available, starting with nextacademyedu.com
-    // Since we are server-side, we should use a public URL. 
-    // If running locally, this might fail to render if standard localhost is used, but for prod implies public.
-    // However, for the webhook to generate it, it needs to hit the API.
-    // The safest way for Evolution API to fetch it is a public URL.
-    // If not deployed yet, this image won't load for the user.
-    // But assuming the user is verifying on production (or using ngrok/tunnel):
-    
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
     const params = new URLSearchParams({
         name: booking.customer_name,
         title: booking.job_title,
         company: booking.company || '',
         industry: booking.industry,
-        // photo: booking.profile_image_url // If we had this. For now, let it fallback to icon.
+        photo: booking.profile_image_url || ''
     });
     
-    // Using a reliable public example or the actual production one if available
     const imageUrl = `${baseUrl}/api/og/social-share?${params.toString()}`;
 
-    const caption = `Officially registered for Ramadan Majlis 2026! 🌙
+    const caption = `🌟 Share this poster with the caption below to unlock *10% OFF* your next booking!
+
+---
+
+Officially registered for Ramadan Majlis 2026! 🌙
 
 Three transformative Thursday nights with 12 world-class experts, strategic networking over premium Suhoor, and hands-on learning circles.
 

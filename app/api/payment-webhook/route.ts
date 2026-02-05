@@ -19,6 +19,9 @@ export async function POST(request: Request) {
         let bookingId = '';
         let isSuccess = false;
         let provider = '';
+        let debugUpdateError: any = null;
+        let debugUpdateData: any = null;
+        let debugTicketError: any = null;
 
         // --- PAYMOB WEBHOOK LOGIC ---
         if (obj) {
@@ -54,6 +57,9 @@ export async function POST(request: Request) {
                 .eq('id', bookingId)
                 .select('*')
                 .single();
+            
+            debugUpdateError = updateError;
+            debugUpdateData = updatedBooking;
 
             if (updateError) {
                 console.error('❌ Failed to update booking:', updateError);
@@ -81,38 +87,69 @@ export async function POST(request: Request) {
                     .insert(ticketsToCreate)
                     .select();
 
-                if (ticketError) {
-                    console.error('❌ Failed to create tickets:', ticketError);
-                } else {
-                    console.log(`✅ Created ${createdTickets.length} tickets for booking ${bookingId}`);
+                debugTicketError = ticketError;
+                
+                let finalTickets = createdTickets;
 
-                    // 2. Send Notifications
-                    Promise.all([
+                // Handle Duplicate Key Error (Idempotency)
+                if (ticketError && ticketError.code === '23505') {
+                    console.log('⚠️ Tickets already exist, fetching existing tickets...');
+                    const { data: existingTickets } = await supabaseAdmin
+                        .from('tickets')
+                        .select('*')
+                        .eq('booking_id', bookingId);
+                    finalTickets = existingTickets;
+                } else if (ticketError) {
+                    console.error('❌ Failed to create tickets:', ticketError);
+                }
+
+                if (finalTickets && finalTickets.length > 0) {
+                    console.log(`✅ Using ${finalTickets.length} tickets for booking ${bookingId}`);
+
+                    // 2. Send Notifications (Awaited for Debugging)
+                    const notificationResults = await Promise.allSettled([
                         // A. Immediate Welcome Email (No QR)
-                        sendWelcomeEmail(updatedBooking).catch(err => console.error('Welcome Email error:', err)),
+                        sendWelcomeEmail(updatedBooking),
                         
                         // B. Ticket Emails (One per night)
-                        ...createdTickets.map(ticket => 
-                            sendTicketEmail(updatedBooking, ticket).catch(err => console.error('Ticket Email error:', err))
-                        ),
+                        ...finalTickets.map(ticket => sendTicketEmail(updatedBooking, ticket)),
 
                         // C. WhatsApp Welcome Message (No QR)
-                        sendWhatsAppMessage(updatedBooking).catch(err => console.error('WhatsApp text error:', err)),
+                        sendWhatsAppMessage(updatedBooking),
 
                         // D. WhatsApp Tickets (One per night)
-                        ...createdTickets.map(ticket => 
-                            sendWhatsAppTicket(updatedBooking, ticket).catch(err => console.error('WhatsApp Ticket error:', err))
-                        )
-                    ]).then(() => {
-                        console.log(`📧📱 Notifications triggered for booking ${bookingId}`);
+                        ...finalTickets.map(ticket => sendWhatsAppTicket(updatedBooking, ticket))
+                    ]);
+
+                    console.log(`📧📱 Notifications processed for booking ${bookingId}`);
+                    
+                    return NextResponse.json({ 
+                        received: true, 
+                        status: 'success',
+                        debug_notifications: notificationResults
                     });
                 }
             }
-
-            return NextResponse.json({ received: true, status: 'success' });
         }
 
-        return NextResponse.json({ received: true, ignored: true });
+        return NextResponse.json({ 
+            received: true, 
+            ignored: true,
+            debug_reason: "Payload validation failed or Update Failed",
+            debug_info: {
+                provider,
+                bookingId,
+                isSuccess,
+                hasObj: !!obj,
+                objSuccess: obj?.success,
+                objOrderId: obj?.merchant_order_id,
+                objNestedOrder: !!obj?.order,
+                updateError: debugUpdateError,
+                updateData: debugUpdateData,
+                ticketError: debugTicketError,
+                usingServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+            }
+        });
 
     } catch (error: any) {
         console.error('Webhook Error:', error);

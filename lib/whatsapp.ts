@@ -64,6 +64,13 @@ You will receive separate messages with your QR Code for each night shortly.
 
 We can't wait to see you there! ✨
 
+---
+🎁 *SPECIAL OFFER: Get 10% OFF!*
+Share your attendance on LinkedIn or Instagram using the image above and tag us @NextAcademy. 
+Show the post at the gate to claim your discount coupon for future workshops! 🚀
+
+#ThaMajlis #RamadanNights2026
+
 _Questions? Just reply to this message._`;
 
     try {

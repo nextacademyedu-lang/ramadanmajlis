@@ -109,7 +109,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
     });
 
     if (error) console.error('❌ Welcome email error:', error);
-    return data;
+    return { data, error };
 }
 
 // 2. TICKET EMAIL (Delayed/Separate - Specific Night QR)
@@ -179,5 +179,5 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData) 
     });
 
     if (error) console.error('❌ Ticket email error:', error);
-    return data;
+    return { data, error };
 }

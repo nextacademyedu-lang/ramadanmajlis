@@ -57,16 +57,20 @@ export async function sendWhatsAppMessage(booking: BookingData) {
     
     const imageUrl = `${baseUrl}/api/og/social-share?${params.toString()}`;
 
-    const caption = `Salam ${booking.customer_name},
-    
+    const caption = `Hello, ${booking.customer_name},
+
+🌟 Share this poster with the caption below on social media to unlock *10% OFF* your next booking!
+
 Officially registered for Ramadan Majlis 2026! 🌙
 
-Three transformative Thursday nights with 12 world-class experts.
+Three transformative Thursday nights with 12 world-class experts, strategic networking over premium Suhoor, and hands-on learning circles.
 
-Your ticket is ready.
-See you there!
+📍  Tolip Hotel, New Cairo | 📅 Feb 26 - The Compass
 
-#RamadanMajlis #RamadanNights2026 #NextAcademy`;
+I'm excited to attend Tha Majlis - Ramadan Nights 2026! Join me accurately exploring the future of tech and business.
+
+join me at the event https://www.ramadanmajlis.nextacademyedu.com/
+#ThaMajlis #RamadanNights2026 #NextAcademy #RamadanMajlis;
 
     try {
         const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {

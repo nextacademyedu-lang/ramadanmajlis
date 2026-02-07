@@ -227,7 +227,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                     selected_nights: data.ticketType === 'package' ? ['ALL'] : data.selectedNights,
                     ticket_count: 1,
                     total_amount: totalAmount,
-                    payment_provider: totalAmount === 0 ? 'free_tier' : data.paymentProvider,
+                    payment_provider: totalAmount === 0 ? 'paymob_card' : data.paymentProvider, // 'free_tier' is NOT in DB constraint, use valid value
                     payment_status: totalAmount === 0 ? 'paid' : 'pending',
                     profile_image_url: photoUrl,
                     // Add Promo Info

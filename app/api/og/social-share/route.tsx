@@ -58,11 +58,11 @@ export async function GET(request: Request) {
                         }}>
                             {/* Photo Circle */}
                             <div style={{
-                                width: '320px',
-                                height: '320px',
+                                width: '380px',
+                                height: '380px',
                                 borderRadius: '50%',
-                                border: '5px solid rgba(251, 191, 36, 0.9)',
-                                boxShadow: '0 0 50px rgba(251, 191, 36, 0.4)',
+                                border: '6px solid rgba(251, 191, 36, 0.9)',
+                                boxShadow: '0 0 60px rgba(251, 191, 36, 0.5)',
                                 overflow: 'hidden',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -91,13 +91,13 @@ export async function GET(request: Request) {
 
                             {/* Name */}
                             <div style={{
-                                fontSize: '48px',
-                                fontWeight: 700,
+                                fontSize: '58px',
+                                fontWeight: 800,
                                 color: '#ffffff',
-                                marginTop: '30px',
+                                marginTop: '35px',
                                 textAlign: 'center',
-                                textShadow: '3px 3px 10px rgba(0,0,0,0.9)',
-                                letterSpacing: '1px',
+                                textShadow: '4px 4px 12px rgba(0,0,0,0.95)',
+                                letterSpacing: '1.5px',
                                 display: 'flex',
                             }}>
                                 {name}
@@ -105,12 +105,12 @@ export async function GET(request: Request) {
 
                             {/* Title */}
                             <div style={{
-                                fontSize: '28px',
-                                fontWeight: 600,
+                                fontSize: '38px',
+                                fontWeight: 700,
                                 color: '#5eead4',
-                                marginTop: '10px',
+                                marginTop: '12px',
                                 textAlign: 'center',
-                                textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                                textShadow: '3px 3px 10px rgba(0,0,0,0.95)',
                                 display: title ? 'flex' : 'none',
                             }}>
                                 {title}
@@ -118,12 +118,12 @@ export async function GET(request: Request) {
 
                             {/* Company */}
                             <div style={{
-                                fontSize: '24px',
-                                fontWeight: 500,
+                                fontSize: '32px',
+                                fontWeight: 600,
                                 color: '#a7f3d0',
-                                marginTop: '6px',
+                                marginTop: '8px',
                                 textAlign: 'center',
-                                textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                                textShadow: '3px 3px 10px rgba(0,0,0,0.95)',
                                 display: company ? 'flex' : 'none',
                             }}>
                                 {company}

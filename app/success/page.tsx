@@ -71,6 +71,10 @@ Three transformative Thursday nights with 12 world-class experts, strategic netw
 📍 Night 3: Pyramids Hotel, Dokki | 🗓 Mar 12 – The Legacy
 
 Register: https://ramadanmajlis.nextacademyedu.com/
+
+https://www.facebook.com/profile.php?id=61575666404676
+https://www.facebook.com/Eventocity1
+
 #RamadanMajlis2026 #TheMajlis #NextAcademy`;
 
     const handleCopyText = () => {

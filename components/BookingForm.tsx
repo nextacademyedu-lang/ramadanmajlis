@@ -275,6 +275,16 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
             // -- FREE BOOKING BYPASS --
             if (totalAmount === 0) {
+                // Confirm free booking and send notifications
+                try {
+                    await fetch('/api/confirm-free-booking', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ bookingId: booking.id })
+                    });
+                } catch (err) {
+                    console.error('Failed to confirm free booking:', err);
+                }
                 window.location.href = `${window.location.origin}/success`;
                 return;
             }

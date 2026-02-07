@@ -146,6 +146,7 @@ export default function BookingsPage() {
                             <TableRow className="border-white/10 hover:bg-transparent">
                                 <TableHead className="text-gray-300">Customer</TableHead>
                                 <TableHead className="text-gray-300">Ticket</TableHead>
+                                <TableHead className="text-gray-300">Promo</TableHead>
                                 <TableHead className="text-gray-300">Amount</TableHead>
                                 <TableHead className="text-gray-300">Status</TableHead>
                                 <TableHead className="text-gray-300">Date</TableHead>
@@ -177,6 +178,15 @@ export default function BookingsPage() {
                                             <Badge variant="outline" className="bg-white/5 text-white border-white/20">
                                                 {booking.ticket_count} x {booking.ticket_count > 1 || booking.total_amount > 2000 ? 'Package' : 'Single'}
                                             </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {booking.promo_codes?.code ? (
+                                                <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                                    {booking.promo_codes.code}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-gray-600">-</span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-white font-mono">
                                             {booking.total_amount.toLocaleString()} EGP

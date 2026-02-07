@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         const { data, error } = await supabase
             .from('bookings')
-            .select('*')
+            .select('*, promo_codes(code)')
             .order('created_at', { ascending: false });
 
         if (error) throw error;

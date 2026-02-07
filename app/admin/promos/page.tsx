@@ -199,14 +199,25 @@ export default function PromosPage() {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Sales Agent Name</Label>
-                            <Input
-                                value={formData.sales_agent}
-                                onChange={(e) => setFormData({ ...formData, sales_agent: e.target.value })}
-                                placeholder="Optional"
-                                className="bg-white/5 border-white/10"
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Usage Limit</Label>
+                                <Input
+                                    type="number"
+                                    value={formData.usage_limit}
+                                    onChange={(e) => setFormData({ ...formData, usage_limit: Number(e.target.value) })}
+                                    className="bg-white/5 border-white/10"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Sales Agent Name</Label>
+                                <Input
+                                    value={formData.sales_agent}
+                                    onChange={(e) => setFormData({ ...formData, sales_agent: e.target.value })}
+                                    placeholder="Optional"
+                                    className="bg-white/5 border-white/10"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">

@@ -130,12 +130,25 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         setPromoLoading(true);
         setPromoError(null);
         try {
+            // Map Dates to IDs for verification
+            let nightIds: string[] = [];
+            const activeNights = nights.length > 0 ? nights : [];
+
+            if (ticketType === 'package') {
+                nightIds = activeNights.map((n: any) => n.id);
+            } else {
+                nightIds = selectedNights.map((date: string) => {
+                    const n = activeNights.find((night: any) => night.date === date);
+                    return n ? n.id : date; // Fallback to date if ID not found (though unlikely if data is consistent)
+                }).filter(Boolean);
+            }
+
             const res = await fetch('/api/validate-promo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     code: promoCode,
-                    selectedNights: ticketType === 'package' ? ['ALL'] : selectedNights,
+                    selectedNights: nightIds,
                     isPackage: ticketType === 'package'
                 })
             });

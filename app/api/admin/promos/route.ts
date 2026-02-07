@@ -63,6 +63,41 @@ export async function POST(request: Request) {
     }
 }
 
+export async function PUT(request: Request) {
+    try {
+        const cookieStore = await cookies();
+        if (!cookieStore.get('admin_session')) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+        const body = await request.json();
+        const { id, ...updates } = body;
+
+        if (!id) return NextResponse.json({ message: 'ID required' }, { status: 400 });
+
+        const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!sbKey) return NextResponse.json({ message: 'Env Error' }, { status: 500 });
+
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            sbKey,
+            { auth: { persistSession: false } }
+        );
+
+        const { data, error } = await supabase
+            .from('promo_codes')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return NextResponse.json(data);
+
+    } catch (err: any) {
+        console.error("PUT Promos API Error:", err);
+        return NextResponse.json({ message: err.message || "Internal Server Error" }, { status: 500 });
+    }
+}
+
 export async function DELETE(request: Request) {
     try {
         const cookieStore = await cookies();

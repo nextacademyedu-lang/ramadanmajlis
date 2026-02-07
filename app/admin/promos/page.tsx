@@ -35,13 +35,23 @@ export default function PromosPage() {
         discount_value: 0,
         usage_limit: 100,
         sales_agent: '',
-        is_active: true
+        is_active: true,
+        target_nights: [] as string[],
+        is_package_exclusive: false
     });
     const [saving, setSaving] = useState(false);
 
+    const [nights, setNights] = useState<any[]>([]);
+
     useEffect(() => {
         fetchPromos();
+        fetchNights();
     }, []);
+
+    const fetchNights = async () => {
+        const { data } = await supabase.from('event_nights').select('id, title, date').order('date');
+        if (data) setNights(data);
+    };
 
     const fetchPromos = async () => {
         setLoading(true);
@@ -58,39 +68,56 @@ export default function PromosPage() {
         }
     };
 
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const handleEdit = (promo: any) => {
+        setEditingId(promo.id);
+        setFormData({
+            code: promo.code,
+            discount_type: promo.discount_type,
+            discount_value: promo.discount_value,
+            usage_limit: promo.usage_limit,
+            sales_agent: promo.sales_agent || '',
+            is_active: promo.is_active,
+            target_nights: promo.target_nights || [],
+            is_package_exclusive: promo.is_package_exclusive || false
+        });
+        setIsDialogOpen(true);
+    };
+
     const handleSave = async () => {
         setSaving(true);
         try {
-            // We use API route potentially if we want strict admin checks, 
-            // but for now let's use client-side insert if RLS allows or if we assume local admin
-            // ACTUALLY, we should use a server action or API route for security if RLS is strict.
-            // Let's rely on the Anon key which only allows SELECT by default? 
-            // We need a server route for writing if RLS is strict.
-            // Wait, we didn't create a specific Promo API route yet.
-            // I'll assume we can use the `industries` pattern or just direct insert if policy allows authenticated users.
-            // Since we don't have auth context on client, we MUST use a server route with the Service Key if RLS blocks Anon.
-            // Let's create a quick server action/API implicitly or just reuse the logic from Industries?
-            // No, good practice: Use API. I'll create one? Or just Client Side + Service Key?
-            // NO. Client Side + Service Key is bad.
-            // I will Assume RLS for 'promo_codes' allows INSERT for anon for now just to make it work,
-            // OR I should create `/api/admin/promos` real quick. 
-            // Let's create `api/admin/promos/route.ts` quickly after this.
-
-            const res = await fetch('/api/admin/promos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+            const updates = { ...formData };
+            let res;
+            
+            if (editingId) {
+                // Update
+                res = await fetch('/api/admin/promos', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: editingId, ...updates })
+                });
+            } else {
+                // Create
+                res = await fetch('/api/admin/promos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+            }
 
             if (res.ok) {
                 fetchPromos();
                 setIsDialogOpen(false);
+                setEditingId(null);
                 setFormData({
                     code: '', discount_type: 'percentage', discount_value: 0,
-                    usage_limit: 100, sales_agent: '', is_active: true
+                    usage_limit: 100, sales_agent: '', is_active: true,
+                    target_nights: [], is_package_exclusive: false
                 });
             } else {
-                alert("Failed to create promo");
+                alert("Failed to save promo");
             }
         } catch (e) {
             console.error(e);
@@ -123,6 +150,7 @@ export default function PromosPage() {
                                 <TableHead className="text-gray-300">Discount</TableHead>
                                 <TableHead className="text-gray-300">Usage</TableHead>
                                 <TableHead className="text-gray-300">Agent</TableHead>
+                                <TableHead className="text-gray-300">Target</TableHead>
                                 <TableHead className="text-gray-300">Status</TableHead>
                                 <TableHead className="text-right text-gray-300">Actions</TableHead>
                             </TableRow>
@@ -143,11 +171,37 @@ export default function PromosPage() {
                                     <TableCell className="text-gray-400">
                                         {promo.usage_count} / {promo.usage_limit}
                                     </TableCell>
-                                    <TableCell>{promo.sales_agent || '-'}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                            {promo.is_package_exclusive && (
+                                                <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">
+                                                    Package Only
+                                                </Badge>
+                                            )}
+                                            {promo.target_nights && promo.target_nights.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {promo.target_nights.map((nId: string) => {
+                                                        const n = nights.find(x => x.id === nId);
+                                                        return (
+                                                            <Badge key={nId} variant="secondary" className="text-xs">
+                                                                {n ? n.title : 'Night'}
+                                                            </Badge>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                            {!promo.is_package_exclusive && (!promo.target_nights || promo.target_nights.length === 0) && (
+                                                <span className="text-gray-500 text-xs">All</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <div className={`w-2 h-2 rounded-full ${promo.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
                                     </TableCell>
                                     <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(promo)}>
+                                            <Tag size={16} className="text-blue-400" />
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleDelete(promo.id)}>
                                             <Trash2 size={16} className="text-red-400" />
                                         </Button>
@@ -162,7 +216,7 @@ export default function PromosPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="bg-black/90 border-white/20 text-white">
                     <DialogHeader>
-                        <DialogTitle>Create Promo Code</DialogTitle>
+                        <DialogTitle>{editingId ? 'Edit Promo Code' : 'Create Promo Code'}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -219,12 +273,65 @@ export default function PromosPage() {
                                 />
                             </div>
                         </div>
+                        
+                        <div className="space-y-4 pt-2 border-t border-white/10">
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="packageExclusive"
+                                    checked={formData.is_package_exclusive}
+                                    onChange={(e) => setFormData({ 
+                                        ...formData, 
+                                        is_package_exclusive: e.target.checked,
+                                        target_nights: e.target.checked ? [] : formData.target_nights 
+                                    })}
+                                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <Label htmlFor="packageExclusive" className="cursor-pointer">
+                                    Exclusive to Full Package?
+                                </Label>
+                            </div>
+
+                            {!formData.is_package_exclusive && (
+                                <div className="space-y-2">
+                                    <Label>Applicable Nights (Select specific nights, or leave empty for all)</Label>
+                                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-white/5 rounded-md border border-white/10">
+                                        {nights.map(night => (
+                                            <div key={night.id} className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`night-${night.id}`}
+                                                    checked={formData.target_nights.includes(night.id)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            target_nights: checked
+                                                                ? [...prev.target_nights, night.id]
+                                                                : prev.target_nights.filter(id => id !== night.id)
+                                                        }));
+                                                    }}
+                                                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                />
+                                                <Label htmlFor={`night-${night.id}`} className="text-sm cursor-pointer truncate">
+                                                    {night.title}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                        <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                        <Button variant="ghost" onClick={() => { setIsDialogOpen(false); setEditingId(null); setFormData({
+                            code: '', discount_type: 'percentage', discount_value: 0,
+                            usage_limit: 100, sales_agent: '', is_active: true,
+                            target_nights: [], is_package_exclusive: false
+                        }); }}>Cancel</Button>
                         <Button onClick={handleSave} disabled={saving} className="bg-primary text-black">
                             {saving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" size={16} />}
-                            Save
+                            {editingId ? 'Update' : 'Save'}
                         </Button>
                     </div>
                 </DialogContent>

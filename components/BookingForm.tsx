@@ -133,7 +133,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             const res = await fetch('/api/validate-promo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: promoCode })
+                body: JSON.stringify({ 
+                    code: promoCode,
+                    selectedNights: ticketType === 'package' ? ['ALL'] : selectedNights,
+                    isPackage: ticketType === 'package'
+                })
             });
             const data = await res.json();
 

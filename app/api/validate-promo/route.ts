@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
     try {
-        const { code } = await request.json();
+        const { code, selectedNights, isPackage } = await request.json();
 
         if (!code) {
             return NextResponse.json({ valid: false, message: 'Code is required' }, { status: 400 });
@@ -31,6 +31,20 @@ export async function POST(request: Request) {
 
         if (promo.valid_until && new Date(promo.valid_until) < new Date()) {
             return NextResponse.json({ valid: false, message: 'This code has expired' }, { status: 400 });
+        }
+
+        if (promo.is_package_exclusive && !isPackage) {
+            return NextResponse.json({ valid: false, message: 'This code is only valid for full package bookings' }, { status: 400 });
+        }
+
+        if (promo.target_nights && promo.target_nights.length > 0) {
+             // selectedNights is array of IDs. Check if all selected are in target
+             // OR check if at least one?
+             // Prompt implies "Link to a night".
+             // Interpretation: Valid ONLY if all selected nights are in the target list.
+             if (!selectedNights || selectedNights.some((n: string) => !promo.target_nights.includes(n))) {
+                 return NextResponse.json({ valid: false, message: 'This code is not valid for the selected nights' }, { status: 400 });
+             }
         }
 
         if (promo.usage_limit && promo.usage_count >= promo.usage_limit) {

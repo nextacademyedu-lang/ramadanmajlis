@@ -275,7 +275,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
             // -- FREE BOOKING BYPASS --
             if (totalAmount === 0) {
-                window.location.href = `${window.location.origin}/?status=success`;
+                window.location.href = `${window.location.origin}/success`;
                 return;
             }
 

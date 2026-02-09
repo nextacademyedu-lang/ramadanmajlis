@@ -46,6 +46,7 @@ const formSchema = z.object({
     industry: z.string().min(1, "Please select an industry"),
     selectedNights: z.array(z.string()).optional(),
     paymentProvider: z.enum(['paymob_card', 'paymob_wallet']),
+    walletPhone: z.string().optional(),
 }).refine(data => {
     if (data.ticketType === 'single' && (!data.selectedNights || data.selectedNights.length === 0)) {
         return false;
@@ -54,6 +55,15 @@ const formSchema = z.object({
 }, {
     message: "Select at least one night",
     path: ["selectedNights"]
+}).refine(data => {
+    // Wallet phone is required when payment provider is wallet
+    if (data.paymentProvider === 'paymob_wallet' && (!data.walletPhone || data.walletPhone.length < 10)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Wallet phone number is required (min 10 digits)",
+    path: ["walletPhone"]
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -299,7 +309,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                         first_name: data.fullName.split(' ')[0],
                         last_name: data.fullName.split(' ').slice(1).join(' ') || 'Customer',
                         email: data.email,
-                        phone: data.phone
+                        phone: data.paymentProvider === 'paymob_wallet' ? data.walletPhone! : data.phone
                     },
                     provider: data.paymentProvider
                 })
@@ -673,6 +683,25 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                             <div className="text-xs">Vodafone/Etisalat</div>
                                         </div>
                                     </div>
+
+                                    {/* Wallet Phone Input - Only shown when wallet is selected */}
+                                    {paymentProvider === 'paymob_wallet' && (
+                                        <div className="mt-4 space-y-2 p-4 rounded-lg border border-primary/30 bg-primary/5">
+                                            <Label className="flex items-center gap-2">
+                                                <span>رقم المحفظة</span>
+                                                <span className="text-xs text-primary">(Wallet Number)</span>
+                                            </Label>
+                                            <Input
+                                                {...register('walletPhone')}
+                                                placeholder="01xxxxxxxxx"
+                                                className="text-lg tracking-wider"
+                                            />
+                                            <p className="text-xs text-gray-400">
+                                                أدخل رقم التليفون المسجل عليه المحفظة (فودافون كاش / اتصالات كاش / اورانج كاش)
+                                            </p>
+                                            {errors.walletPhone && <p className="text-red-400 text-xs">{errors.walletPhone.message}</p>}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {error && (

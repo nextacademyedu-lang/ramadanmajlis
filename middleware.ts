@@ -19,6 +19,23 @@ export function middleware(request: NextRequest) {
         }
     }
 
+    // Check if the path starts with /partner
+    if (request.nextUrl.pathname.startsWith('/partner')) {
+
+        // Allow access to the login page itself
+        if (request.nextUrl.pathname === '/partner/login') {
+            return NextResponse.next();
+        }
+
+        // Check for the partner session cookie
+        const partnerSession = request.cookies.get('partner_session');
+
+        // If no cookie, redirect to login
+        if (!partnerSession) {
+            return NextResponse.redirect(new URL('/partner/login', request.url));
+        }
+    }
+
     return NextResponse.next();
 }
 

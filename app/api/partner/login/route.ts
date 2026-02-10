@@ -9,8 +9,10 @@ export async function POST(request: Request) {
         const validPassword = process.env.PARTNER_ACCESS_PASSWORD;
         
         if (!validPassword) {
-            console.error('PARTNER_ACCESS_PASSWORD not set');
-            return NextResponse.json({ message: 'Server configuration error' }, { status: 500 });
+            console.error('PARTNER_ACCESS_PASSWORD is not defined in environment variables');
+            return NextResponse.json({ 
+                message: 'System configuration error: Password not set on server. Please checking env vars.' 
+            }, { status: 500 });
         }
 
         if (password === validPassword) {

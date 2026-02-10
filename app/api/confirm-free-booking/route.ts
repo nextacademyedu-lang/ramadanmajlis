@@ -60,6 +60,33 @@ export async function POST(request: Request) {
 
         console.log(`✅ Free Booking ${bookingId} confirmed!`);
 
+        // 4.5. Increment Promo Code Usage
+        if (updatedBooking.promo_code_id) {
+            const { error: promoError } = await supabaseAdmin.rpc('increment_promo_usage', { 
+                row_id: updatedBooking.promo_code_id 
+            });
+            
+            // Fallback if RPC doesn't exist (though RPC is safer for concurrency)
+            if (promoError) {
+                console.warn('⚠️ RPC increment failed, trying direct update...', promoError);
+                 // Fetch current count first to be safe(er)
+                const { data: currentPromo } = await supabaseAdmin
+                    .from('promo_codes')
+                    .select('usage_count')
+                    .eq('id', updatedBooking.promo_code_id)
+                    .single();
+                
+                if (currentPromo) {
+                     await supabaseAdmin
+                    .from('promo_codes')
+                    .update({ usage_count: (currentPromo.usage_count || 0) + 1 })
+                    .eq('id', updatedBooking.promo_code_id);
+                }
+            } else {
+                console.log(`✅ Promo code usage incremented for booking ${bookingId}`);
+            }
+        }
+
         // 5. Create Tickets for each night
         const ticketsToCreate = [];
         const nights = Array.isArray(updatedBooking.selected_nights)

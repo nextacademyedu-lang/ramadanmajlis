@@ -9,7 +9,9 @@ export const metadata: Metadata = {
   title: 'Ramadan Majlis 2026',
   description: 'Ramadan Majlis for Entrepreneurs - An exceptional experience combining spirituality and growth',
   icons: {
-    icon: '/majlis_logo.svg',
+    icon: '/majlis_logo.png',
+    shortcut: '/majlis_logo.png',
+    apple: '/majlis_logo.png',
   },
   openGraph: {
     title: 'Ramadan Majlis 2026',
@@ -18,19 +20,26 @@ export const metadata: Metadata = {
     siteName: 'Ramadan Majlis',
     images: [
       {
-        url: '/majlis_logo.svg',
+        url: '/og-image.png', // Priority to dedicated OG image
+        width: 1200,
+        height: 630,
+        alt: 'Ramadan Majlis 2026',
+      },
+      {
+        url: '/majlis_logo.png', // Fallback to logo
         width: 800,
         height: 600,
         alt: 'Ramadan Majlis Logo',
       },
     ],
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Ramadan Majlis 2026',
     description: 'Join the Elite at Ramadan Majlis.',
-    images: ['/majlis_logo.svg'],
+    images: ['/og-image.png'],
   },
 };
 

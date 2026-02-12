@@ -37,7 +37,8 @@ export default function PromosPage() {
         sales_agent: '',
         is_active: true,
         target_nights: [] as string[],
-        is_package_exclusive: false
+        is_package_exclusive: false,
+        valid_until: null as string | null
     });
     const [saving, setSaving] = useState(false);
 
@@ -80,7 +81,8 @@ export default function PromosPage() {
             sales_agent: promo.sales_agent || '',
             is_active: promo.is_active,
             target_nights: promo.target_nights || [],
-            is_package_exclusive: promo.is_package_exclusive || false
+            is_package_exclusive: promo.is_package_exclusive || false,
+            valid_until: promo.valid_until
         });
         setIsDialogOpen(true);
     };
@@ -114,7 +116,7 @@ export default function PromosPage() {
                 setFormData({
                     code: '', discount_type: 'percentage', discount_value: 0,
                     usage_limit: 100, sales_agent: '', is_active: true,
-                    target_nights: [], is_package_exclusive: false
+                    target_nights: [], is_package_exclusive: false, valid_until: null
                 });
             } else {
                 alert("Failed to save promo");
@@ -169,7 +171,12 @@ export default function PromosPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-gray-400">
-                                        {promo.usage_count} / {promo.usage_limit}
+                                        <div>{promo.usage_count} / {promo.usage_limit}</div>
+                                        {promo.valid_until && (
+                                            <div className="text-xs text-red-400 mt-1">
+                                                Exp: {new Date(promo.valid_until).toLocaleDateString()}
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col gap-1">
@@ -273,6 +280,20 @@ export default function PromosPage() {
                                 />
                             </div>
                         </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                             <div className="space-y-2">
+                                <Label>Valid Until</Label>
+                                <Input
+                                    type="datetime-local"
+                                    value={formData.valid_until ? new Date(formData.valid_until).toISOString().slice(0, 16) : ''}
+                                    onChange={(e) => setFormData({ ...formData, valid_until: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                                    className="bg-white/5 border-white/10 text-white dark:text-white"
+                                    style={{ colorScheme: 'dark' }}
+                                />
+                                <p className="text-xs text-gray-500">Leave empty for no expiration</p>
+                            </div>
+                        </div>
                         
                         <div className="space-y-4 pt-2 border-t border-white/10">
                             <div className="flex items-center space-x-2">
@@ -327,7 +348,7 @@ export default function PromosPage() {
                         <Button variant="ghost" onClick={() => { setIsDialogOpen(false); setEditingId(null); setFormData({
                             code: '', discount_type: 'percentage', discount_value: 0,
                             usage_limit: 100, sales_agent: '', is_active: true,
-                            target_nights: [], is_package_exclusive: false
+                            target_nights: [], is_package_exclusive: false, valid_until: null
                         }); }}>Cancel</Button>
                         <Button onClick={handleSave} disabled={saving} className="bg-primary text-black">
                             {saving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" size={16} />}

@@ -68,14 +68,25 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const NIGHTS = [
+interface Night {
+    date: string;
+    label?: string;
+    title?: string;
+    sub?: string;
+    subtitle?: string;
+    price?: number;
+    id?: string;
+    location?: string;
+}
+
+const NIGHTS: Night[] = [
     { date: "2026-03-20", label: "Night 1", sub: "Mar 20" },
     { date: "2026-03-21", label: "Night 2", sub: "Mar 21" },
     { date: "2026-03-22", label: "Night 3", sub: "Mar 22" },
 ];
 
 interface BookingFormProps {
-    nights?: any[]; // Using any[] to allow flexible night object structure
+    nights?: Night[];
     packagePrice?: number;
     industries?: string[];
 }
@@ -145,11 +156,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             const activeNights = nights.length > 0 ? nights : [];
 
             if (ticketType === 'package') {
-                nightIds = activeNights.map((n: any) => n.id);
+                nightIds = activeNights.map((n: Night) => n.id).filter((id): id is string => !!id);
             } else {
                 nightIds = selectedNights.map((date: string) => {
-                    const n = activeNights.find((night: any) => night.date === date);
-                    return n ? n.id : date; // Fallback to date if ID not found (though unlikely if data is consistent)
+                    const n = activeNights.find((night: Night) => night.date === date);
+                    return n && n.id ? n.id : date;
                 }).filter(Boolean);
             }
 
@@ -223,6 +234,34 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         }
         setLoading(true);
         try {
+            // 0. Re-validate Promo Code (if applied)
+            if (promoApplied) {
+                 // Re-calculate night IDs if needed (same logic as handleApplyPromo)
+               let nightIds: string[] = [];
+                if (data.ticketType === 'single') {
+                    const activeNights = nights.length > 0 ? nights : NIGHTS;
+                    nightIds = (data.selectedNights || []).map((date: string) => {
+                        const n = activeNights.find((night: Night) => night.date === date);
+                        return n && n.id ? n.id : date;
+                    }).filter(Boolean);
+                }
+
+                const res = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        code: promoApplied.code,
+                        selectedNights: nightIds,
+                        isPackage: data.ticketType === 'package'
+                    })
+                });
+                const validationData = await res.json();
+
+                if (!validationData.valid) {
+                    throw new Error(validationData.message || "Promo code is no longer valid");
+                }
+            }
+
             // 1. Insert Booking
             const { data: booking, error: dbError } = await supabase
                 .from('bookings')
@@ -261,9 +300,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                 dateStr = format(firstNight, 'd MMM yyyy');
 
                 // Find the night object from props
-                const nightObj = nights.find((n: any) => n.date === selectedDate);
+                const nightObj = nights.find((n: Night) => n.date === selectedDate);
                 if (nightObj) {
-                    nightTitle = nightObj.title;
+                    nightTitle = nightObj.title || nightTitle;
                     location = nightObj.location || location; // Use DB location, fall back to default if null
                 }
             } else {
@@ -398,7 +437,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                                 <span className="text-xs text-primary font-normal">(Select one or more)</span>
                                             </Label>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                {(nights.length > 0 ? nights : NIGHTS).map((night: any) => (
+                                                {(nights.length > 0 ? nights : NIGHTS).map((night: Night) => (
                                                     <div
                                                         key={night.date}
                                                         onClick={() => {
@@ -446,7 +485,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         <span className="font-bold">Locations & Dates</span>
                                     </div>
                                     {ticketType === 'package' ? (
-                                        (nights.length > 0 ? nights : NIGHTS).map((night: any) => (
+                                        (nights.length > 0 ? nights : NIGHTS).map((night: Night) => (
                                             <div key={night.date} className="flex justify-between items-center text-gray-300">
                                                 <span>{format(new Date(night.date), 'd MMM')}: {night.title}</span>
                                                 <span className="text-white opacity-80">{night.location || 'Creativa Hub'}</span>
@@ -455,7 +494,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                     ) : (
                                         selectedNights.length > 0 ? (
                                             selectedNights.sort().map((date: string) => {
-                                                const n = (nights.length > 0 ? nights : NIGHTS).find((night: any) => night.date === date);
+                                                const n = (nights.length > 0 ? nights : NIGHTS).find((night: Night) => night.date === date);
                                                 return (
                                                     <div key={date} className="flex justify-between items-center text-gray-300">
                                                         <span>{format(new Date(date), 'd MMM')}: {n?.title}</span>

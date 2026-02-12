@@ -661,10 +661,13 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 </div>
 
                                 {/* Promo Code Input */}
-                                <div className="flex gap-2 items-end">
-                                    <div className="flex-1 space-y-2">
-                                        <Label>Have a Promo Code?</Label>
-                                        <div className="relative">
+                                <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
+                                    <Label className="text-base font-semibold text-primary flex items-center gap-2">
+                                        Have a Promo Code?
+                                        <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
+                                    </Label>
+                                    <div className="flex gap-3">
+                                        <div className="relative flex-1">
                                             <Input
                                                 value={promoCode}
                                                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
@@ -672,26 +675,42 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                                 placeholder="ENTER CODE"
                                                 disabled={!!promoApplied || promoLoading}
                                                 className={cn(
-                                                    "uppercase",
-                                                    promoApplied ? "border-green-500 text-green-500" : ""
+                                                    "uppercase text-lg h-12 tracking-widest font-mono transition-all",
+                                                    promoApplied ? "border-green-500 text-green-500 bg-green-500/10" : "bg-black/40 focus:ring-primary/50"
                                                 )}
                                             />
-                                            {promoApplied && <CheckCircle2 className="absolute right-3 top-2.5 text-green-500 w-5 h-5" />}
+                                            {promoApplied && <CheckCircle2 className="absolute right-3 top-3.5 text-green-500 w-5 h-5" />}
                                         </div>
+                                        <Button
+                                            type="button"
+                                            onClick={handleApplyPromo}
+                                            disabled={!promoCode || !!promoApplied || promoLoading}
+                                            variant={promoApplied ? "outline" : "default"}
+                                            className={cn(
+                                                "h-12 px-8 font-bold text-lg min-w-[120px] transition-all duration-300",
+                                                promoApplied 
+                                                    ? "border-green-500 text-green-500 hover:text-green-400 hover:bg-green-500/10" 
+                                                    : "bg-primary text-black hover:bg-amber-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+                                            )}
+                                        >
+                                            {promoLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (promoApplied ? "APPLIED" : "APPLY")}
+                                        </Button>
                                     </div>
-                                    <Button
-                                        type="button"
-                                        onClick={handleApplyPromo}
-                                        disabled={!promoCode || !!promoApplied || promoLoading}
-                                        variant={promoApplied ? "outline" : "secondary"}
-                                        className={cn(
-                                            promoApplied ? "border-green-500 text-green-500 hover:text-green-400" : ""
-                                        )}
-                                    >
-                                        {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (promoApplied ? "Applied" : "Apply")}
-                                    </Button>
+                                    <p className="text-xs text-gray-400 flex items-center gap-1.5 px-1">
+                                        <span className="text-amber-400 text-sm">💡</span> 
+                                        <span>Hint: Check our social media for exclusive codes!</span>
+                                    </p>
+                                    {promoError && (
+                                        <motion.p 
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="text-red-400 text-sm font-medium bg-red-500/10 p-2 rounded border border-red-500/20 flex items-center gap-2"
+                                        >
+                                            <AlertCircle className="w-4 h-4" />
+                                            {promoError}
+                                        </motion.p>
+                                    )}
                                 </div>
-                                {promoError && <p className="text-red-400 text-xs mt-1">{promoError}</p>}
 
 
                                 <div className="space-y-3">

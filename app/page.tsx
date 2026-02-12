@@ -27,13 +27,65 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for success param and redirect to success page
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('status') === 'success') {
-      router.replace('/success');
-      return;
-    }
-    setStars(generateStars(60));
+    const checkPayment = async () => {
+      const params = new URLSearchParams(window.location.search);
+      
+      // Paymob Return Parameters
+      const success = params.get('success');
+      const transactionId = params.get('id');
+      const bookingId = params.get('merchant_order_id');
+
+      if (success === 'false') {
+        // Payment Declined
+        alert("Payment Declined. Please try again.");
+        router.replace('/'); 
+        return;
+      }
+
+      if (success === 'true' && transactionId) {
+        setIsLoading(true);
+        try {
+          const res = await fetch('/api/verify-transaction', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+              transactionId, 
+              bookingId 
+            })
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            router.replace('/success');
+            return;
+          } else {
+            alert("Verification Failed: " + (data.message || "Unknown error"));
+            router.replace('/');
+            return;
+          }
+        } catch (err) {
+          console.error("Verification error", err);
+          alert("Something went wrong verifying your payment.");
+          router.replace('/');
+          return;
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      // Legacy check - remove or keep as fallback? 
+      // Removing it is safer to prevent the reported bug.
+      /*
+      if (params.get('status') === 'success') {
+        router.replace('/success');
+        return;
+      }
+      */
+
+      setStars(generateStars(60));
+    };
+
+    checkPayment();
   }, [router]);
 
 

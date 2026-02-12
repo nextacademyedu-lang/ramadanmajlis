@@ -34,125 +34,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Not a free booking' }, { status: 400 });
         }
 
-        // 3. Check if already confirmed (idempotency)
-        if (booking.status === 'confirmed') {
-            console.log(`⚠️ Booking ${bookingId} already confirmed`);
-            return NextResponse.json({ success: true, message: 'Already confirmed' });
-        }
+        // 3. Confirm the booking using shared service
+        // We verified it's free above, so we can proceed to confirm.
+        const { confirmBooking } = await import('@/lib/booking-service');
+        const result = await confirmBooking(bookingId);
 
-        // 4. Generate QR code and update booking
-        const qrCode = crypto.randomUUID();
-        const { data: updatedBooking, error: updateError } = await supabaseAdmin
-            .from('bookings')
-            .update({
-                status: 'confirmed',
-                paid_at: new Date().toISOString(),
-                qr_code: qrCode
-            })
-            .eq('id', bookingId)
-            .select('*')
-            .single();
-
-        if (updateError) {
-            console.error('❌ Failed to update booking:', updateError);
-            return NextResponse.json({ error: 'Failed to confirm booking' }, { status: 500 });
-        }
-
-        console.log(`✅ Free Booking ${bookingId} confirmed!`);
-
-        // 4.5. Increment Promo Code Usage
-        if (updatedBooking.promo_code_id) {
-            const { error: promoError } = await supabaseAdmin.rpc('increment_promo_usage', { 
-                row_id: updatedBooking.promo_code_id 
-            });
-            
-            // Fallback if RPC doesn't exist (though RPC is safer for concurrency)
-            if (promoError) {
-                console.warn('⚠️ RPC increment failed, trying direct update...', promoError);
-                 // Fetch current count first to be safe(er)
-                const { data: currentPromo } = await supabaseAdmin
-                    .from('promo_codes')
-                    .select('usage_count')
-                    .eq('id', updatedBooking.promo_code_id)
-                    .single();
-                
-                if (currentPromo) {
-                     await supabaseAdmin
-                    .from('promo_codes')
-                    .update({ usage_count: (currentPromo.usage_count || 0) + 1 })
-                    .eq('id', updatedBooking.promo_code_id);
-                }
-            } else {
-                console.log(`✅ Promo code usage incremented for booking ${bookingId}`);
-            }
-        }
-
-        // 5. Create Tickets for each night
-        const ticketsToCreate = [];
-        const nights = Array.isArray(updatedBooking.selected_nights)
-            ? updatedBooking.selected_nights
-            : JSON.parse(updatedBooking.selected_nights || '[]');
-
-        for (const night of nights) {
-            ticketsToCreate.push({
-                booking_id: bookingId,
-                night_date: night,
-                qr_code: crypto.randomUUID(),
-                status: 'pending'
-            });
-        }
-
-        // Insert tickets into DB
-        const { data: createdTickets, error: ticketError } = await supabaseAdmin
-            .from('tickets')
-            .insert(ticketsToCreate)
-            .select();
-
-        let finalTickets = createdTickets;
-
-        // Handle Duplicate Key Error (Idempotency)
-        if (ticketError && ticketError.code === '23505') {
-            console.log('⚠️ Tickets already exist, fetching existing tickets...');
-            const { data: existingTickets } = await supabaseAdmin
-                .from('tickets')
-                .select('*')
-                .eq('booking_id', bookingId);
-            finalTickets = existingTickets;
-        } else if (ticketError) {
-            console.error('❌ Failed to create tickets:', ticketError);
-        }
-
-        // 6. Send Notifications
-        if (finalTickets && finalTickets.length > 0) {
-            console.log(`📧📱 Sending notifications for free booking ${bookingId}...`);
-
-            const notificationResults = await Promise.allSettled([
-                // A. Welcome Email
-                sendWelcomeEmail(updatedBooking),
-
-                // B. Ticket Emails (One per night)
-                ...finalTickets.map(ticket => sendTicketEmail(updatedBooking, ticket)),
-
-                // C. WhatsApp Welcome Message
-                sendWhatsAppMessage(updatedBooking),
-
-                // D. WhatsApp Tickets (One per night)
-                ...finalTickets.map(ticket => sendWhatsAppTicket(updatedBooking, ticket))
-            ]);
-
-            console.log(`✅ Notifications processed for free booking ${bookingId}`);
-
-            return NextResponse.json({
-                success: true,
-                message: 'Booking confirmed and notifications sent',
-                ticketCount: finalTickets.length,
-                notifications: notificationResults.map(r => r.status)
-            });
+        if (result.status === 'already_processed') {
+             return NextResponse.json({ success: true, message: 'Already confirmed' });
         }
 
         return NextResponse.json({
             success: true,
-            message: 'Booking confirmed (no tickets created)'
+            message: 'Booking confirmed and notifications sent',
+            ticketCount: result.tickets?.length || 0,
+            notifications: result.notifications?.map((r: any) => r.status)
         });
 
     } catch (error: any) {

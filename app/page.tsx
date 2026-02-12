@@ -23,6 +23,7 @@ const generateStars = (count: number) =>
 export default function Home() {
   const [stars, setStars] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -92,6 +93,9 @@ export default function Home() {
       } catch (err: any) {
         console.error("Supabase Error:", err);
         setFetchError(err.message || "Failed to load data");
+      } finally {
+        // Add a small delay for smoother transition
+        setTimeout(() => setIsLoading(false), 500);
       }
     };
     fetchData();
@@ -99,6 +103,32 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative overflow-hidden font-sans">
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#022c22]"
+          >
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"
+              />
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-emerald-100 font-medium text-lg"
+              >
+                Loading Ramadan Majlis...
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Background Gradients */}
       <div className="absolute inset-0 pointer-events-none -z-20">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-gradient-to-b from-[#064e3b] via-[#065f46] to-[#022c22] opacity-80" />

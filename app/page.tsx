@@ -380,57 +380,60 @@ function SponsorshipSection() {
       borderColor: "border-slate-300",
       icon: Crown,
       features: [
-        "Comprehensive Media Coverage",
-        "Opening Keynote (5 Mins)",
-        "Large Exhibition Booth",
-        "Large Logo on All Print Materials",
+        "Top-tier logo placement on all materials",
+        "Dedicated spotlight during the event program",
+        "Speaking opportunity (short brand message)",
+        "Exclusive branding within the venue",
         "10 VIP Tickets",
-        "Mention in All Ad Campaigns"
+        "Full social media campaign collaboration"
       ]
     },
     {
       id: 'golden',
       name: "Golden",
-      price: "20,000",
+      price: "40,000",
       tickets: "5 Tickets",
       color: "from-amber-300 via-yellow-200 to-amber-400",
       borderColor: "border-amber-400",
       icon: Award,
       features: [
-        "Media Coverage",
-        "Medium Exhibition Booth",
-        "Logo on Print Materials",
-        "5 Regular Tickets",
-        "Special Social Media Thank You Post"
+        "Prominent logo placement across all visuals",
+        "Dedicated social media post highlighting the sponsor",
+        "Roll-up banner & branded table at venue",
+        "Verbal brand mention during all three nights",
+        "5 VIP Tickets",
+        "Opportunity to include branded items in gift bags"
       ]
     },
     {
       id: 'silver',
       name: "Silver",
-      price: "15,000",
+      price: "30,000",
       tickets: "3 Tickets",
       color: "from-gray-300 via-gray-200 to-gray-400",
       borderColor: "border-gray-400",
       icon: Star,
       features: [
-        "Logo on Website",
-        "Group Thank You Post",
-        "3 Regular Tickets",
-        "Logo in Sponsors Area"
+        "Logo placement on all event materials",
+        "Social media brand mentions before and during the event",
+        "Roll-up banner placement at venue",
+        "Brand mention during two event nights",
+        "3 VIP Tickets"
       ]
     },
     {
       id: 'bronze',
       name: "Bronze",
-      price: "10,000",
+      price: "20,000",
       tickets: "2 Tickets",
       color: "from-amber-700 via-amber-600 to-amber-800",
       borderColor: "border-amber-700",
       icon: CheckCircle,
       features: [
-        "Logo on Website",
-        "2 Regular Tickets",
-        "Networking Opportunity"
+        "Logo placement on event visual materials",
+        "Logo inclusion on social media announcements",
+        "Brand mention during two event nights",
+        "2 complimentary tickets"
       ]
     }
   ];

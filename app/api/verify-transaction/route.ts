@@ -75,10 +75,18 @@ export async function POST(request: Request) {
                 booking: confirmation.booking
             });
         } else {
+             // Extract failure reason if available
+             const failureReason = transaction.daTa?.message || transaction.data?.message || transaction.source_data?.sub_type || "Unknown Reason";
+             
              return NextResponse.json({ 
                 success: false, 
-                message: "Transaction Declined or Pending",
-                details: { success: transaction.success, pending: transaction.pending }
+                message: `Transaction Declined: ${failureReason}`,
+                details: { 
+                    success: transaction.success, 
+                    pending: transaction.pending,
+                    txn_response_code: transaction.txn_response_code,
+                    data_message: transaction.data?.message
+                }
             });
         }
 

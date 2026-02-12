@@ -59,7 +59,8 @@ export default function Home() {
             router.replace('/success');
             return;
           } else {
-            alert("Verification Failed: " + (data.message || "Unknown error"));
+            console.error("Verification Failed Details:", data);
+            alert(data.message || "Payment Verification Failed");
             router.replace('/');
             return;
           }

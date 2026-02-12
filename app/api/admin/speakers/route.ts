@@ -59,6 +59,7 @@ export async function POST(request: Request) {
                 title: body.title || null,
                 image_url: body.image_url || null,
                 night_id: body.night_id || null,
+                role: body.role || 'Keynote Speaker',
                 display_order: body.display_order ?? 0
             })
             .select()
@@ -97,6 +98,7 @@ export async function PUT(request: Request) {
                 title: body.title || null,
                 image_url: body.image_url || null,
                 night_id: body.night_id || null,
+                role: body.role || 'Keynote Speaker',
                 display_order: body.display_order ?? 0
             })
             .eq("id", body.id)

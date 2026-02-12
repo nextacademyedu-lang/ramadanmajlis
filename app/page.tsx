@@ -363,6 +363,7 @@ export default function Home() {
                     />
                  </div>
                  <h3 className="text-white font-bold">{speaker.name}</h3>
+                 <p className="text-emerald-400 text-xs font-semibold mb-0.5">{speaker.role || 'Keynote Speaker'}</p>
                  <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
                  <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>
                </div>

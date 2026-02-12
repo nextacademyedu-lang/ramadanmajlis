@@ -34,6 +34,7 @@ type Speaker = {
     title: string | null;
     image_url: string | null;
     night_id: string | null;
+    role: string | null;
     display_order: number | null;
 };
 
@@ -51,6 +52,7 @@ export default function SpeakersPage() {
         title: "",
         image_url: "",
         night_id: "",
+        role: "Keynote Speaker",
         display_order: 0
     });
 
@@ -94,6 +96,7 @@ export default function SpeakersPage() {
             title: "",
             image_url: "",
             night_id: "",
+            role: "Keynote Speaker",
             display_order: 0
         });
     };
@@ -105,6 +108,7 @@ export default function SpeakersPage() {
             title: speaker.title || "",
             image_url: speaker.image_url || "",
             night_id: speaker.night_id || "",
+            role: speaker.role || "Keynote Speaker",
             display_order: speaker.display_order || 0
         });
         setIsDialogOpen(true);
@@ -178,7 +182,10 @@ export default function SpeakersPage() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-lg text-white">{speaker.name}</h3>
-                                <p className="text-sm text-gray-400">{speaker.title || "No title"}</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{speaker.role || 'Keynote Speaker'}</span>
+                                </div>
+                                <p className="text-sm text-gray-400 mt-1">{speaker.title || "No title"}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {nights.find(n => n.id === speaker.night_id)?.title || "No night assigned"}
                                 </p>
@@ -246,6 +253,25 @@ export default function SpeakersPage() {
                                                 {n.title} - {new Date(n.date).toLocaleDateString()}
                                             </SelectItem>
                                         ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Role</Label>
+                            <Select
+                                value={formData.role}
+                                onValueChange={(val: string) => setFormData({ ...formData, role: val })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="Keynote Speaker">Keynote Speaker</SelectItem>
+                                        <SelectItem value="Panel Speaker">Panel Speaker</SelectItem>
+                                        <SelectItem value="Host">Host</SelectItem>
+                                        <SelectItem value="Moderator">Moderator</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>

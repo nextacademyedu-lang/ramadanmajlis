@@ -23,7 +23,7 @@ export async function GET() {
 
         const { data, error } = await supabase
             .from("event_nights")
-            .select("id, title, date")
+            .select("*, speakers(*)")
             .order("date", { ascending: true });
 
         if (error) throw error;

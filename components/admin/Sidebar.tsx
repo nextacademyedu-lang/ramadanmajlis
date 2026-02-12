@@ -12,13 +12,15 @@ import {
     Mic,
     LogOut,
     Menu,
-    X
+    X,
+    Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+    { name: 'Nights', href: '/admin/nights', icon: Calendar },
     { name: 'Bookings', href: '/admin/bookings', icon: Users },
     { name: 'Promo Codes', href: '/admin/promos', icon: Tags },
     { name: 'Industries', href: '/admin/industries', icon: Factory },

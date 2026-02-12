@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
             if (!keyData.token) {
                 console.error("[Paymob] Key Request Failed:", JSON.stringify(keyData));
-                throw new Error(`Paymob Key Failed: ${JSON.stringify(keyData)}`);
+                throw new Error(`Paymob Key Failed (Integration ID: ${integrationIdInt}): ${JSON.stringify(keyData)}`);
             }
             console.log('[Paymob] Key Generated Successfully');
 

@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import {
     Search,
-    Filter,
-    CheckCircle2,
-    XCircle,
     MoreHorizontal,
-    Loader2
+    Loader2,
+    Eye,
+    ExternalLink
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -29,18 +27,20 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Init Supabase (Client Side - RLS allows reading)
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import Image from 'next/image';
 
 export default function BookingsPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all'); // all, paid, pending
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
     useEffect(() => {
         fetchBookings();
@@ -54,7 +54,7 @@ export default function BookingsPage() {
                 const data = await res.json();
                 setBookings(data);
             }
-        } catch (err) {
+        } catch {
             console.error("Failed to fetch bookings");
         } finally {
             setLoading(false);
@@ -92,6 +92,8 @@ export default function BookingsPage() {
         const matchesSearch =
             b.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
             b.email?.toLowerCase().includes(search.toLowerCase()) ||
+            b.phone?.includes(search) || 
+            b.company?.toLowerCase().includes(search.toLowerCase()) ||
             b.id?.toLowerCase().includes(search.toLowerCase());
 
         const matchesFilter =
@@ -118,7 +120,7 @@ export default function BookingsPage() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-3 text-gray-500 w-4 h-4" />
                     <Input
-                        placeholder="Search name, email, ID..."
+                        placeholder="Search name, email, phone, company, ID..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-9 bg-black/50 border-white/10"
@@ -145,25 +147,25 @@ export default function BookingsPage() {
                         <TableHeader className="bg-white/5">
                             <TableRow className="border-white/10 hover:bg-transparent">
                                 <TableHead className="text-gray-300">Customer</TableHead>
+                                <TableHead className="text-gray-300">Company / Job</TableHead>
+                                <TableHead className="text-gray-300">Contact</TableHead>
                                 <TableHead className="text-gray-300">Ticket</TableHead>
-                                <TableHead className="text-gray-300">Promo</TableHead>
                                 <TableHead className="text-gray-300">Amount</TableHead>
                                 <TableHead className="text-gray-300">Status</TableHead>
-                                <TableHead className="text-gray-300">Date</TableHead>
                                 <TableHead className="text-right text-gray-300">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center text-gray-500">
+                                    <TableCell colSpan={7} className="h-32 text-center text-gray-500">
                                         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                                         Loading bookings...
                                     </TableCell>
                                 </TableRow>
                             ) : filteredBookings.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center text-gray-500">
+                                    <TableCell colSpan={7} className="h-32 text-center text-gray-500">
                                         No bookings found.
                                     </TableCell>
                                 </TableRow>
@@ -171,21 +173,36 @@ export default function BookingsPage() {
                                 filteredBookings.map((booking) => (
                                     <TableRow key={booking.id} className="border-white/10 hover:bg-white/5">
                                         <TableCell>
-                                            <div className="font-medium text-white">{booking.customer_name}</div>
+                                            <div className="flex items-center gap-3">
+                                                {booking.profile_image_url ? (
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 relative">
+                                                        <Image src={booking.profile_image_url} alt={booking.customer_name} fill className="object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white/50">
+                                                        {booking.customer_name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="font-medium text-white">{booking.customer_name}</div>
+                                                    <div className="text-xs text-gray-500">{new Date(booking.created_at).toLocaleDateString()}</div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="text-sm text-white">{booking.company}</div>
+                                            <div className="text-xs text-gray-400">{booking.job_title}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="text-sm text-white">{booking.phone}</div>
                                             <div className="text-xs text-gray-400">{booking.email}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="outline" className="bg-white/5 text-white border-white/20">
-                                                {booking.ticket_count} x {booking.ticket_count > 1 || booking.total_amount > 2000 ? 'Package' : 'Single'}
+                                            <Badge variant="outline" className="bg-white/5 text-white border-white/20 mb-1">
+                                                {booking.ticket_count > 1 || (booking.total_amount > 2000 && booking.selected_nights?.length !== 1) ? 'Package' : 'Single'}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.promo_codes?.code ? (
-                                                <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-                                                    {booking.promo_codes.code}
-                                                </Badge>
-                                            ) : (
-                                                <span className="text-gray-600">-</span>
+                                            {booking.promo_codes?.code && (
+                                                 <div className="text-[10px] text-purple-400">Code: {booking.promo_codes.code}</div>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-white font-mono">
@@ -202,36 +219,40 @@ export default function BookingsPage() {
                                                 {booking.payment_status.toUpperCase()}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-gray-400 text-sm">
-                                            {new Date(booking.created_at).toLocaleDateString()}
-                                        </TableCell>
                                         <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">Open menu</span>
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="bg-black border-white/20 text-white">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem
-                                                        className="hover:bg-white/10 cursor-pointer"
-                                                        onClick={() => updateBookingStatus(booking.id, 'paid')}
-                                                    >
-                                                        Mark as Paid
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="hover:bg-white/10 cursor-pointer"
-                                                        onClick={() => navigator.clipboard.writeText(booking.id)}
-                                                    >
-                                                        Copy ID
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem className="hover:bg-white/10 cursor-pointer">
-                                                        View Details
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <div className="flex justify-end gap-2">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-8 w-8 hover:bg-white/10 hover:text-white"
+                                                    onClick={() => setSelectedBooking(booking)}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <span className="sr-only">Open menu</span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="bg-black border-white/20 text-white">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem
+                                                            className="hover:bg-white/10 cursor-pointer"
+                                                            onClick={() => updateBookingStatus(booking.id, 'paid')}
+                                                        >
+                                                            Mark as Paid
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="hover:bg-white/10 cursor-pointer"
+                                                            onClick={() => navigator.clipboard.writeText(booking.id)}
+                                                        >
+                                                            Copy ID
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -240,6 +261,148 @@ export default function BookingsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* View Details Modal */}
+            <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
+                <DialogContent className="bg-[#0a201b] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                            Booking Details
+                            <Badge variant="outline" className="text-xs font-normal border-white/20 text-white/60">
+                                {selectedBooking?.id}
+                            </Badge>
+                        </DialogTitle>
+                    </DialogHeader>
+                    
+                    {selectedBooking && (
+                        <div className="grid gap-6 py-4">
+                            {/* Header Section with Photo */}
+                            <div className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                                {selectedBooking.profile_image_url ? (
+                                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-emerald-500/30">
+                                        <Image src={selectedBooking.profile_image_url} alt="Profile" fill className="object-cover" />
+                                    </div>
+                                ) : (
+                                    <div className="w-20 h-20 rounded-full bg-emerald-900/40 flex items-center justify-center text-2xl font-bold text-emerald-400 border-2 border-emerald-500/30">
+                                        {selectedBooking.customer_name?.charAt(0)}
+                                    </div>
+                                )}
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-bold text-white">{selectedBooking.customer_name}</h3>
+                                    <div className="flex items-center gap-2 text-emerald-200/70">
+                                        <span className="font-medium">{selectedBooking.job_title}</span>
+                                        <span>at</span>
+                                        <span className="font-medium">{selectedBooking.company}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30">
+                                            {selectedBooking.industry}
+                                        </Badge>
+                                        {selectedBooking.linkedin_url && (
+                                            <a 
+                                                href={selectedBooking.linkedin_url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1 transition-colors"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                LinkedIn Profile
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* Contact Info */}
+                                <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                                    <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Contact Information</h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Email:</span>
+                                            <span className="text-white select-all">{selectedBooking.email}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Phone:</span>
+                                            <span className="text-white select-all">{selectedBooking.phone}</span>
+                                        </div>
+                                        {selectedBooking.payment_provider && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-500">Provider:</span>
+                                                <span className="text-white capitalize">{selectedBooking.payment_provider.replace('_', ' ')}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Booking Info */}
+                                <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                                    <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Booking Status</h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-500">Payment:</span>
+                                            <Badge
+                                                className={
+                                                    selectedBooking.payment_status === 'paid'
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-yellow-500/20 text-yellow-400'
+                                                }
+                                            >
+                                                {selectedBooking.payment_status.toUpperCase()}
+                                            </Badge>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Date:</span>
+                                            <span className="text-white">{new Date(selectedBooking.created_at).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Type:</span>
+                                            <span className="text-white font-medium">
+                                                {selectedBooking.ticket_count > 1 || (selectedBooking.total_amount > 2000 && selectedBooking.selected_nights?.length !== 1) ? 'Full Package' : 'Single Night'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                             {/* Financials */}
+                             <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Financial Details</h4>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Ticket Count:</span>
+                                        <span className="text-white">{selectedBooking.ticket_count}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Nights Selected:</span>
+                                        <div className="flex gap-1 flex-wrap justify-end">
+                                            {selectedBooking.selected_nights && selectedBooking.selected_nights.map((night: string) => (
+                                                <Badge key={night} variant="outline" className="bg-white/5 text-xs">
+                                                    {night === 'ALL' ? 'All Nights' : new Date(night).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                                                </Badge>
+                                            ))}
+                                            {(!selectedBooking.selected_nights || selectedBooking.selected_nights.length === 0) && <span className="text-gray-500">-</span>}
+                                        </div>
+                                    </div>
+                                    {selectedBooking.discount_applied > 0 && (
+                                        <div className="flex justify-between text-green-400">
+                                            <span>
+                                                Discount
+                                                {selectedBooking.promo_codes?.code && <span className="text-xs ml-1">({selectedBooking.promo_codes.code})</span>}
+                                            </span>
+                                            <span>- {selectedBooking.discount_applied.toLocaleString()} EGP</span>
+                                        </div>
+                                    )}
+                                    <div className="border-t border-white/10 pt-2 flex justify-between text-lg font-bold text-white">
+                                        <span>Total Amount</span>
+                                        <span>{selectedBooking.total_amount.toLocaleString()} EGP</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

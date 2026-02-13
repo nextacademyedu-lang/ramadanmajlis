@@ -22,7 +22,7 @@ export default function SuccessPage() {
         company: '',
         date: 'Ramadan 2026',
         night: 'Ramadan Majlis',
-        location: 'Creativa Innovation Hub',
+        location: 'Tolip Hotel – New Cairo',
         photo: ''
     });
 
@@ -37,7 +37,7 @@ export default function SuccessPage() {
             company: localStorage.getItem('booking_company') || '',
             date: localStorage.getItem('booking_date') || 'Ramadan 2026',
             night: localStorage.getItem('booking_night_title') || 'Ramadan Majlis',
-            location: localStorage.getItem('booking_location') || 'Creativa Innovation Hub',
+            location: localStorage.getItem('booking_location') || 'Tolip Hotel – New Cairo',
             photo: localStorage.getItem('booking_photo') || '',
         };
         setBookingData(data);

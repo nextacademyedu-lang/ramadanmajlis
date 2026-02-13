@@ -292,7 +292,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             // Save data for Ticket generation on Success page
             let dateStr = 'Ramadan 2026';
             let nightTitle = 'All Nights Access';
-            let location = 'Creativa Innovation Hub'; // Default
+            let location = 'Tolip Hotel – New Cairo'; // Default
 
             if (data.ticketType === 'single' && data.selectedNights && data.selectedNights.length > 0) {
                 const selectedDate = data.selectedNights[0];
@@ -307,7 +307,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                 }
             } else {
                 dateStr = 'Full Package';
-                location = 'Creativa Hub, Giza'; // Or some generic location for the package
+                location = 'Tolip Hotel – New Cairo Hyatt Regency, 6th of October Pyramids Hotel, Dokki'; // Or some generic location for the package
                 // Check if we have specific locations for package? for now default is fine.
             }
 

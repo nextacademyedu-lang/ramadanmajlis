@@ -6,6 +6,7 @@ interface Speaker {
     name: string;
     title: string;
     role: string;
+    company?: string;
     image_url: string | null;
     speaker_topic?: string;
     night_id?: string;
@@ -56,7 +57,7 @@ export default function SpeakerSessions({ speakers, nights, title = "Elite Speak
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="group bg-white/5 border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 hover:bg-white/10 hover:border-emerald-500/30 transition-all duration-300 flex flex-col h-full"
+                                className="group bg-white/5 border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-5 hover:bg-white/10 hover:border-emerald-500/30 transition-all duration-300 flex flex-col h-full max-h-[280px] md:max-h-[320px] overflow-hidden"
                             >
                                 <div className="flex flex-col md:flex-row items-center md:items-start gap-3 md:gap-4 mb-3 md:mb-6 text-center md:text-left">
                                     <div className="w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-emerald-500/20 group-hover:border-emerald-500 transition-colors shrink-0">
@@ -68,8 +69,8 @@ export default function SpeakerSessions({ speakers, nights, title = "Elite Speak
                                         />
                                     </div>
                                     <div>
-                                        <h3 className="text-white font-bold text-sm md:text-lg leading-tight line-clamp-2">{speaker.name}</h3>
-                                        <p className="text-emerald-200/60 text-[10px] md:text-xs mt-1 line-clamp-2 md:line-clamp-none">{speaker.title}</p>
+                                        <h3 className="text-white font-bold text-xs md:text-sm leading-tight line-clamp-1">{speaker.name}</h3>
+                                        <p className="text-emerald-200/60 text-[9px] md:text-[11px] mt-0.5 line-clamp-2">{speaker.title}</p>
                                     </div>
                                 </div>
 
@@ -80,13 +81,13 @@ export default function SpeakerSessions({ speakers, nights, title = "Elite Speak
                                                 <Mic2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
                                                 <span>Topic</span>
                                             </div>
-                                            <h4 className="text-sm md:text-xl font-serif text-white/90 font-medium italic leading-relaxed line-clamp-3 md:line-clamp-none">
+                                            <h4 className="text-xs md:text-sm font-serif text-white/90 font-medium italic leading-snug line-clamp-2">
                                                 "{speaker.speaker_topic}"
                                             </h4>
                                         </>
                                     ) : (
                                         <div className="h-full flex flex-col justify-center items-center md:items-start">
-                                             <p className="text-emerald-100/50 text-xs md:text-sm leading-relaxed italic text-center md:text-left">
+                                             <p className="text-emerald-100/50 text-[10px] md:text-xs leading-snug italic text-center md:text-left line-clamp-2">
                                                 {speaker.company || "Industry Leader"}
                                              </p>
                                              {speaker.role && (

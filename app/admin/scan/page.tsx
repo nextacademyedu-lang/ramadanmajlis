@@ -233,21 +233,21 @@ export default function ScannerPage() {
                             <CardContent className="relative z-10 p-0">
                                 {/* Header: Industry & Zone (The most important part for Ushering) */}
                                 <div
-                                    className="p-8 text-center text-black"
+                                    className="p-4 md:p-8 text-center text-black"
                                     style={{ backgroundColor: (result.industry?.color_code as string) || '#fff' }}
                                 >
-                                    <h2 className="text-4xl font-black uppercase tracking-wider mb-2">
+                                    <h2 className="text-2xl md:text-4xl font-black uppercase tracking-wider mb-2">
                                         {result.industry?.name || result.booking.industry || "General"}
                                     </h2>
-                                    <div className="inline-flex items-center gap-2 bg-black/20 text-black px-4 py-1 rounded-full font-bold text-lg">
-                                        <MapPin size={20} />
+                                    <div className="inline-flex items-center gap-2 bg-black/20 text-black px-3 py-1 md:px-4 md:py-1 rounded-full font-bold text-sm md:text-lg">
+                                        <MapPin size={16} className="md:w-5 md:h-5" />
                                         {result.industry?.zone_name || "General Area"}
                                     </div>
                                 </div>
 
                                 {/* Attendee Details */}
-                                <div className="p-8 bg-black/90 backdrop-blur-xl border-t border-white/10">
-                                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                                <div className="p-4 md:p-8 bg-black/90 backdrop-blur-xl border-t border-white/10">
+                                    <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center">
                                         <div className="shrink-0">
                                             {result.booking.profile_image_url ? (
                                                 <Image
@@ -255,31 +255,31 @@ export default function ScannerPage() {
                                                     alt="Profile"
                                                     width={128}
                                                     height={128}
-                                                    className="w-32 h-32 rounded-full border-4 border-white/10 object-cover"
+                                                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white/10 object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-32 h-32 rounded-full bg-white/10 flex items-center justify-center">
-                                                    <User size={48} className="opacity-50" />
+                                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/10 flex items-center justify-center">
+                                                    <User size={40} className="md:w-12 md:h-12 opacity-50" />
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex-1 text-center md:text-left space-y-2">
-                                            <h3 className="text-3xl font-bold text-white">{result.booking.customer_name}</h3>
-                                            <div className="text-xl text-primary font-medium">{result.booking.job_title}</div>
-                                            <div className="flex items-center justify-center md:justify-start gap-2 text-gray-400">
-                                                <Building2 size={16} />
+                                        <div className="flex-1 text-center md:text-left space-y-1 md:space-y-2 w-full">
+                                            <h3 className="text-2xl md:text-3xl font-bold text-white break-words leading-tight">{result.booking.customer_name}</h3>
+                                            <div className="text-lg md:text-xl text-primary font-medium">{result.booking.job_title}</div>
+                                            <div className="flex items-center justify-center md:justify-start gap-2 text-gray-400 text-sm md:text-base">
+                                                <Building2 size={14} className="md:w-4 md:h-4" />
                                                 {result.booking.company}
                                             </div>
 
-                                            <div className="pt-4 flex items-center justify-center md:justify-start gap-3">
-                                                <div className={`px-3 py-1 rounded-full text-sm font-bold border ${result.booking.payment_status === 'paid'
+                                            <div className="pt-3 md:pt-4 flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3">
+                                                <div className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold border ${result.booking.payment_status === 'paid'
                                                         ? 'bg-green-500/20 text-green-400 border-green-500/30'
                                                         : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
                                                     }`}>
                                                     {result.booking.payment_status?.toUpperCase()}
                                                 </div>
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-xs md:text-sm text-gray-500">
                                                     Ticket: {result.booking.ticket_count} | Total: {result.booking.total_amount} EGP
                                                 </div>
                                             </div>

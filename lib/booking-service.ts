@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { sendWelcomeEmail, sendTicketEmail } from '@/lib/email';
+import { sendWelcomeEmail, sendTicketEmail, AgendaItem } from '@/lib/email';
 import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
 
 // Initialize Supabase Admin Client
@@ -120,18 +120,68 @@ export async function confirmBooking(bookingId: string) {
     if (finalTickets && finalTickets.length > 0) {
         console.log(`✅ Using ${finalTickets.length} tickets for booking ${bookingId}`);
 
+        // Fetch necessary data for emails/whatsapp (Nights & Speakers)
+        const { data: eventNights } = await supabaseAdmin
+            .from('event_nights')
+            .select('date, panel_title, agenda, location_url');
+            
+        const { data: allSpeakers } = await supabaseAdmin
+            .from('speakers')
+            .select('id, name');
+
+        const speakerMap = new Map(allSpeakers?.map((s: any) => [s.id, s.name]) || []);
+        
+        // Helper to find matching night (fuzzy match for varying date formats)
+        const getNightDetails = (ticketDate: string) => {
+            if (!eventNights) return null;
+            return eventNights.find((n: any) => 
+                n.date === ticketDate || 
+                new Date(n.date).toDateString() === new Date(ticketDate).toDateString()
+            );
+        };
+
+        const emailPromises = finalTickets.map((ticket: any) => {
+            const nightDetails = getNightDetails(ticket.night_date);
+            let nightAgenda: AgendaItem[] = [];
+
+            if (nightDetails?.agenda) {
+                 const rawAgenda = Array.isArray(nightDetails.agenda) ? nightDetails.agenda : JSON.parse(nightDetails.agenda as string);
+                 nightAgenda = rawAgenda.map((item: any) => ({
+                     time: item.time,
+                     title: item.title,
+                     speaker: item.speaker_id ? speakerMap.get(item.speaker_id) : undefined
+                 }));
+            }
+            return sendTicketEmail(updatedBooking, ticket, nightAgenda, nightDetails?.location_url);
+        });
+
+        const whatsappPromises = finalTickets.map((ticket: any) => {
+             const nightDetails = getNightDetails(ticket.night_date);
+             let nightAgenda: AgendaItem[] = [];
+
+             if (nightDetails?.agenda) {
+                 const rawAgenda = Array.isArray(nightDetails.agenda) ? nightDetails.agenda : JSON.parse(nightDetails.agenda as string);
+                 nightAgenda = rawAgenda.map((item: any) => ({
+                     time: item.time,
+                     title: item.title,
+                     speaker: item.speaker_id ? speakerMap.get(item.speaker_id) : undefined
+                 }));
+            }
+             return sendWhatsAppTicket(updatedBooking, ticket, nightDetails?.panel_title, nightAgenda, nightDetails?.location_url);
+        });
+
         notificationResults = await Promise.allSettled([
             // A. Immediate Welcome Email (No QR)
             sendWelcomeEmail(updatedBooking),
             
-            // B. Ticket Emails (One per night)
-            ...finalTickets.map(ticket => sendTicketEmail(updatedBooking, ticket)),
+            // B. Ticket Emails (One per night, with agenda)
+            ...emailPromises,
 
             // C. WhatsApp Welcome Message (No QR)
             sendWhatsAppMessage(updatedBooking),
 
-            // D. WhatsApp Tickets (One per night)
-            ...finalTickets.map(ticket => sendWhatsAppTicket(updatedBooking, ticket))
+            // D. WhatsApp Tickets (One per night, with title)
+            ...whatsappPromises
         ]);
 
         console.log(`📧📱 Notifications processed for booking ${bookingId}`);

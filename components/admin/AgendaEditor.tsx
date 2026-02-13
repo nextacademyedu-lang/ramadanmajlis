@@ -219,7 +219,7 @@ export default function AgendaEditor({ initialAgenda, speakers, onSave, onCancel
                                         );
                                     })}
                                     
-                                    <Select onValueChange={(val) => toggleSpeaker(index, val)}>
+                                    <Select onValueChange={(val: string) => toggleSpeaker(index, val)}>
                                         <SelectTrigger className="w-[140px] h-8 text-xs bg-black/20 border-white/10 rounded-full border-dashed">
                                             <SelectValue placeholder="+ Add" />
                                         </SelectTrigger>

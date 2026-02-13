@@ -16,6 +16,7 @@ export default function QRScanner({ onScan, isActive }: QRScannerProps) {
     const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const lastScanRef = useRef<number>(0);
 
     useEffect(() => {
         // Check camera permission on mount
@@ -47,10 +48,17 @@ export default function QRScanner({ onScan, isActive }: QRScannerProps) {
                     qrbox: { width: 250, height: 250 },
                 },
                 (decodedText) => {
+                    // Prevent rapid duplicate scans
+                    const now = Date.now();
+                    if (now - lastScanRef.current < 2500) return;
+                    
+                    lastScanRef.current = now;
                     // Success callback
                     onScan(decodedText);
-                    // Optionally stop after successful scan
-                    // stopScanning();
+                    
+                    // Pause scanning visually and logically
+                    html5QrCode.pause(true);
+                    setIsScanning(false);
                 },
                 () => {
                     // Error callback - ignore continuous errors during scanning

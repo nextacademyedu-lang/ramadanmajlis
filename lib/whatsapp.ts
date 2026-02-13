@@ -106,14 +106,29 @@ https://www.facebook.com/Eventocity1
     }
 }
 
+import { AgendaItem } from './email';
+
+// ... (existing code)
+
 // Function to send image (QR Code) via WhatsApp
-export async function sendWhatsAppTicket(booking: BookingData, ticket: TicketData) {
+export async function sendWhatsAppTicket(booking: BookingData, ticket: TicketData, nightTitle?: string, agenda: AgendaItem[] = [], locationUrl?: string) {
     if (!EVOLUTION_API_KEY) {
         return null;
     }
 
     const formattedPhone = formatPhoneNumber(booking.phone);
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;
+
+    const titlePart = nightTitle ? `\n🌟 *${nightTitle}*` : '';
+    
+    let agendaText = '';
+    if (agenda && agenda.length > 0) {
+        agendaText = '\n\n📋 *Night Agenda:*\n' + agenda.map(item => 
+            `▫️ ${item.time} - *${item.title}*${item.speaker ? `\n   (ft. ${item.speaker})` : ''}`
+        ).join('\n');
+    }
+
+    const locationPart = locationUrl ? `\n\n📍 *Location:* ${locationUrl}` : '';
 
     try {
         const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
@@ -126,7 +141,7 @@ export async function sendWhatsAppTicket(booking: BookingData, ticket: TicketDat
                 number: formattedPhone,
                 mediatype: 'image',
                 media: qrCodeImageUrl,
-                caption: `🎟️ *Ticket for ${ticket.night_date}*\n\nShow this QR code at the entrance!`
+                caption: `🎟️ *Your Ticket for ${ticket.night_date}*${titlePart}${agendaText}${locationPart}\n\nShow this QR code at the entrance!`
             })
         });
 

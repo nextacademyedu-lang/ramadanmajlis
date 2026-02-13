@@ -449,18 +449,7 @@ export default function Home() {
       )}
 
       {/* ========== PARTNERS SECTION ========== */}
-      <SectionSeparator />
-      <section className="py-20 bg-[#064e3b]/20">
-        <div className="container mx-auto px-4 max-w-7xl text-center">
-          <p className="text-emerald-200/40 text-sm uppercase tracking-widest mb-10">Our Partners</p>
-          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-            <img src="/Eventocity.png" alt="Eventocity" className="h-16 md:h-20 w-auto object-contain" />
-            <img src="/ex.png" alt="Experience" className="h-16 md:h-20 w-auto object-contain" />
-          </div>
-        </div>
-      </section>
-      
-      <SectionSeparator />
+
       <SponsorshipSection />
       
       <SectionSeparator />
@@ -496,7 +485,7 @@ function SponsorshipSection() {
       id: 'platinum',
       name: "Platinum",
       price: "50,000",
-      tickets: "10 تذاكر",
+      tickets: "10 Tickets",
       color: "from-slate-200 via-slate-100 to-slate-300",
       borderColor: "border-slate-300",
       icon: Crown,
@@ -582,27 +571,109 @@ function SponsorshipSection() {
                 key={idx}
                 layoutId={`sponsor-${plan.id}`}
                 onClick={() => setActivePlan(plan)}
-                whileHover={{ y: -10 }}
-                className="relative rounded-3xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer"
+                whileHover={{ y: -8 }}
+                className="relative rounded-3xl overflow-hidden bg-[#0c1220] border border-white/5 group cursor-pointer h-full transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-900/20"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${plan.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
-                <div className="p-8 text-center relative z-10">
-                  <h3 className={`text-2xl font-bold bg-gradient-to-r ${plan.color} bg-clip-text text-transparent mb-2`}>
+                {/* Gradient Border Effect */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-b ${plan.color.replace('from-', 'from-').replace('via-', 'via-').replace('to-', 'to-')} p-[1px] rounded-3xl -z-10`} />
+                
+                {/* Top Shine */}
+                <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-b ${plan.color} opacity-5 group-hover:opacity-10 transition-opacity duration-500`} />
+                
+                <div className="p-6 md:p-8 flex flex-col h-full relative z-10">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={`p-3 rounded-2xl bg-gradient-to-br ${plan.color} bg-opacity-10 border border-white/5`}>
+                        <plan.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-emerald-200/70 font-mono">
+                        {plan.tickets}
+                    </div>
+                  </div>
+
+                  <h3 className={`text-2xl font-bold bg-gradient-to-r ${plan.color} bg-clip-text text-transparent mb-2 group-hover:scale-105 transition-transform origin-left group-hover:text-slate-900`}>
                     {plan.name}
                   </h3>
-                  <div className="my-6 py-4 border-y border-white/10">
-                    <span className="text-3xl font-bold text-white block">{plan.price}</span>
-                    <span className="text-emerald-200/50 text-sm">EGP</span>
+                  
+                  <div className="flex items-baseline gap-1 my-4">
+                    <span className="text-3xl md:text-4xl font-bold text-white tracking-tight group-hover:text-slate-900 transition-colors">{plan.price}</span>
+                    <span className="text-emerald-200/50 text-sm font-medium group-hover:text-slate-500 transition-colors">EGP</span>
                   </div>
-                  <div className="inline-block px-4 py-1 rounded-full bg-white/10 text-white text-sm mb-6">
-                    {plan.tickets}
-                  </div>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 text-white border-0 rounded-lg transition-colors">
+
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.slice(0, 3).map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-400 group-hover:text-slate-700 transition-colors">
+                            <span className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.color} group-hover:from-slate-700 group-hover:to-slate-900 transition-colors`} />
+                            <span className="leading-snug font-medium">{feature}</span>
+                        </li>
+                    ))}
+                    {plan.features.length > 3 && (
+                        <li className="text-xs text-white/30 italic pl-3 group-hover:text-slate-500 transition-colors">+ {plan.features.length - 3} more privileges</li>
+                    )}
+                  </ul>
+
+                  <button className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 
+                    bg-gradient-to-r ${plan.color} text-black opacity-90 hover:opacity-100 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]`}>
                     View Details
                   </button>
                 </div>
               </motion.div>
             ))}
+          </div>
+
+          {/* Our Partners */}
+          <div className="mt-20 text-center">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Our Partners</h3>
+            <div className="w-16 h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent mx-auto rounded-full opacity-50 mb-10"></div>
+            <div className="flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-6 w-48 h-32 flex items-center justify-center shadow-lg hover:border-emerald-500/30 hover:bg-white/10 transition-all duration-300 group"
+              >
+                <img src="/Eventocity.png" alt="Eventocity" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Our Sponsors */}
+          <div className="mt-16 text-center">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Our Sponsors</h3>
+            <div className="w-16 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto rounded-full opacity-50 mb-10"></div>
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
+              {[
+                { src: "/coachu.jpg", alt: "CoachU" },
+                { src: "/ex.png", alt: "X's Agency" },
+                { src: "/sapika.jpg", alt: "Sapika" },
+              ].map((sponsor, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.15 }}
+                  className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-4 w-32 h-32 md:w-40 md:h-40 flex items-center justify-center shadow-lg hover:border-amber-500/30 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 group"
+                >
+                  <img src={sponsor.src} alt={sponsor.alt} className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Media Partner */}
+          <div className="mt-16 text-center">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Media Partner</h3>
+            <div className="w-16 h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent mx-auto rounded-full opacity-50 mb-10"></div>
+            <div className="flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="bg-white rounded-2xl p-4 w-36 h-36 md:w-44 md:h-44 flex items-center justify-center shadow-lg shadow-black/20 hover:scale-105 transition-transform duration-300"
+              >
+                <img src="/sponsor1.jpg" alt="Tawseq" className="max-w-full max-h-full object-contain" />
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>

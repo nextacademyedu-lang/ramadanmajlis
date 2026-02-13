@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.ramadanmajlis.nextacademyedu.com'),
   title: 'Ramadan Majlis 2026',
   description: 'Ramadan Majlis for Entrepreneurs - An exceptional experience combining spirituality and growth',
-  icons: {
-    icon: '/majlis_logo.png',
-    shortcut: '/majlis_logo.png',
-    apple: '/majlis_logo.png',
-  },
+  // icons: {
+  //   icon: '/majlis_logo.png',
+  //   shortcut: '/majlis_logo.png',
+  //   apple: '/majlis_logo.png',
+  // },
   openGraph: {
     title: 'Ramadan Majlis 2026',
     description: 'Ramadan Majlis for Entrepreneurs - An exceptional experience combining spirituality and growth',

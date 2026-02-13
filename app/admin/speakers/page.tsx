@@ -37,6 +37,7 @@ type Speaker = {
     night_id: string | null;
     role: string | null;
     display_order: number | null;
+    speaker_topic?: string | null;
 };
 
 export default function SpeakersPage() {
@@ -54,7 +55,8 @@ export default function SpeakersPage() {
         image_url: "",
         night_id: "",
         role: "Keynote Speaker",
-        display_order: 0
+        display_order: 0,
+        speaker_topic: ""
     });
 
     useEffect(() => {
@@ -98,7 +100,8 @@ export default function SpeakersPage() {
             image_url: "",
             night_id: "",
             role: "Keynote Speaker",
-            display_order: 0
+            display_order: 0,
+            speaker_topic: ""
         });
     };
 
@@ -110,7 +113,8 @@ export default function SpeakersPage() {
             image_url: speaker.image_url || "",
             night_id: speaker.night_id || "",
             role: speaker.role || "Keynote Speaker",
-            display_order: speaker.display_order || 0
+            display_order: speaker.display_order || 0,
+            speaker_topic: speaker.speaker_topic || ""
         });
         setIsDialogOpen(true);
     };
@@ -231,6 +235,15 @@ export default function SpeakersPage() {
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 placeholder="Speaker title"
+                                className="bg-white/5 border-white/10"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Speaker Topic</Label>
+                            <Input
+                                value={formData.speaker_topic}
+                                onChange={(e) => setFormData({ ...formData, speaker_topic: e.target.value })}
+                                placeholder="Topic of discussion..."
                                 className="bg-white/5 border-white/10"
                             />
                         </div>

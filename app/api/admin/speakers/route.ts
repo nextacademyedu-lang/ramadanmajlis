@@ -60,7 +60,8 @@ export async function POST(request: Request) {
                 image_url: body.image_url || null,
                 night_id: body.night_id || null,
                 role: body.role || 'Keynote Speaker',
-                display_order: body.display_order ?? 0
+                display_order: body.display_order ?? 0,
+                speaker_topic: body.speaker_topic || null
             })
             .select()
             .single();
@@ -99,7 +100,8 @@ export async function PUT(request: Request) {
                 image_url: body.image_url || null,
                 night_id: body.night_id || null,
                 role: body.role || 'Keynote Speaker',
-                display_order: body.display_order ?? 0
+                display_order: body.display_order ?? 0,
+                speaker_topic: body.speaker_topic || null
             })
             .eq("id", body.id)
             .select()

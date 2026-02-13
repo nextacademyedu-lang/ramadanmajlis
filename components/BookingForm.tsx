@@ -738,7 +738,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                             )}
                                         >
                                             <div className="font-bold">Wallet</div>
-                                            <div className="text-xs">Vodafone/Etisalat</div>
+                                            <div className="text-xs">Vodafone/Etisalat/InstaPay/OrangePay/etc..</div>
                                         </div>
                                     </div>
 

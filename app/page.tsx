@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X } from "lucide-react";
+import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X, Download } from "lucide-react";
 import BookingForm from '@/components/BookingForm';
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -237,10 +237,10 @@ export default function Home() {
               <span>The Premier Ramadan Event of 2026</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight font-serif">
               {eventConfig?.name?.split(' ')[0] || "Ramadan"} <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-yellow-200 to-amber-400">{eventConfig?.name?.split(' ').slice(1).join(' ') || "Majlis"}</span>
               <br />
-              <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block">{eventConfig?.subtitle || "For Entrepreneurs"}</span>
+              <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block font-sans">{eventConfig?.subtitle || "For Entrepreneurs"}</span>
             </h1>
 
             {/* Countdown Timer */}
@@ -317,7 +317,8 @@ export default function Home() {
       </div>
 
       {/* ========== NIGHTS SECTION ========== */}
-      <section className="py-24 bg-[#0a352a]/20 border-y border-emerald-500/10 relative overflow-hidden">
+      <SectionSeparator />
+      <section className="py-24 bg-[#0a352a]/20 relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-7xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">The Nights</h2>
@@ -333,24 +334,24 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + idx * 0.1 }}
                 onClick={() => setActiveNight(night)}
-                className={`group cursor-pointer relative p-8 rounded-3xl border ${night.color_theme === 'blue' ? 'border-blue-400/20 bg-blue-400/10' : night.color_theme === 'amber' ? 'border-amber-400/20 bg-amber-400/10' : 'border-emerald-400/20 bg-emerald-400/10'} backdrop-blur-sm hover:shadow-2xl transition-all duration-300 overflow-hidden`}
+                 className={`group cursor-pointer relative p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md hover:border-amber-500/40 hover:bg-white/10 hover:shadow-[0_0_40px_rgba(245,158,11,0.15)] transition-all duration-500 overflow-hidden`}
               >
                 {/* Hover Glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${night.color_theme === 'blue' ? 'from-blue-400/5' : night.color_theme === 'amber' ? 'from-amber-400/5' : 'from-emerald-400/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${night.color_theme === 'blue' ? 'from-blue-500/10' : night.color_theme === 'amber' ? 'from-amber-500/10' : 'from-emerald-500/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                <div className={`p-4 rounded-2xl bg-black/20 w-fit mb-6 ${night.color_theme === 'blue' ? 'text-blue-400' : night.color_theme === 'amber' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  <span className="text-2xl font-bold">{idx + 1}</span>
+                <div className={`p-4 rounded-2xl bg-white/5 border border-white/5 w-fit mb-6 ${night.color_theme === 'blue' ? 'text-blue-300' : night.color_theme === 'amber' ? 'text-amber-300' : 'text-emerald-300'} group-hover:scale-110 transition-transform duration-500`}>
+                  <span className="text-2xl font-bold font-serif">{idx + 1}</span>
                 </div>
-                <h4 className="text-2xl font-bold text-white mb-2">{night.title}</h4>
-                <p className="text-emerald-100/60 font-medium mb-4 text-sm uppercase">{night.subtitle}</p>
-                <p className="text-emerald-100/80 text-sm leading-relaxed mb-6 line-clamp-3">{night.description}</p>
+                <h4 className="text-3xl font-bold text-white mb-2 font-serif group-hover:text-amber-400 transition-colors duration-300">{night.title}</h4>
+                <p className="text-emerald-100/60 font-medium mb-4 text-sm uppercase tracking-widest">{night.subtitle}</p>
+                <p className="text-emerald-100/80 text-sm leading-relaxed mb-8 line-clamp-3">{night.description}</p>
                 
-                <div className="pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
+                <div className="pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
                   <div>
-                    <span className="text-white font-bold block">{night.price} {night.currency}</span>
-                    <span className="text-xs text-white/50">{night.capacity} Seats</span>
+                    <span className="text-amber-400 font-bold block text-lg font-serif">{night.price} {night.currency}</span>
+                    <span className="text-xs text-emerald-200/40">{night.capacity} Seats</span>
                   </div>
-                  <button className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors">
+                  <button className="px-5 py-2.5 rounded-full bg-white/5 hover:bg-amber-500 hover:text-black text-white text-xs font-bold tracking-wide transition-all duration-300 uppercase border border-white/10 hover:border-amber-500">
                     Show Details
                   </button>
                 </div>
@@ -388,42 +389,76 @@ export default function Home() {
       </AnimatePresence>
 
       {/* ========== SPEAKERS SECTION ========== */}
+      <SectionSeparator />
       <section className="py-24 relative overflow-hidden">
         <div className="container mx-auto px-4 mb-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Elite Speakers</h2>
         </div>
 
-        <div className="overflow-hidden w-full relative group" dir="ltr">
+        <div className="flex flex-col gap-12 overflow-hidden w-full relative group" dir="ltr">
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#022c22] to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#022c22] to-transparent z-10" />
 
           {speakers.length > 0 ? (
-             <motion.div
-             className="flex gap-8 w-max"
-             animate={{ x: ["0%", "-50%"] }}
-             transition={{ ease: "linear", duration: 40, repeat: Infinity }}
-           >
-             {[...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest'), ...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest')].map((speaker, idx) => {
-               const isVIP = speaker.role === 'VIP Guest';
-               return (
-               <div key={`${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
-                 <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative`}>
-                   <img 
-                      src={speaker.image_url || "/placeholder-user.jpg"} 
-                      alt={speaker.name} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
-                      }}
-                    />
-                 </div>
-                 <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
-                 <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
-                 <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
-                 {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
-               </div>
-             )})}
-           </motion.div>
+            <>
+              {/* Row 1: Left Direction */}
+              <motion.div
+                className="flex gap-8 w-max"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ ease: "linear", duration: 45, repeat: Infinity }}
+              >
+                {[...speakers, ...speakers].map((speaker, idx) => {
+                  const isVIP = speaker.role === 'VIP Guest';
+                  return (
+                    <div key={`row1-${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
+                      <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300`}>
+                        <img 
+                          src={speaker.image_url || "/placeholder-user.jpg"} 
+                          alt={speaker.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                          }}
+                        />
+                      </div>
+                      <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
+                      <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
+                      <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
+                      {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
+                    </div>
+                  )
+                })}
+              </motion.div>
+
+              {/* Row 2: Right Direction (Reverse) */}
+              <motion.div
+                className="flex gap-8 w-max"
+                animate={{ x: ["-50%", "0%"] }}
+                transition={{ ease: "linear", duration: 50, repeat: Infinity }}
+              >
+                {[...speakers, ...speakers].map((speaker, idx) => {
+                  const isVIP = speaker.role === 'VIP Guest';
+                  return (
+                    <div key={`row2-${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
+                      <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300`}>
+                        <img 
+                          src={speaker.image_url || "/placeholder-user.jpg"} 
+                          alt={speaker.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                          }}
+                        />
+                      </div>
+                      <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
+                      <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
+                      <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
+                      {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
+                    </div>
+                  )
+                })}
+              </motion.div>
+            </>
           ) : (
             <div className="text-center text-emerald-200/40 py-12">Loading Speakers...</div>
           )}
@@ -431,7 +466,8 @@ export default function Home() {
       </section>
 
       {/* ========== PARTNERS SECTION ========== */}
-      <section className="py-20 bg-[#064e3b]/20 border-t border-emerald-500/10">
+      <SectionSeparator />
+      <section className="py-20 bg-[#064e3b]/20">
         <div className="container mx-auto px-4 max-w-7xl text-center">
           <p className="text-emerald-200/40 text-sm uppercase tracking-widest mb-10">Our Partners</p>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
@@ -440,9 +476,14 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      
+      <SectionSeparator />
       <SponsorshipSection />
+      
+      <SectionSeparator />
       <FaqSection />
+      
+      <SectionSeparator />
       <Footer />
 
     </main>
@@ -450,7 +491,18 @@ export default function Home() {
 }
 
 function SectionSeparator() {
-  return <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent w-full my-8" />
+  return (
+    <div className="relative py-8 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center">
+        <div className="w-full border-t border-emerald-500/10"></div>
+      </div>
+      <div className="relative flex justify-center">
+        <div className="bg-[#022c22] px-4">
+          <div className="w-3 h-3 rotate-45 bg-amber-500/20 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function SponsorshipSection() {
@@ -530,7 +582,15 @@ function SponsorshipSection() {
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Sponsorship Packages</h2>
-            <p className="text-emerald-200/60">Partner in success and showcase your brand to the elite.</p>
+            <p className="text-emerald-200/60 mb-8">Partner in success and showcase your brand to the elite.</p>
+            <a 
+              href="/Ramadan Majlis Package  SPONSER1 (1).pdf" 
+              download 
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-500/10 border border-amber-500/50 text-amber-400 hover:bg-amber-500 hover:text-black transition-all duration-300 font-bold"
+            >
+              <Download className="w-5 h-5" />
+              Download Full Package PDF
+            </a>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

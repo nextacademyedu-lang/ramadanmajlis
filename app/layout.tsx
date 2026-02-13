@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { Outfit } from 'next/font/google';
+import { Outfit, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
-const outfit = Outfit({ subsets: ['latin'] });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.ramadanmajlis.nextacademyedu.com'),
@@ -50,7 +51,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" dir="ltr">
-      <body className={outfit.className} suppressHydrationWarning={true}>{children}</body>
+      <body className={`${outfit.variable} ${playfair.variable} font-sans bg-background text-foreground antialiased`} suppressHydrationWarning={true}>
+        {children}
+      </body>
     </html>
   );
 }

@@ -38,7 +38,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                 {/* Header */}
                 <div className="p-6 sm:p-8 pb-0">
                     <div className="flex justify-between items-start gap-4 mb-2">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">{night.title}</h2>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight font-serif">{night.title}</h2>
                         <div className="shrink-0 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
                              {new Date(night.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                         </div>

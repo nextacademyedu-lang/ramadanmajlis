@@ -15,6 +15,7 @@ export async function POST(request: Request) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ api_key: process.env.PAYMOB_API_KEY })
             });
+            
             const authData = await authResponse.json();
 
             if (!authData.token) {

@@ -388,9 +388,9 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ========== SPEAKERS SECTION ========== */}
+      {/* ========== ELITE SPEAKERS SECTION ========== */}
       <SectionSeparator />
-      <section className="py-24 relative overflow-hidden">
+      <section className="pt-24 pb-[10px] relative overflow-hidden">
         <div className="container mx-auto px-4 mb-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Elite Speakers</h2>
         </div>
@@ -399,7 +399,7 @@ export default function Home() {
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#022c22] to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#022c22] to-transparent z-10" />
 
-          {speakers.length > 0 ? (
+          {speakers.filter(s => s.role !== 'VIP Guest').length > 0 ? (
             <>
               {/* Row 1: Left Direction */}
               <motion.div
@@ -407,27 +407,24 @@ export default function Home() {
                 animate={{ x: ["0%", "-50%"] }}
                 transition={{ ease: "linear", duration: 45, repeat: Infinity }}
               >
-                {[...speakers, ...speakers].map((speaker, idx) => {
-                  const isVIP = speaker.role === 'VIP Guest';
-                  return (
-                    <div key={`row1-${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
-                      <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300`}>
-                        <img 
-                          src={speaker.image_url || "/placeholder-user.jpg"} 
-                          alt={speaker.name} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
-                          }}
-                        />
-                      </div>
-                      <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
-                      <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
-                      <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
-                      {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
+                {[...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role !== 'VIP Guest')].map((speaker, idx) => (
+                  <div key={`row1-${speaker.id}-${idx}`} className="w-[200px] text-center flex-shrink-0">
+                    <div className="w-32 h-32 border-emerald-500/20 mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300">
+                      <img 
+                        src={speaker.image_url || "/placeholder-user.jpg"} 
+                        alt={speaker.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                        }}
+                      />
                     </div>
-                  )
-                })}
+                    <h3 className="text-white font-bold text-base">{speaker.name}</h3>
+                    <p className="text-emerald-400 text-xs font-semibold mb-0.5">{speaker.role || 'Keynote Speaker'}</p>
+                    <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
+                    <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>
+                  </div>
+                ))}
               </motion.div>
 
               {/* Row 2: Right Direction (Reverse) */}
@@ -436,27 +433,24 @@ export default function Home() {
                 animate={{ x: ["-50%", "0%"] }}
                 transition={{ ease: "linear", duration: 50, repeat: Infinity }}
               >
-                {[...speakers, ...speakers].map((speaker, idx) => {
-                  const isVIP = speaker.role === 'VIP Guest';
-                  return (
-                    <div key={`row2-${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
-                      <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300`}>
-                        <img 
-                          src={speaker.image_url || "/placeholder-user.jpg"} 
-                          alt={speaker.name} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
-                          }}
-                        />
-                      </div>
-                      <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
-                      <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
-                      <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
-                      {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
+                {[...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role !== 'VIP Guest')].map((speaker, idx) => (
+                  <div key={`row2-${speaker.id}-${idx}`} className="w-[200px] text-center flex-shrink-0">
+                    <div className="w-32 h-32 border-emerald-500/20 mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative group-hover:scale-105 transition-transform duration-300">
+                      <img 
+                        src={speaker.image_url || "/placeholder-user.jpg"} 
+                        alt={speaker.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                        }}
+                      />
                     </div>
-                  )
-                })}
+                    <h3 className="text-white font-bold text-base">{speaker.name}</h3>
+                    <p className="text-emerald-400 text-xs font-semibold mb-0.5">{speaker.role || 'Keynote Speaker'}</p>
+                    <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
+                    <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>
+                  </div>
+                ))}
               </motion.div>
             </>
           ) : (
@@ -464,6 +458,47 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* ========== VIP GUESTS SECTION (NOW MARQUEE) ========== */}
+      {speakers.filter(s => s.role === 'VIP Guest').length > 0 && (
+        <>
+          <section className="pt-0 pb-24 relative overflow-hidden bg-amber-900/10">
+            <div className="container mx-auto px-4 mb-12 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">VIP Guests</h2>
+              <div className="w-24 h-1 bg-amber-500 mx-auto rounded-full opacity-50"></div>
+            </div>
+
+            <div className="overflow-hidden w-full relative group" dir="ltr">
+              <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#022c22] to-transparent z-10" />
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#022c22] to-transparent z-10" />
+
+              <motion.div
+                className="flex gap-12 w-max"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ ease: "linear", duration: 40, repeat: Infinity }}
+              >
+                {[...speakers.filter(s => s.role === 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest')].map((speaker, idx) => (
+                  <div key={`vip-marquee-${speaker.id}-${idx}`} className="w-[300px] text-center flex-shrink-0 group/card">
+                     <div className="w-48 h-48 border-2 border-amber-500/50 mx-auto rounded-full overflow-hidden mb-6 bg-emerald-900/20 relative shadow-[0_0_20px_rgba(245,158,11,0.2)] group-hover/card:scale-105 group-hover/card:border-amber-400 group-hover/card:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-500">
+                      <img 
+                        src={speaker.image_url || "/placeholder-user.jpg"} 
+                        alt={speaker.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2 font-serif">{speaker.name}</h3>
+                    <p className="text-amber-400 font-semibold mb-1 uppercase tracking-wider text-sm">{speaker.role}</p>
+                    <p className="text-emerald-200/60 text-sm">{speaker.title}</p>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        </>
+      )}
 
       {/* ========== PARTNERS SECTION ========== */}
       <SectionSeparator />

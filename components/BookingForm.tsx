@@ -116,7 +116,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         defaultValues: {
             ticketType: 'single',
             selectedNights: [],
-            paymentProvider: 'paymob_card'
+            paymentProvider: 'paymob_wallet' // Default to Wallet temporarily
         }
     });
 
@@ -716,7 +716,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 <div className="space-y-3">
                                     <Label>Payment Method</Label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div
+                                        {/* <div
                                             onClick={() => setValue('paymentProvider', 'paymob_card')}
                                             className={cn(
                                                 "cursor-pointer rounded-lg border p-4 text-center transition-all",
@@ -727,7 +727,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         >
                                             <div className="font-bold">Card</div>
                                             <div className="text-xs">Paymob</div>
-                                        </div>
+                                        </div> */}
                                         <div
                                             onClick={() => setValue('paymentProvider', 'paymob_wallet')}
                                             className={cn(

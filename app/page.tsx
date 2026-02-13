@@ -403,9 +403,11 @@ export default function Home() {
              animate={{ x: ["0%", "-50%"] }}
              transition={{ ease: "linear", duration: 40, repeat: Infinity }}
            >
-             {[...speakers, ...speakers].map((speaker, idx) => (
-               <div key={`${speaker.id}-${idx}`} className="w-[200px] text-center flex-shrink-0">
-                 <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-emerald-500/20 mb-4 bg-emerald-900/20 relative">
+             {[...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest'), ...speakers.filter(s => s.role !== 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest')].map((speaker, idx) => {
+               const isVIP = speaker.role === 'VIP Guest';
+               return (
+               <div key={`${speaker.id}-${idx}`} className={`${isVIP ? 'w-[160px]' : 'w-[200px]'} text-center flex-shrink-0`}>
+                 <div className={`${isVIP ? 'w-24 h-24 border-amber-500/30' : 'w-32 h-32 border-emerald-500/20'} mx-auto rounded-full overflow-hidden border-2 mb-4 bg-emerald-900/20 relative`}>
                    <img 
                       src={speaker.image_url || "/placeholder-user.jpg"} 
                       alt={speaker.name} 
@@ -415,12 +417,12 @@ export default function Home() {
                       }}
                     />
                  </div>
-                 <h3 className="text-white font-bold">{speaker.name}</h3>
-                 <p className="text-emerald-400 text-xs font-semibold mb-0.5">{speaker.role || 'Keynote Speaker'}</p>
+                 <h3 className={`text-white font-bold ${isVIP ? 'text-sm' : 'text-base'}`}>{speaker.name}</h3>
+                 <p className={`${isVIP ? 'text-amber-400/80' : 'text-emerald-400'} text-xs font-semibold mb-0.5`}>{speaker.role || 'Keynote Speaker'}</p>
                  <p className="text-emerald-200/50 text-xs">{speaker.title}</p>
-                 <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>
+                 {!isVIP && <p className="text-emerald-200/30 text-[10px] mt-1">{speaker.company}</p>}
                </div>
-             ))}
+             )})}
            </motion.div>
           ) : (
             <div className="text-center text-emerald-200/40 py-12">Loading Speakers...</div>

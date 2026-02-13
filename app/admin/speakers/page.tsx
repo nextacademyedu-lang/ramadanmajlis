@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Loader2, Save } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -175,11 +176,17 @@ export default function SpeakersPage() {
                 ) : speakers.map((speaker) => (
                     <Card key={speaker.id} className="bg-white/5 border-white/10 overflow-hidden">
                         <CardContent className="p-5 flex gap-4">
-                            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-white/5 shrink-0">
-                                {speaker.image_url ? (
-                                    <Image src={speaker.image_url} alt={speaker.name} fill className="object-cover" />
-                                ) : null}
-                            </div>
+                                <div className="relative w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-white/5 shrink-0">
+                                    {speaker.image_url ? (
+                                        <Image 
+                                            src={speaker.image_url} 
+                                            alt={speaker.name} 
+                                            fill 
+                                            className="object-cover" 
+                                            unoptimized={speaker.image_url.startsWith('http')}
+                                        />
+                                    ) : null}
+                                </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-lg text-white">{speaker.name}</h3>
                                 <div className="flex items-center gap-2">
@@ -228,13 +235,53 @@ export default function SpeakersPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Image URL</Label>
-                            <Input
-                                value={formData.image_url}
-                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                placeholder="/speakers/..."
-                                className="bg-white/5 border-white/10"
-                            />
+                            <Label>Speaker Image</Label>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            
+                                            setSaving(true);
+                                            try {
+                                                const fileExt = file.name.split('.').pop();
+                                                const fileName = `${Math.random()}.${fileExt}`;
+                                                const filePath = `speakers/${fileName}`;
+                                                
+                                                const { error: uploadError } = await supabase.storage
+                                                    .from('avatars')
+                                                    .upload(filePath, file);
+
+                                                if (uploadError) throw uploadError;
+
+                                                const { data } = supabase.storage
+                                                    .from('avatars')
+                                                    .getPublicUrl(filePath);
+
+                                                if (data?.publicUrl) {
+                                                    setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
+                                                }
+                                            } catch (error) {
+                                                console.error(error);
+                                                alert('Error uploading image');
+                                            } finally {
+                                                setSaving(false);
+                                            }
+                                        }}
+                                        className="bg-white/5 border-white/10"
+                                    />
+                                </div>
+                                <div className="text-xs text-gray-400">OR</div>
+                                <Input
+                                    value={formData.image_url}
+                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                    placeholder="Paste URL directly..."
+                                    className="bg-white/5 border-white/10"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Night</Label>
@@ -272,6 +319,7 @@ export default function SpeakersPage() {
                                         <SelectItem value="Panel Speaker">Panel Speaker</SelectItem>
                                         <SelectItem value="Host">Host</SelectItem>
                                         <SelectItem value="Moderator">Moderator</SelectItem>
+                                        <SelectItem value="VIP Guest">VIP Guest</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>

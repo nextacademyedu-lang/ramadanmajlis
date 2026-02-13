@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.linkedin.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.licdn.com',
+      },
     ],
   },
 };

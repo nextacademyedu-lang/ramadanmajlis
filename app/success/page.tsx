@@ -28,6 +28,7 @@ export default function SuccessPage() {
 
     const [copied, setCopied] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         // Load booking data from localStorage
@@ -117,6 +118,26 @@ https://www.facebook.com/Eventocity1
         );
     };
 
+    const handleDownloadPoster = async () => {
+        setDownloading(true);
+        try {
+            const response = await fetch(posterUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ramadan-majlis-${bookingData.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error('Download failed:', err);
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     return (
         <main className="min-h-screen bg-gradient-to-b from-[#064e3b] via-[#065f46] to-[#022c22] relative overflow-hidden">
             {/* Background Glow */}
@@ -175,7 +196,7 @@ https://www.facebook.com/Eventocity1
                         </h2>
 
                         {/* Poster Preview with Loading State */}
-                        <div className="relative w-full aspect-[1200/630] rounded-xl overflow-hidden border border-emerald-500/30 mb-6 bg-[#064e3b] shadow-2xl">
+                        <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-emerald-500/30 mb-6 bg-[#064e3b] shadow-2xl">
                             {imageLoading && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-[#064e3b] z-10">
                                     <div className="flex flex-col items-center gap-3">
@@ -189,6 +210,10 @@ https://www.facebook.com/Eventocity1
                                 alt="Share Poster"
                                 className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                                 onLoad={() => setImageLoading(false)}
+                                onError={() => {
+                                    setImageLoading(false);
+                                    console.error('Failed to load poster image:', posterUrl);
+                                }}
                             />
                         </div>
 
@@ -212,15 +237,14 @@ https://www.facebook.com/Eventocity1
                         </div>
 
                         {/* Download Poster Button */}
-                        <a
-                            href={posterUrl}
-                            download={`ramadan-majlis-${bookingData.name.replace(/\s+/g, '-').toLowerCase()}.png`}
-                            target="_blank"
-                            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold rounded-xl mb-8 hover:from-emerald-500 hover:to-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                        <button
+                            onClick={handleDownloadPoster}
+                            disabled={downloading || imageLoading}
+                            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold rounded-xl mb-8 hover:from-emerald-500 hover:to-emerald-600 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Download className="w-5 h-5" />
-                            Download Poster Image
-                        </a>
+                            {downloading ? 'Downloading...' : 'Download Poster Image'}
+                        </button>
 
                         {/* Share Buttons */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

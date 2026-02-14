@@ -47,11 +47,11 @@ export async function GET(request: Request) {
         // Always use production URL for poster
         const baseUrl = 'https://ramadanmajlis.nextacademyedu.com';
         const params = new URLSearchParams({
-            name: booking.customer_name,
-            title: booking.job_title,
-            company: booking.company || '',
-            industry: booking.industry,
-            photo: booking.profile_image_url || ''
+            name: (booking.customer_name || '').trim(),
+            title: (booking.job_title || '').trim(),
+            company: (booking.company || '').trim(),
+            industry: (booking.industry || '').trim(),
+            photo: (booking.profile_image_url || '').trim()
         });
 
         const imageUrl = `${baseUrl}/api/og/social-share?${params.toString()}`;

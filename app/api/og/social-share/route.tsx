@@ -5,12 +5,12 @@ export const runtime = 'edge';
 export async function GET(request: Request) {
     try {
         const { searchParams, origin } = new URL(request.url);
-        const name = searchParams.get('name') || 'Guest';
-        const title = searchParams.get('title') || '';
-        const company = searchParams.get('company') || '';
-        const night = searchParams.get('night') || '';
-        const location = searchParams.get('location') || '';
-        const photoUrl = searchParams.get('photo') || '';
+        const name = (searchParams.get('name') || 'Guest').trim();
+        const title = (searchParams.get('title') || '').trim();
+        const company = (searchParams.get('company') || '').trim();
+        const night = (searchParams.get('night') || '').trim();
+        const location = (searchParams.get('location') || '').trim();
+        const photoUrl = (searchParams.get('photo') || '').trim();
 
         // Pre-fetch photo and convert to base64 data URL
         // This prevents @vercel/og from failing silently on external URLs

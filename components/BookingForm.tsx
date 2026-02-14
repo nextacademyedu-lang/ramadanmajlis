@@ -303,7 +303,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                 const nightObj = nights.find((n: Night) => n.date === selectedDate);
                 if (nightObj) {
                     nightTitle = nightObj.title || nightTitle;
-                    location = nightObj.location || location; // Use DB location, fall back to default if null
+                    location = (nightObj.location || location).trim(); // Use DB location, fall back to default if null
                 }
             } else {
                 dateStr = 'Full Package';
@@ -315,8 +315,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             localStorage.setItem('booking_title', data.jobTitle);
             localStorage.setItem('booking_company', data.company);
             localStorage.setItem('booking_date', dateStr);
-            localStorage.setItem('booking_night_title', nightTitle);
-            localStorage.setItem('booking_location', location);
+            localStorage.setItem('booking_night_title', nightTitle.trim());
+            localStorage.setItem('booking_location', location.trim());
 
             if (photoUrl) {
                 localStorage.setItem('booking_photo', photoUrl);

@@ -33,13 +33,13 @@ export default function SuccessPage() {
     useEffect(() => {
         // Load booking data from localStorage
         const data: BookingData = {
-            name: localStorage.getItem('booking_name') || 'Guest',
-            title: localStorage.getItem('booking_title') || 'Entrepreneur',
-            company: localStorage.getItem('booking_company') || '',
-            date: localStorage.getItem('booking_date') || 'Ramadan 2026',
-            night: localStorage.getItem('booking_night_title') || 'Ramadan Majlis',
-            location: localStorage.getItem('booking_location') || 'Tolip Hotel – New Cairo',
-            photo: localStorage.getItem('booking_photo') || '',
+            name: (localStorage.getItem('booking_name') || 'Guest').trim(),
+            title: (localStorage.getItem('booking_title') || 'Entrepreneur').trim(),
+            company: (localStorage.getItem('booking_company') || '').trim(),
+            date: (localStorage.getItem('booking_date') || 'Ramadan 2026').trim(),
+            night: (localStorage.getItem('booking_night_title') || 'Ramadan Majlis').trim(),
+            location: (localStorage.getItem('booking_location') || 'Tolip Hotel – New Cairo').trim(),
+            photo: (localStorage.getItem('booking_photo') || '').trim(),
         };
         setBookingData(data);
         

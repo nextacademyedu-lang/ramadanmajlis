@@ -1,6 +1,8 @@
 import { ImageResponse } from '@vercel/og';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
     try {
@@ -35,8 +37,18 @@ export async function GET(request: Request) {
             }
         }
 
-        // Use the mocup image from public folder via URL
-        const mocupUrl = `${origin}/mocup1.png`;
+        // Read the mocup image from filesystem and convert to base64 data URL
+        let mocupUrl = `${origin}/mocup1.png`;
+        try {
+            const mocupPath = join(process.cwd(), 'public', 'mocup1.png');
+            const mocupBuffer = readFileSync(mocupPath);
+            const mocupBase64 = mocupBuffer.toString('base64');
+            mocupUrl = `data:image/png;base64,${mocupBase64}`;
+            console.log('✅ Mocup image loaded from filesystem successfully');
+        } catch (fsError) {
+            console.warn('⚠️ Could not read mocup from filesystem, falling back to URL:', fsError);
+            // Fall back to URL-based loading
+        }
 
         return new ImageResponse(
             (
@@ -288,6 +300,8 @@ export async function GET(request: Request) {
         );
     } catch (error) {
         console.error('Social share image generation error:', error);
-        return new Response('Failed to generate image', { status: 500 });
+        console.error('Error details:', error instanceof Error ? error.message : String(error));
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+        return new Response(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
     }
 }

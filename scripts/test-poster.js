@@ -5,15 +5,18 @@ const EVOLUTION_INSTANCE_NAME = "RamadanEvent confirm";
 
 const name = "Muhammed Mekky";
 const title = "CEO";
-const company = "Next Academy";
+const company = "Next academy";
 const phone = "201098620547";
+const night = "The Compass (Vision, Values & Brand)";
+const location = "Tolip Hotel – New Cairo";
 
 const baseUrl = "https://ramadanmajlis.nextacademyedu.com";
 const params = new URLSearchParams({
     name,
     title,
     company,
-    industry: "Education",
+    night,
+    location,
     photo: ""
 });
 

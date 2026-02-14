@@ -1,7 +1,6 @@
 import { ImageResponse } from '@vercel/og';
-import { MOCUP_BASE64 } from './mocup-image';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
     try {
@@ -13,32 +12,9 @@ export async function GET(request: Request) {
         const location = (searchParams.get('location') || '').trim();
         const photoUrl = (searchParams.get('photo') || '').trim();
 
-        // Pre-fetch photo and convert to base64 data URL
-        // This prevents @vercel/og from failing silently on external URLs
-        let photoDataUrl = '';
-        if (photoUrl) {
-            try {
-                const photoResponse = await fetch(photoUrl);
-                if (photoResponse.ok) {
-                    const photoBuffer = await photoResponse.arrayBuffer();
-                    const bytes = new Uint8Array(photoBuffer);
-                    let binary = '';
-                    const chunkSize = 8192;
-                    for (let i = 0; i < bytes.length; i += chunkSize) {
-                        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-                    }
-                    const base64 = btoa(binary);
-                    const contentType = photoResponse.headers.get('content-type') || 'image/png';
-                    photoDataUrl = `data:${contentType};base64,${base64}`;
-                }
-            } catch (e) {
-                console.error('Failed to fetch profile photo:', e);
-            }
-        }
-
-        // Use the embedded base64 image - safest and fastest method for serverless
-        const mocupUrl = MOCUP_BASE64;
-        // console.log('✅ Using embedded MOCUP_BASE64');
+        // Use the public URL for the mocup image
+        // We use the absolute URL to ensure it works in the edge function
+        const mocupUrl = 'https://ramadanmajlis.nextacademyedu.com/mocup1.png';
 
         return new ImageResponse(
             (
@@ -60,6 +36,7 @@ export async function GET(request: Request) {
                             height: '100%',
                             objectFit: 'cover',
                         }}
+                        alt="Background"
                     />
 
                     {/* Content Overlay */}
@@ -94,14 +71,15 @@ export async function GET(request: Request) {
                                 justifyContent: 'center',
                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
                             }}>
-                                {photoDataUrl ? (
+                                {photoUrl ? (
                                     <img
-                                        src={photoDataUrl}
+                                        src={photoUrl}
                                         style={{
                                             width: '100%',
                                             height: '100%',
                                             objectFit: 'cover',
                                         }}
+                                        alt="Profile"
                                     />
                                 ) : (
                                     <div style={{
@@ -290,8 +268,6 @@ export async function GET(request: Request) {
         );
     } catch (error) {
         console.error('Social share image generation error:', error);
-        console.error('Error details:', error instanceof Error ? error.message : String(error));
-        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
         return new Response(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
     }
 }

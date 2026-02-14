@@ -23,10 +23,57 @@ export interface AgendaItem {
     isHeader?: boolean;
 }
 
-// ... (sendWelcomeEmail remains unchanged)
+// 1. WELCOME EMAIL (Immediate - No QR)
+export async function sendWelcomeEmail(booking: BookingData) {
+    if (!process.env.RESEND_API_KEY) {
+        console.warn('⚠️ RESEND_API_KEY not configured, skipping email.');
+        return null;
+    }
+
+    const { data, error } = await resend.emails.send({
+        from: 'Ramadan Majlis <welcome@ramadanmajlis.nextacademyedu.com>',
+        to: [booking.email],
+        subject: 'Welcome to Ramadan Majlis 2026! 🌙',
+        html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #022c22; color: #ecfdf5; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #064e3b; padding: 20px; text-align: center;">
+                    <h1 style="margin: 0; color: #10b981; font-size: 24px;">Ramadan Majlis 2026</h1>
+                </div>
+                
+                <div style="padding: 30px; text-align: center;">
+                    <p style="font-size: 18px; margin-bottom: 20px;">Hello <strong>${booking.customer_name}</strong>,</p>
+                    <p style="color: #d1fae5; line-height: 1.6;">Thank you for registering! We are thrilled to have you join us for this transformative experience.</p>
+                    
+                    <div style="background-color: #064e3b; padding: 15px; border-radius: 8px; margin: 25px 0; text-align: left;">
+                        <p style="margin: 0 0 10px; color: #6ee7b7; font-weight: bold;">Your Selected Nights:</p>
+                        <ul style="margin: 0; padding-left: 20px; color: #ecfdf5;">
+                            ${booking.selected_nights.map(night => `<li style="margin-bottom: 5px;">${night}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
+                        <em>Your official tickets with QR codes will be sent separately for each night.</em>
+                    </p>
+                </div>
+
+                <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
+                    <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
+                </div>
+            </div>
+        `,
+    });
+
+    if (error) {
+        console.error('Email sending failed:', error);
+        return null;
+    }
+
+    console.log('Welcome Email sent successfully:', data);
+    return data;
+}
 
 // 2. TICKET EMAIL (Delayed/Separate - Specific Night QR)
-export async function sendTicketEmail(booking: BookingData, ticket: TicketData, agenda: AgendaItem[] = [], locationUrl?: string) {
+export async function sendTicketEmail(booking: BookingData, ticket: TicketData, agenda: AgendaItem[] = [], locationUrl?: string, locationUrls?: { label: string; url: string }[]) {
     if (!process.env.RESEND_API_KEY) {
         return null;
     }
@@ -49,11 +96,17 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData, 
         }).join('')
         : `<p style="color: #9ca3af; font-style: italic;">Agenda details coming soon...</p>`;
 
-    const locationButton = locationUrl 
-        ? `<div style="margin-top: 20px; text-align: center;">
+    // Build location buttons - supports single URL or multiple labeled URLs
+    let locationButton = '';
+    if (locationUrls && locationUrls.length > 0) {
+        locationButton = locationUrls.map(loc => `<div style="margin-top: 10px; text-align: center;">
+             <a href="${loc.url}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #0f172a; color: #10b981; text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #10b981;">📍 ${loc.label}</a>
+           </div>`).join('');
+    } else if (locationUrl) {
+        locationButton = `<div style="margin-top: 20px; text-align: center;">
              <a href="${locationUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #0f172a; color: #10b981; text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #10b981;">📍 View Location on Google Maps</a>
-           </div>`
-        : '';
+           </div>`;
+    }
 
     const { data, error } = await resend.emails.send({
         from: 'Ramadan Majlis <tickets@ramadanmajlis.nextacademyedu.com>',

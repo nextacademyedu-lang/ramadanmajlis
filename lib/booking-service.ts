@@ -123,7 +123,7 @@ export async function confirmBooking(bookingId: string) {
         // Fetch necessary data for emails/whatsapp (Nights & Speakers)
         const { data: eventNights } = await supabaseAdmin
             .from('event_nights')
-            .select('date, panel_title, agenda, location_url')
+            .select('date, title, panel_title, agenda, location_url')
             .order('date', { ascending: true });
             
         const { data: allSpeakers } = await supabaseAdmin
@@ -141,17 +141,18 @@ export async function confirmBooking(bookingId: string) {
             );
         };
 
-        const emailPromises = finalTickets.map((ticket: any) => {
+         const emailPromises = finalTickets.map((ticket: any) => {
             if (ticket.night_date === 'ALL') {
                 const combinedAgenda: AgendaItem[] = [];
-                const locationUrls: string[] = [];
+                const emailLocationUrls: { label: string; url: string }[] = [];
                 
                 if (eventNights) {
                     eventNights.forEach((night: any) => {
+                        const nightName = night.panel_title || night.title;
                         const nightDate = new Date(night.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         combinedAgenda.push({
                             time: "",
-                            title: `${night.panel_title} (${nightDate})`,
+                            title: `${nightName} (${nightDate})`,
                             isHeader: true
                         });
 
@@ -167,13 +168,12 @@ export async function confirmBooking(bookingId: string) {
                         }
                         
                         if (night.location_url) {
-                            locationUrls.push(`${night.panel_title}: ${night.location_url}`);
+                            emailLocationUrls.push({ label: `📍 ${nightName} Location`, url: night.location_url });
                         }
                     });
                 }
                 
-                // For ALL ticket, we don't pass a single location URL to avoid confusion, user can check details in agenda or platform
-                return sendTicketEmail(updatedBooking, ticket, combinedAgenda, undefined);
+                return sendTicketEmail(updatedBooking, ticket, combinedAgenda, undefined, emailLocationUrls);
             }
 
             const nightDetails = getNightDetails(ticket.night_date);
@@ -200,7 +200,7 @@ export async function confirmBooking(bookingId: string) {
                         const nightDate = new Date(night.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         combinedAgenda.push({
                             time: "",
-                            title: `${night.panel_title} (${nightDate})`,
+                            title: `${night.panel_title || night.title} (${nightDate})`,
                             isHeader: true // WhatsApp logic needs to handle this or ignore it
                         });
 
@@ -239,7 +239,7 @@ export async function confirmBooking(bookingId: string) {
                      speaker: item.speaker_id ? speakerMap.get(item.speaker_id) : undefined
                  }));
             }
-             return sendWhatsAppTicket(updatedBooking, ticket, nightDetails?.panel_title, nightAgenda, nightDetails?.location_url);
+             return sendWhatsAppTicket(updatedBooking, ticket, nightDetails?.panel_title || nightDetails?.title, nightAgenda, nightDetails?.location_url);
         });
 
         notificationResults = await Promise.allSettled([

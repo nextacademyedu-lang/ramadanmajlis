@@ -137,7 +137,22 @@ export default function Home() {
         // Fetch Speakers
         const { data: speakersData, error: speakersError } = await supabase.from('speakers').select('*').order('display_order', { ascending: true });
         if (speakersError) console.error("Speakers Fetch Error:", speakersError);
-        if (speakersData) setSpeakers(speakersData);
+        if (speakersData) {
+          // Sort speakers by Night Date
+          const sortedSpeakers = [...speakersData].sort((a, b) => {
+             const nightA = nightsData?.find((n: any) => n.id === a.night_id);
+             const dateA = nightA ? new Date(nightA.date).getTime() : Number.MAX_SAFE_INTEGER; // Put speakers without night at the end
+
+             const nightB = nightsData?.find((n: any) => n.id === b.night_id);
+             const dateB = nightB ? new Date(nightB.date).getTime() : Number.MAX_SAFE_INTEGER;
+
+             if (dateA !== dateB) {
+               return dateA - dateB;
+             }
+             return (a.display_order || 0) - (b.display_order || 0);
+          });
+          setSpeakers(sortedSpeakers);
+        }
 
         // Fetch Event Config (Package Price)
         const { data: eventData, error: eventError } = await supabase.from('events').select('*').eq('slug', 'Ramadan Majlis Package').single();

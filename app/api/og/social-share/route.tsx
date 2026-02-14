@@ -10,7 +10,30 @@ export async function GET(request: Request) {
         const company = searchParams.get('company') || '';
         const night = searchParams.get('night') || '';
         const location = searchParams.get('location') || '';
-        const photo = searchParams.get('photo') || '';
+        const photoUrl = searchParams.get('photo') || '';
+
+        // Pre-fetch photo and convert to base64 data URL
+        // This prevents @vercel/og from failing silently on external URLs
+        let photoDataUrl = '';
+        if (photoUrl) {
+            try {
+                const photoResponse = await fetch(photoUrl);
+                if (photoResponse.ok) {
+                    const photoBuffer = await photoResponse.arrayBuffer();
+                    const bytes = new Uint8Array(photoBuffer);
+                    let binary = '';
+                    const chunkSize = 8192;
+                    for (let i = 0; i < bytes.length; i += chunkSize) {
+                        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+                    }
+                    const base64 = btoa(binary);
+                    const contentType = photoResponse.headers.get('content-type') || 'image/png';
+                    photoDataUrl = `data:${contentType};base64,${base64}`;
+                }
+            } catch (e) {
+                console.error('Failed to fetch profile photo:', e);
+            }
+        }
 
         // Use the mocup image from public folder via URL
         const mocupUrl = `${origin}/mocup1.png`;
@@ -69,9 +92,9 @@ export async function GET(request: Request) {
                                 justifyContent: 'center',
                                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
                             }}>
-                                {photo ? (
+                                {photoDataUrl ? (
                                     <img
-                                        src={photo}
+                                        src={photoDataUrl}
                                         style={{
                                             width: '100%',
                                             height: '100%',

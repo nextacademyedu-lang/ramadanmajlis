@@ -1,12 +1,11 @@
 import { ImageResponse } from '@vercel/og';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { MOCUP_BASE64 } from './mocup-image';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
     try {
-        const { searchParams, origin } = new URL(request.url);
+        const { searchParams } = new URL(request.url);
         const name = (searchParams.get('name') || 'Guest').trim();
         const title = (searchParams.get('title') || '').trim();
         const company = (searchParams.get('company') || '').trim();
@@ -37,18 +36,9 @@ export async function GET(request: Request) {
             }
         }
 
-        // Read the mocup image from filesystem and convert to base64 data URL
-        let mocupUrl = `${origin}/mocup1.png`;
-        try {
-            const mocupPath = join(process.cwd(), 'public', 'mocup1.png');
-            const mocupBuffer = readFileSync(mocupPath);
-            const mocupBase64 = mocupBuffer.toString('base64');
-            mocupUrl = `data:image/png;base64,${mocupBase64}`;
-            console.log('✅ Mocup image loaded from filesystem successfully');
-        } catch (fsError) {
-            console.warn('⚠️ Could not read mocup from filesystem, falling back to URL:', fsError);
-            // Fall back to URL-based loading
-        }
+        // Use the embedded base64 image - safest and fastest method for serverless
+        const mocupUrl = MOCUP_BASE64;
+        // console.log('✅ Using embedded MOCUP_BASE64');
 
         return new ImageResponse(
             (

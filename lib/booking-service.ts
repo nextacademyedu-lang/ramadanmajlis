@@ -123,7 +123,8 @@ export async function confirmBooking(bookingId: string) {
         // Fetch necessary data for emails/whatsapp (Nights & Speakers)
         const { data: eventNights } = await supabaseAdmin
             .from('event_nights')
-            .select('date, panel_title, agenda, location_url');
+            .select('date, panel_title, agenda, location_url')
+            .order('date', { ascending: true });
             
         const { data: allSpeakers } = await supabaseAdmin
             .from('speakers')
@@ -141,6 +142,40 @@ export async function confirmBooking(bookingId: string) {
         };
 
         const emailPromises = finalTickets.map((ticket: any) => {
+            if (ticket.night_date === 'ALL') {
+                const combinedAgenda: AgendaItem[] = [];
+                const locationUrls: string[] = [];
+                
+                if (eventNights) {
+                    eventNights.forEach((night: any) => {
+                        const nightDate = new Date(night.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        combinedAgenda.push({
+                            time: "",
+                            title: `${night.panel_title} (${nightDate})`,
+                            isHeader: true
+                        });
+
+                        if (night.agenda) {
+                            const rawAgenda = Array.isArray(night.agenda) ? night.agenda : JSON.parse(night.agenda as string);
+                            rawAgenda.forEach((item: any) => {
+                                combinedAgenda.push({
+                                    time: item.time,
+                                    title: item.title,
+                                    speaker: item.speaker_id ? speakerMap.get(item.speaker_id) : undefined
+                                });
+                            });
+                        }
+                        
+                        if (night.location_url) {
+                            locationUrls.push(`${night.panel_title}: ${night.location_url}`);
+                        }
+                    });
+                }
+                
+                // For ALL ticket, we don't pass a single location URL to avoid confusion, user can check details in agenda or platform
+                return sendTicketEmail(updatedBooking, ticket, combinedAgenda, undefined);
+            }
+
             const nightDetails = getNightDetails(ticket.night_date);
             let nightAgenda: AgendaItem[] = [];
 
@@ -156,6 +191,43 @@ export async function confirmBooking(bookingId: string) {
         });
 
         const whatsappPromises = finalTickets.map((ticket: any) => {
+             if (ticket.night_date === 'ALL') {
+                 const combinedAgenda: AgendaItem[] = [];
+                 const locationUrls: string[] = [];
+
+                 if (eventNights) {
+                    eventNights.forEach((night: any) => {
+                        const nightDate = new Date(night.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        combinedAgenda.push({
+                            time: "",
+                            title: `${night.panel_title} (${nightDate})`,
+                            isHeader: true // WhatsApp logic needs to handle this or ignore it
+                        });
+
+                        if (night.agenda) {
+                            const rawAgenda = Array.isArray(night.agenda) ? night.agenda : JSON.parse(night.agenda as string);
+                            rawAgenda.forEach((item: any) => {
+                                combinedAgenda.push({
+                                    time: item.time,
+                                    title: item.title,
+                                    speaker: item.speaker_id ? speakerMap.get(item.speaker_id) : undefined
+                                });
+                            });
+                        }
+                        
+                         if (night.location_url) {
+                            locationUrls.push(`${nightDate}: ${night.location_url}`);
+                        }
+                    });
+                 }
+                 
+                 // Pass combined locations as a multi-line string if possible, or just first one? 
+                 // Whatsapp URL field is just appended.
+                 const locationsString = locationUrls.join('\n');
+                 
+                 return sendWhatsAppTicket(updatedBooking, ticket, "Full Access Pass (All Nights)", combinedAgenda, locationsString);
+             }
+
              const nightDetails = getNightDetails(ticket.night_date);
              let nightAgenda: AgendaItem[] = [];
 

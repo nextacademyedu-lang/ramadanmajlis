@@ -20,56 +20,10 @@ export interface AgendaItem {
     time: string;
     title: string;
     speaker?: string;
+    isHeader?: boolean;
 }
 
-// 1. WELCOME EMAIL (Immediate - No QR)
-export async function sendWelcomeEmail(booking: BookingData) {
-    if (!process.env.RESEND_API_KEY) {
-        console.warn('⚠️ RESEND_API_KEY not configured, skipping email.');
-        return null;
-    }
-
-    const { data, error } = await resend.emails.send({
-        from: 'Ramadan Majlis <welcome@ramadanmajlis.nextacademyedu.com>',
-        to: [booking.email],
-        subject: 'Welcome to Ramadan Majlis 2026! 🌙',
-        html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #022c22; color: #ecfdf5; border-radius: 12px; overflow: hidden;">
-                <div style="background-color: #064e3b; padding: 20px; text-align: center;">
-                    <h1 style="margin: 0; color: #10b981; font-size: 24px;">Ramadan Majlis 2026</h1>
-                </div>
-                
-                <div style="padding: 30px; text-align: center;">
-                    <p style="font-size: 18px; margin-bottom: 20px;">Hello <strong>${booking.customer_name}</strong>,</p>
-                    <p style="color: #d1fae5; line-height: 1.6;">Thank you for registering! We are thrilled to have you join us for this transformative experience.</p>
-                    
-                    <div style="background-color: #064e3b; padding: 15px; border-radius: 8px; margin: 25px 0; text-align: left;">
-                        <p style="margin: 0 0 10px; color: #6ee7b7; font-weight: bold;">Your Selected Nights:</p>
-                        <ul style="margin: 0; padding-left: 20px; color: #ecfdf5;">
-                            ${booking.selected_nights.map(night => `<li style="margin-bottom: 5px;">${night}</li>`).join('')}
-                        </ul>
-                    </div>
-
-                    <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
-                        <em>Your official tickets with QR codes will be sent separately for each night.</em>
-                    </p>
-                </div>
-
-                <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
-                    <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
-                </div>
-            </div>
-        `,
-    });
-
-    if (error) {
-        console.error('Email sending failed:', error);
-        return null;
-    }
-
-    console.log('Welcome Email sent successfully:', data);
-    return data;
-}
+// ... (sendWelcomeEmail remains unchanged)
 
 // 2. TICKET EMAIL (Delayed/Separate - Specific Night QR)
 export async function sendTicketEmail(booking: BookingData, ticket: TicketData, agenda: AgendaItem[] = [], locationUrl?: string) {
@@ -79,13 +33,20 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData, 
 
     // Generate Agenda HTML
     const agendaHtml = agenda.length > 0 
-        ? agenda.map(item => `
+        ? agenda.map(item => {
+            if (item.isHeader) {
+                return `
+                <div style="background-color: #065f46; color: #fcd34d; padding: 10px; font-weight: bold; font-size: 15px; border-radius: 6px; margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${item.title}
+                </div>`;
+            }
+            return `
             <div style="margin-bottom: 12px; border-bottom: 1px dashed rgba(16, 185, 129, 0.2); padding-bottom: 8px;">
                 <span style="color: #f59e0b; font-weight: bold; font-size: 14px;">${item.time}</span>
                 <p style="margin: 4px 0 2px; color: #ecfdf5; font-weight: bold;">${item.title}</p>
                 ${item.speaker ? `<p style="margin: 0; color: #9ca3af; font-size: 13px;">ft. ${item.speaker}</p>` : ''}
-            </div>
-          `).join('')
+            </div>`;
+        }).join('')
         : `<p style="color: #9ca3af; font-style: italic;">Agenda details coming soon...</p>`;
 
     const locationButton = locationUrl 

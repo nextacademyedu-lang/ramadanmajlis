@@ -123,9 +123,12 @@ export async function sendWhatsAppTicket(booking: BookingData, ticket: TicketDat
     
     let agendaText = '';
     if (agenda && agenda.length > 0) {
-        agendaText = '\n\n📋 *Night Agenda:*\n' + agenda.map(item => 
-            `▫️ ${item.time} - *${item.title}*${item.speaker ? `\n   (ft. ${item.speaker})` : ''}`
-        ).join('\n');
+        agendaText = '\n\n📋 *Night Agenda:*\n' + agenda.map(item => {
+            if (item.isHeader) {
+                return `\n🌟 *${item.title.toUpperCase()}*`;
+            }
+            return `▫️ ${item.time} - *${item.title}*${item.speaker ? `\n   (ft. ${item.speaker})` : ''}`;
+        }).join('\n');
     }
 
     const locationPart = locationUrl ? `\n\n📍 *Location:* ${locationUrl}` : '';

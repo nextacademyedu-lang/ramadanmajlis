@@ -116,7 +116,7 @@ export async function confirmBooking(bookingId: string) {
     }
 
     // 6. Send Notifications
-    let notificationResults: any[] = [];
+    const notificationResults: PromiseSettledResult<unknown>[] = [];
     if (finalTickets && finalTickets.length > 0) {
         console.log(`✅ Using ${finalTickets.length} tickets for booking ${bookingId}`);
 
@@ -242,19 +242,34 @@ export async function confirmBooking(bookingId: string) {
              return sendWhatsAppTicket(updatedBooking, ticket, nightDetails?.panel_title || nightDetails?.title, nightAgenda, nightDetails?.location_url);
         });
 
-        notificationResults = await Promise.allSettled([
-            // A. Immediate Welcome Email (No QR)
+        // A. Send WhatsApp Poster FIRST (needs time for OG image generation)
+        try {
+            console.log(`🖼️ Sending WhatsApp poster for booking ${bookingId}...`);
+            const posterResult = await sendWhatsAppMessage(updatedBooking);
+            notificationResults.push({ status: 'fulfilled', value: posterResult } as PromiseSettledResult<unknown>);
+        } catch (posterError) {
+            console.error('❌ Poster send failed:', posterError);
+            notificationResults.push({ status: 'rejected', reason: posterError } as PromiseSettledResult<unknown>);
+        }
+
+        // B. Send WhatsApp Tickets one by one with delay
+        for (const whatsappPromise of whatsappPromises) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2 sec delay
+            try {
+                const ticketResult = await whatsappPromise;
+                notificationResults.push({ status: 'fulfilled', value: ticketResult } as PromiseSettledResult<unknown>);
+            } catch (ticketError) {
+                console.error('❌ WhatsApp ticket send failed:', ticketError);
+                notificationResults.push({ status: 'rejected', reason: ticketError } as PromiseSettledResult<unknown>);
+            }
+        }
+
+        // C. Send Emails in parallel (no rate limiting on Resend)
+        const emailResults = await Promise.allSettled([
             sendWelcomeEmail(updatedBooking),
-            
-            // B. Ticket Emails (One per night, with agenda)
             ...emailPromises,
-
-            // C. WhatsApp Welcome Message (No QR)
-            sendWhatsAppMessage(updatedBooking),
-
-            // D. WhatsApp Tickets (One per night, with title)
-            ...whatsappPromises
         ]);
+        notificationResults.push(...emailResults);
 
         console.log(`📧📱 Notifications processed for booking ${bookingId}`);
     }

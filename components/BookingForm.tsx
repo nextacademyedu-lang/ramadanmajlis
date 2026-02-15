@@ -375,6 +375,10 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         } else if (step === 2) {
             valid = await trigger(['fullName', 'email', 'phone', 'jobTitle', 'company', 'linkedin', 'industry']);
             if (!photoUrl) { setError("Profile photo required"); valid = false; }
+            
+            if (!valid && !error) {
+                 setError("Please check all fields (make sure LinkedIn URL is valid)");
+            }
         }
 
         if (valid) {

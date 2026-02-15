@@ -202,26 +202,40 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             const file = e.target.files?.[0];
             if (!file) return;
 
-            if (file.size > 5 * 1024 * 1024) throw new Error("File too large (max 5MB)");
+            // Increase limit to 20MB (approx)
+            if (file.size > 20 * 1024 * 1024) throw new Error("File too large (max 20MB)");
 
+            // 1. Show Local Preview Immediately
+            const objectUrl = URL.createObjectURL(file);
+            setPhotoUrl(objectUrl);
+
+            // 2. Upload to Supabase
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
             const filePath = `profile-photos/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('event-uploads')
-                .upload(filePath, file);
+                .upload(filePath, file, { 
+                    cacheControl: '3600',
+                    upsert: false 
+                });
 
             if (uploadError) throw uploadError;
 
+            // 3. Get Public URL
             const { data: { publicUrl } } = supabase.storage
                 .from('event-uploads')
                 .getPublicUrl(filePath);
 
+            // 4. Update with actual remote URL (seamless switch)
             setPhotoUrl(publicUrl);
+            
         } catch (err) {
+            console.error("Upload Error:", err);
             const message = err instanceof Error ? err.message : "Upload failed";
             setError(message);
+            setPhotoUrl(null); // Revert on error
         } finally {
             setUploading(false);
         }
@@ -377,7 +391,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             if (!photoUrl) { setError("Profile photo required"); valid = false; }
             
             if (!valid && !error) {
-                 setError("Please check all fields (make sure LinkedIn URL is valid)");
+                 setError("Please fix the highlighted fields to proceed.");
             }
         }
 
@@ -535,13 +549,19 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         <Input
                                             {...register('fullName')}
                                             englishOnly={true}
+                                            error={!!errors.fullName}
                                             placeholder="John Doe"
                                         />
                                         {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Email</Label>
-                                        <Input {...register('email')} englishOnly={true} placeholder="john@example.com" />
+                                        <Input 
+                                            {...register('email')} 
+                                            englishOnly={true} 
+                                            error={!!errors.email}
+                                            placeholder="john@example.com" 
+                                        />
                                         {errors.email && <p className="text-red-400 text-xs">{errors.email.message}</p>}
                                     </div>
                                 </div>
@@ -549,12 +569,21 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Phone</Label>
-                                        <Input {...register('phone')} placeholder="+20 1xxxxxxxxx" />
+                                        <Input 
+                                            {...register('phone')} 
+                                            error={!!errors.phone}
+                                            placeholder="+20 1xxxxxxxxx" 
+                                        />
                                         {errors.phone && <p className="text-red-400 text-xs">{errors.phone.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>LinkedIn URL</Label>
-                                        <Input {...register('linkedin')} englishOnly={true} placeholder="https://linkedin.com/in/..." />
+                                        <Input 
+                                            {...register('linkedin')} 
+                                            englishOnly={true} 
+                                            error={!!errors.linkedin}
+                                            placeholder="https://linkedin.com/in/..." 
+                                        />
                                         {errors.linkedin && <p className="text-red-400 text-xs">{errors.linkedin.message}</p>}
                                     </div>
                                 </div>
@@ -565,6 +594,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         <Input
                                             {...register('jobTitle')}
                                             englishOnly={true}
+                                            error={!!errors.jobTitle}
                                             placeholder="e.g. Senior Manager"
                                         />
                                         {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
@@ -574,6 +604,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         <Input
                                             {...register('company')}
                                             englishOnly={true}
+                                            error={!!errors.company}
                                             placeholder="Company Name"
                                         />
                                         {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}
@@ -588,7 +619,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                             setValue('industry', val, { shouldValidate: true });
                                         }}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className={errors.industry ? "border-red-500 ring-red-500/50" : ""}>
                                             <SelectValue placeholder="Select Industry" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -602,7 +633,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                     {errors.industry && <p className="text-red-400 text-xs">{errors.industry.message}</p>}
                                 </div>
 
-                                <div className="space-y-2 pt-2">
+                                    <div className="space-y-2 pt-2">
                                     <Label>Profile Photo <span className="text-xs text-muted-foreground">(Required for Networking)</span></Label>
                                     <div className="flex items-center gap-4">
                                         {photoUrl ? (
@@ -614,14 +645,21 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                                 <Upload className="w-6 h-6 opacity-50" />
                                             </div>
                                         )}
-                                        <Input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileUpload}
-                                            className="w-auto flex-1 cursor-pointer file:cursor-pointer"
-                                        />
+                                        <div className="flex-1">
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileUpload}
+                                                error={!photoUrl && error === "Profile photo required"}
+                                                className="w-auto cursor-pointer file:cursor-pointer"
+                                            />
+                                            {/* Specific Upload Error */}
+                                            {error && error.includes("File too large") && (
+                                                <p className="text-red-400 text-xs mt-1">{error}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    {uploading && <p className="text-xs text-primary animate-pulse">Uploading...</p>}
+                                    {uploading && <p className="text-xs text-primary animate-pulse">Uploading... Please wait</p>}
                                 </div>
 
                                 <div className="pt-4 flex justify-between">
@@ -756,6 +794,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                             <Input
                                                 {...register('walletPhone')}
                                                 placeholder="01xxxxxxxxx"
+                                                error={!!errors.walletPhone}
                                                 className="text-lg tracking-wider"
                                             />
                                             <p className="text-xs text-gray-400">

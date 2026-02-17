@@ -7,133 +7,58 @@ export async function POST(request: Request) {
         const { bookingId, amount, customer, provider } = body;
 
         // --- PAYMOB INTEGRATION ---
-        if (provider.startsWith('paymob')) {
-            // 1. Authenticate
-            console.log('[Paymob] Step 1: Authenticating...');
-            const authResponse = await fetch('https://accept.paymob.com/api/auth/tokens', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ api_key: process.env.PAYMOB_API_KEY })
-            });
-            
-            const authData = await authResponse.json();
+        // --- EASYKASH INTEGRATION ---
+        if (provider.startsWith('paymob') || provider === 'easykash' || provider === 'card') {
+            console.log('[EasyKash] Step 1: Initiating Payment...');
 
-            if (!authData.token) {
-                console.error('[Paymob] Auth Failed:', JSON.stringify(authData));
-                throw new Error(`Paymob Auth Failed: ${authData.detail || 'Unknown Error'}`);
+            // EasyKash API Token
+            const easyKashToken = process.env.EASYKASH_API_TOKEN;
+            if (!easyKashToken) {
+                console.error('[EasyKash] Error: Missing API Token');
+                throw new Error("Payment service configuration error");
             }
-            const token = authData.token;
-            console.log('[Paymob] Auth Success');
 
-            // 2. Register Order
-            console.log('[Paymob] Step 2: Registering Order...');
             const amountCents = Math.round(amount * 100);
-            
-            const orderResponse = await fetch('https://accept.paymob.com/api/ecommerce/orders', {
+            const redirectUrl = `https://ramadan-event.vercel.app/payment-success?bookingId=${bookingId}`; // Should match your domain
+            // For local dev, use localhost if needed, but preferably use env var for base URL
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+            const finalRedirectUrl = `${baseUrl}/payment-success?bookingId=${bookingId}`;
+
+            const payload = {
+                amount: amount, // EasyKash takes amount in main unit (EGP), unlike Paymob (cents) ? Verify docs. 
+                // Script says: "amount": 100. Docs say "amount (number)". Typically this means main unit. 
+                // Paymob used cents. I will use main amount as per my script.
+                currency: "EGP",
+                paymentOptions: [2, 3, 4, 5, 6], // All options
+                cashExpiry: 24,
+                name: `${customer.first_name} ${customer.last_name}`,
+                email: customer.email,
+                mobile: customer.phone,
+                redirectUrl: finalRedirectUrl,
+                customerReference: bookingId
+            };
+
+            console.log('[EasyKash] Sending Payload:', JSON.stringify(payload));
+
+            const response = await fetch('https://back.easykash.net/api/directpayv1/pay', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    auth_token: token,
-                    delivery_needed: "false",
-                    amount_cents: amountCents,
-                    currency: "EGP",
-                    items: [],
-                    merchant_order_id: bookingId
-                })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': easyKashToken
+                },
+                body: JSON.stringify(payload)
             });
-            const orderData = await orderResponse.json();
 
-            if (!orderData.id) {
-                console.error('[Paymob] Order Failed:', JSON.stringify(orderData));
-                throw new Error(`Paymob Order Failed: ${JSON.stringify(orderData)}`);
+            const data = await response.json();
+            console.log('[EasyKash] Response:', data);
+
+            if (data.redirectUrl) {
+                return NextResponse.json({ paymentUrl: data.redirectUrl });
+            } else {
+                console.error('[EasyKash] Payment Initiation Failed:', data);
+                throw new Error(`Payment Failed: ${JSON.stringify(data)}`);
             }
-            const orderId = orderData.id;
-            console.log(`[Paymob] Order Registered: ${orderId}`);
-
-            // 3. Request Payment Key & Determine Integration ID
-            let integrationId = process.env.PAYMOB_INTEGRATION_ID_CARD; // Default to Card
-            if (provider === 'paymob_wallet') {
-                integrationId = process.env.PAYMOB_INTEGRATION_ID_WALLET;
-            }
-
-            // Ensure it's a number (Env vars are strings)
-            const integrationIdInt = parseInt(integrationId || '0', 10);
-            if (!integrationIdInt || integrationIdInt === 0) {
-                 throw new Error(`Invalid Paymob Integration ID: ${integrationId}`);
-            }
-
-            console.log(`[Paymob] Step 3: Key Request (Order: ${orderId}, Integration: ${integrationIdInt})`);
-
-            const keyResponse = await fetch('https://accept.paymob.com/api/acceptance/payment_keys', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    auth_token: token,
-                    amount_cents: amountCents,
-                    expiration: 3600,
-                    order_id: orderId,
-                    billing_data: {
-                        apartment: "1",
-                        email: customer.email,
-                        floor: "1",
-                        first_name: customer.first_name,
-                        street: "Cairo St",
-                        building: "1",
-                        phone_number: customer.phone,
-                        shipping_method: "NA",
-                        postal_code: "12345",
-                        city: "Cairo",
-                        country: "EG",
-                        last_name: customer.last_name,
-                        state: "Cairo"
-                    },
-                    currency: "EGP",
-                    integration_id: integrationIdInt
-                })
-            });
-            const keyData = await keyResponse.json();
-
-            if (!keyData.token) {
-                console.error("[Paymob] Key Request Failed:", JSON.stringify(keyData));
-                throw new Error(`Paymob Key Failed (Integration ID: ${integrationIdInt}): ${JSON.stringify(keyData)}`);
-            }
-            console.log('[Paymob] Key Generated Successfully');
-
-            // 4. Handle Based on Type
-            // A) WALLET: Must confirm payment server-side
-            if (provider === 'paymob_wallet') {
-                console.log('[Paymob] Initiating Wallet Payment...');
-                const payResponse = await fetch('https://accept.paymob.com/api/acceptance/payments/pay', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        source: {
-                            identifier: customer.phone, // Must be the wallet number
-                            subtype: "WALLET"
-                        },
-                        payment_token: keyData.token
-                    })
-                });
-                const payData = await payResponse.json();
-
-                // Expecting { redirect_url: "..." } or similar
-                if (payData.redirect_url) {
-                    return NextResponse.json({ paymentUrl: payData.redirect_url });
-                } else if (payData.iframe_url) {
-                    return NextResponse.json({ paymentUrl: payData.iframe_url });
-                } else {
-                    // Fallback or error
-                    console.error("Wallet Pay Error:", payData);
-                    throw new Error("Wallet payment failed: " + (payData.detail || "Unknown error"));
-                }
-            }
-
-            // B) CARD: Use Iframe
-            const iframeId = process.env.PAYMOB_IFRAME_ID;
-            const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${keyData.token}`;
-            return NextResponse.json({ paymentUrl });
         }
-
         else {
             return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
         }

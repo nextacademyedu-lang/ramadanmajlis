@@ -27,68 +27,11 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  // Payment verification is now handled in /payment-success page
   useEffect(() => {
-    const checkPayment = async () => {
-      const params = new URLSearchParams(window.location.search);
-      
-      // Paymob Return Parameters
-      const success = params.get('success');
-      const transactionId = params.get('id');
-      const bookingId = params.get('merchant_order_id');
-
-      if (success === 'false') {
-        // Payment Declined
-        alert("Payment Declined. Please try again.");
-        router.replace('/'); 
-        return;
-      }
-
-      if (success === 'true' && transactionId) {
-        setIsLoading(true);
-        try {
-          const res = await fetch('/api/verify-transaction', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-              transactionId, 
-              bookingId 
-            })
-          });
-          const data = await res.json();
-          
-          if (data.success) {
-            router.replace('/success');
-            return;
-          } else {
-            console.error("Verification Failed Details:", data);
-            alert(data.message || "Payment Verification Failed");
-            router.replace('/');
-            return;
-          }
-        } catch (err) {
-          console.error("Verification error", err);
-          alert("Something went wrong verifying your payment.");
-          router.replace('/');
-          return;
-        } finally {
-          setIsLoading(false);
-        }
-      }
-
-      // Legacy check - remove or keep as fallback? 
-      // Removing it is safer to prevent the reported bug.
-      /*
-      if (params.get('status') === 'success') {
-        router.replace('/success');
-        return;
-      }
-      */
-
-      setStars(generateStars(60));
-    };
-
-    checkPayment();
-  }, [router]);
+    // Only generate stars, payment check moved
+    setStars(generateStars(60));
+  }, []);
 
 
 
@@ -98,14 +41,14 @@ export default function Home() {
 
   const [nights, setNights] = useState<any[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
-  const [speakers, setSpeakers] = useState<any[]>([]); 
+  const [speakers, setSpeakers] = useState<any[]>([]);
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeNight, setActiveNight] = useState<any>(null);
 
   useEffect(() => {
     if (!eventConfig?.start_date) return;
-    
+
     const targetDate = new Date(eventConfig.start_date).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
@@ -140,16 +83,16 @@ export default function Home() {
         if (speakersData) {
           // Sort speakers by Night Date
           const sortedSpeakers = [...speakersData].sort((a, b) => {
-             const nightA = nightsData?.find((n: any) => n.id === a.night_id);
-             const dateA = nightA ? new Date(nightA.date).getTime() : Number.MAX_SAFE_INTEGER; // Put speakers without night at the end
+            const nightA = nightsData?.find((n: any) => n.id === a.night_id);
+            const dateA = nightA ? new Date(nightA.date).getTime() : Number.MAX_SAFE_INTEGER; // Put speakers without night at the end
 
-             const nightB = nightsData?.find((n: any) => n.id === b.night_id);
-             const dateB = nightB ? new Date(nightB.date).getTime() : Number.MAX_SAFE_INTEGER;
+            const nightB = nightsData?.find((n: any) => n.id === b.night_id);
+            const dateB = nightB ? new Date(nightB.date).getTime() : Number.MAX_SAFE_INTEGER;
 
-             if (dateA !== dateB) {
-               return dateA - dateB;
-             }
-             return (a.display_order || 0) - (b.display_order || 0);
+            if (dateA !== dateB) {
+              return dateA - dateB;
+            }
+            return (a.display_order || 0) - (b.display_order || 0);
           });
           setSpeakers(sortedSpeakers);
         }
@@ -279,9 +222,9 @@ export default function Home() {
             <p className="text-lg text-emerald-100/70 leading-relaxed max-w-xl mx-auto lg:mx-0">
               {eventConfig?.description || (
                 <>
-                Join us for an exceptional experience combining the spirituality of the Holy Month with the ambition of future leaders.
-                <span className="text-amber-300 font-semibold mx-1">and Networking</span>
-                in a luxurious atmosphere worthy of you.
+                  Join us for an exceptional experience combining the spirituality of the Holy Month with the ambition of future leaders.
+                  <span className="text-amber-300 font-semibold mx-1">and Networking</span>
+                  in a luxurious atmosphere worthy of you.
                 </>
               )}
             </p>
@@ -290,23 +233,23 @@ export default function Home() {
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <Calendar size={16} className="text-amber-400" />
                 <span>
-                    {eventConfig?.start_date ? (
-                        <>
-                        {new Date(eventConfig.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        {' - '}
-                        {new Date(eventConfig.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </>
-                    ) : "Date TBD"}
+                  {eventConfig?.start_date ? (
+                    <>
+                      {new Date(eventConfig.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      {' - '}
+                      {new Date(eventConfig.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </>
+                  ) : "Date TBD"}
                 </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-                <a 
-                    href={eventConfig?.location_url || "#"} 
-                    target={eventConfig?.location_url ? "_blank" : "_self"}
-                    className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                <a
+                  href={eventConfig?.location_url || "#"}
+                  target={eventConfig?.location_url ? "_blank" : "_self"}
+                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
                 >
-                    <MapPin size={16} className="text-emerald-400" />
-                    <span>{eventConfig?.location_name || "Location TBD"}</span>
+                  <MapPin size={16} className="text-emerald-400" />
+                  <span>{eventConfig?.location_name || "Location TBD"}</span>
                 </a>
               </div>
             </div>
@@ -350,7 +293,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 + idx * 0.1 }}
                 onClick={() => setActiveNight(night)}
-                 className={`group cursor-pointer relative p-5 md:p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md hover:border-amber-500/40 hover:bg-white/10 hover:shadow-[0_0_40px_rgba(245,158,11,0.15)] transition-all duration-500 overflow-hidden`}
+                className={`group cursor-pointer relative p-5 md:p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md hover:border-amber-500/40 hover:bg-white/10 hover:shadow-[0_0_40px_rgba(245,158,11,0.15)] transition-all duration-500 overflow-hidden`}
               >
                 {/* Hover Glow */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${night.color_theme === 'blue' ? 'from-blue-500/10' : night.color_theme === 'amber' ? 'from-amber-500/10' : 'from-emerald-500/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -361,7 +304,7 @@ export default function Home() {
                 <h4 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2 font-serif group-hover:text-amber-400 transition-colors duration-300">{night.title}</h4>
                 <p className="text-emerald-100/60 font-medium mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-widest">{night.subtitle}</p>
                 <p className="text-emerald-100/80 text-sm leading-relaxed mb-6 md:mb-8 line-clamp-3">{night.description}</p>
-                
+
                 <div className="pt-4 md:pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
                   <div>
                     <span className="text-amber-400 font-bold block text-base md:text-lg font-serif">{night.price} {night.currency}</span>
@@ -396,11 +339,11 @@ export default function Home() {
 
       <AnimatePresence>
         {activeNight && (
-            <NightDetailsModal 
-                night={activeNight} 
-                speakers={speakers} 
-                onClose={() => setActiveNight(null)} 
-            />
+          <NightDetailsModal
+            night={activeNight}
+            speakers={speakers}
+            onClose={() => setActiveNight(null)}
+          />
         )}
       </AnimatePresence>
 
@@ -409,16 +352,16 @@ export default function Home() {
 
       {/* ========== ELITE SPEAKERS SECTION (Grid) ========== */}
       <SectionSeparator />
-      <SpeakerSessions 
-        speakers={speakers.filter(s => s.role !== 'VIP Guest' && s.role !== 'Moderator')} 
-        nights={nights} 
+      <SpeakerSessions
+        speakers={speakers.filter(s => s.role !== 'VIP Guest' && s.role !== 'Moderator')}
+        nights={nights}
         title="Elite Speakers"
       />
 
       {/* ========== MODERATORS SECTION ========== */}
-      <SpeakerSessions 
-        speakers={speakers.filter(s => s.role === 'Moderator')} 
-        nights={nights} 
+      <SpeakerSessions
+        speakers={speakers.filter(s => s.role === 'Moderator')}
+        nights={nights}
         title="Event Moderators"
       />
 
@@ -442,13 +385,13 @@ export default function Home() {
               >
                 {[...speakers.filter(s => s.role === 'VIP Guest'), ...speakers.filter(s => s.role === 'VIP Guest')].map((speaker, idx) => (
                   <div key={`vip-marquee-${speaker.id}-${idx}`} className="w-[300px] text-center flex-shrink-0 group/card">
-                     <div className="w-48 h-48 border-2 border-amber-500/50 mx-auto rounded-full overflow-hidden mb-6 bg-emerald-900/20 relative shadow-[0_0_20px_rgba(245,158,11,0.2)] group-hover/card:scale-105 group-hover/card:border-amber-400 group-hover/card:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-500">
-                      <img 
-                        src={speaker.image_url || "/placeholder-user.jpg"} 
-                        alt={speaker.name} 
+                    <div className="w-48 h-48 border-2 border-amber-500/50 mx-auto rounded-full overflow-hidden mb-6 bg-emerald-900/20 relative shadow-[0_0_20px_rgba(245,158,11,0.2)] group-hover/card:scale-105 group-hover/card:border-amber-400 group-hover/card:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all duration-500">
+                      <img
+                        src={speaker.image_url || "/placeholder-user.jpg"}
+                        alt={speaker.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; 
+                          (e.target as HTMLImageElement).src = "/placeholder-user.jpg";
                         }}
                       />
                     </div>
@@ -466,10 +409,10 @@ export default function Home() {
       {/* ========== PARTNERS SECTION ========== */}
 
       <SponsorshipSection />
-      
+
       <SectionSeparator />
       <FaqSection />
-      
+
       <SectionSeparator />
       <Footer />
 
@@ -570,9 +513,9 @@ function SponsorshipSection() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Sponsorship Packages</h2>
             <p className="text-emerald-200/60 mb-8">Partner in success and showcase your brand to the elite.</p>
-            <a 
-              href="/Ramadan Majlis Package  SPONSER1 (1).pdf" 
-              download 
+            <a
+              href="/Ramadan Majlis Package  SPONSER1 (1).pdf"
+              download
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-500/10 border border-amber-500/50 text-amber-400 hover:bg-amber-500 hover:text-black transition-all duration-300 font-bold"
             >
               <Download className="w-5 h-5" />
@@ -591,24 +534,24 @@ function SponsorshipSection() {
               >
                 {/* Gradient Border Effect */}
                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-b ${plan.color.replace('from-', 'from-').replace('via-', 'via-').replace('to-', 'to-')} p-[1px] rounded-3xl -z-10`} />
-                
+
                 {/* Top Shine */}
                 <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-b ${plan.color} opacity-5 group-hover:opacity-10 transition-opacity duration-500`} />
-                
+
                 <div className="p-6 md:p-8 flex flex-col h-full relative z-10">
                   <div className="flex justify-between items-start mb-6">
                     <div className={`p-3 rounded-2xl bg-gradient-to-br ${plan.color} bg-opacity-10 border border-white/5`}>
-                        <plan.icon className="w-8 h-8 text-white" />
+                      <plan.icon className="w-8 h-8 text-white" />
                     </div>
                     <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-emerald-200/70 font-mono">
-                        {plan.tickets}
+                      {plan.tickets}
                     </div>
                   </div>
 
                   <h3 className={`text-2xl font-bold bg-gradient-to-r ${plan.color} bg-clip-text text-transparent mb-2 group-hover:scale-105 transition-transform origin-left group-hover:text-slate-900`}>
                     {plan.name}
                   </h3>
-                  
+
                   <div className="flex items-baseline gap-1 my-4">
                     <span className="text-3xl md:text-4xl font-bold text-white tracking-tight group-hover:text-slate-900 transition-colors">{plan.price}</span>
                     <span className="text-emerald-200/50 text-sm font-medium group-hover:text-slate-500 transition-colors">EGP</span>
@@ -616,13 +559,13 @@ function SponsorshipSection() {
 
                   <ul className="space-y-3 mb-8 flex-1">
                     {plan.features.slice(0, 3).map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-400 group-hover:text-slate-700 transition-colors">
-                            <span className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.color} group-hover:from-slate-700 group-hover:to-slate-900 transition-colors`} />
-                            <span className="leading-snug font-medium">{feature}</span>
-                        </li>
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-400 group-hover:text-slate-700 transition-colors">
+                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${plan.color} group-hover:from-slate-700 group-hover:to-slate-900 transition-colors`} />
+                        <span className="leading-snug font-medium">{feature}</span>
+                      </li>
                     ))}
                     {plan.features.length > 3 && (
-                        <li className="text-xs text-white/30 italic pl-3 group-hover:text-slate-500 transition-colors">+ {plan.features.length - 3} more privileges</li>
+                      <li className="text-xs text-white/30 italic pl-3 group-hover:text-slate-500 transition-colors">+ {plan.features.length - 3} more privileges</li>
                     )}
                   </ul>
 

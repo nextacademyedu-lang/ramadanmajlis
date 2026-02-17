@@ -45,8 +45,6 @@ const formSchema = z.object({
     ),
     industry: z.string().min(1, "Please select an industry"),
     selectedNights: z.array(z.string()).optional(),
-    paymentProvider: z.enum(['paymob_card', 'paymob_wallet']),
-    walletPhone: z.string().optional(),
 }).refine(data => {
     if (data.ticketType === 'single' && (!data.selectedNights || data.selectedNights.length === 0)) {
         return false;
@@ -55,15 +53,6 @@ const formSchema = z.object({
 }, {
     message: "Select at least one night",
     path: ["selectedNights"]
-}).refine(data => {
-    // Wallet phone is required when payment provider is wallet
-    if (data.paymentProvider === 'paymob_wallet' && (!data.walletPhone || data.walletPhone.length < 10)) {
-        return false;
-    }
-    return true;
-}, {
-    message: "Wallet phone number is required (min 10 digits)",
-    path: ["walletPhone"]
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -116,13 +105,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         defaultValues: {
             ticketType: 'single',
             selectedNights: [],
-            paymentProvider: 'paymob_wallet' // Default to Wallet temporarily
         }
     });
 
     const ticketType = watch('ticketType');
     const selectedNights = watch('selectedNights') || [];
-    const paymentProvider = watch('paymentProvider');
 
     // Pricing
     // Determine base price from the first night or default to 1999
@@ -167,7 +154,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
             const res = await fetch('/api/validate-promo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     code: promoCode,
                     selectedNights: nightIds,
                     isPackage: ticketType === 'package'
@@ -216,9 +203,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
             const { error: uploadError } = await supabase.storage
                 .from('event-uploads')
-                .upload(filePath, file, { 
+                .upload(filePath, file, {
                     cacheControl: '3600',
-                    upsert: false 
+                    upsert: false
                 });
 
             if (uploadError) throw uploadError;
@@ -230,7 +217,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
             // 4. Update with actual remote URL (seamless switch)
             setPhotoUrl(publicUrl);
-            
+
         } catch (err) {
             console.error("Upload Error:", err);
             const message = err instanceof Error ? err.message : "Upload failed";
@@ -250,8 +237,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         try {
             // 0. Re-validate Promo Code (if applied)
             if (promoApplied) {
-                 // Re-calculate night IDs if needed (same logic as handleApplyPromo)
-               let nightIds: string[] = [];
+                // Re-calculate night IDs if needed (same logic as handleApplyPromo)
+                let nightIds: string[] = [];
                 if (data.ticketType === 'single') {
                     const activeNights = nights.length > 0 ? nights : NIGHTS;
                     nightIds = (data.selectedNights || []).map((date: string) => {
@@ -263,7 +250,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                 const res = await fetch('/api/validate-promo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         code: promoApplied.code,
                         selectedNights: nightIds,
                         isPackage: data.ticketType === 'package'
@@ -290,7 +277,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                     selected_nights: data.ticketType === 'package' ? ['ALL'] : data.selectedNights,
                     ticket_count: 1,
                     total_amount: totalAmount,
-                    payment_provider: totalAmount === 0 ? 'paymob_card' : data.paymentProvider, // 'free_tier' is NOT in DB constraint, use valid value
+                    payment_provider: totalAmount === 0 ? 'free' : 'easykash',
                     payment_status: totalAmount === 0 ? 'paid' : 'pending',
                     profile_image_url: photoUrl,
                     // Add Promo Info
@@ -362,9 +349,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                         first_name: data.fullName.split(' ')[0],
                         last_name: data.fullName.split(' ').slice(1).join(' ') || 'Customer',
                         email: data.email,
-                        phone: data.paymentProvider === 'paymob_wallet' ? data.walletPhone! : data.phone
+                        phone: data.phone
                     },
-                    provider: data.paymentProvider
+                    provider: 'easykash'
                 })
             });
 
@@ -389,9 +376,9 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
         } else if (step === 2) {
             valid = await trigger(['fullName', 'email', 'phone', 'jobTitle', 'company', 'linkedin', 'industry']);
             if (!photoUrl) { setError("Profile photo required"); valid = false; }
-            
+
             if (!valid && !error) {
-                 setError("Please fix the highlighted fields to proceed.");
+                setError("Please fix the highlighted fields to proceed.");
             }
         }
 
@@ -556,11 +543,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Email</Label>
-                                        <Input 
-                                            {...register('email')} 
-                                            englishOnly={true} 
+                                        <Input
+                                            {...register('email')}
+                                            englishOnly={true}
                                             error={!!errors.email}
-                                            placeholder="john@example.com" 
+                                            placeholder="john@example.com"
                                         />
                                         {errors.email && <p className="text-red-400 text-xs">{errors.email.message}</p>}
                                     </div>
@@ -569,20 +556,20 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>Phone</Label>
-                                        <Input 
-                                            {...register('phone')} 
+                                        <Input
+                                            {...register('phone')}
                                             error={!!errors.phone}
-                                            placeholder="+20 1xxxxxxxxx" 
+                                            placeholder="+20 1xxxxxxxxx"
                                         />
                                         {errors.phone && <p className="text-red-400 text-xs">{errors.phone.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>LinkedIn URL</Label>
-                                        <Input 
-                                            {...register('linkedin')} 
-                                            englishOnly={true} 
+                                        <Input
+                                            {...register('linkedin')}
+                                            englishOnly={true}
                                             error={!!errors.linkedin}
-                                            placeholder="https://linkedin.com/in/..." 
+                                            placeholder="https://linkedin.com/in/..."
                                         />
                                         {errors.linkedin && <p className="text-red-400 text-xs">{errors.linkedin.message}</p>}
                                     </div>
@@ -613,8 +600,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
                                 <div className="space-y-2">
                                     <Label>Industry</Label>
-                                    <Select 
-                                        value={watch('industry')} 
+                                    <Select
+                                        value={watch('industry')}
                                         onValueChange={(val: string) => {
                                             setValue('industry', val, { shouldValidate: true });
                                         }}
@@ -633,7 +620,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                     {errors.industry && <p className="text-red-400 text-xs">{errors.industry.message}</p>}
                                 </div>
 
-                                    <div className="space-y-2 pt-2">
+                                <div className="space-y-2 pt-2">
                                     <Label>Profile Photo <span className="text-xs text-muted-foreground">(Required for Networking)</span></Label>
                                     <div className="flex items-center gap-4">
                                         {photoUrl ? (
@@ -706,7 +693,7 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
                                     <Label className="text-base font-semibold text-primary flex items-center gap-2">
                                         Have a Promo Code?
-                                        <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
+                                        <span className="text-xs text-muted-foreground">(Optional)</span>
                                     </Label>
                                     <div className="flex gap-3">
                                         <div className="relative flex-1">
@@ -730,8 +717,8 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                             variant={promoApplied ? "outline" : "default"}
                                             className={cn(
                                                 "h-12 px-8 font-bold text-lg min-w-[120px] transition-all duration-300",
-                                                promoApplied 
-                                                    ? "border-green-500 text-green-500 hover:text-green-400 hover:bg-green-500/10" 
+                                                promoApplied
+                                                    ? "border-green-500 text-green-500 hover:text-green-400 hover:bg-green-500/10"
                                                     : "bg-primary text-black hover:bg-amber-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(251,191,36,0.4)]"
                                             )}
                                         >
@@ -739,11 +726,11 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                         </Button>
                                     </div>
                                     <p className="text-xs text-gray-400 flex items-center gap-1.5 px-1">
-                                        <span className="text-amber-400 text-sm">💡</span> 
+                                        <span className="text-amber-400 text-sm">💡</span>
                                         <span>Hint: Check our social media for exclusive codes!</span>
                                     </p>
                                     {promoError && (
-                                        <motion.p 
+                                        <motion.p
                                             initial={{ opacity: 0, y: -5 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             className="text-red-400 text-sm font-medium bg-red-500/10 p-2 rounded border border-red-500/20 flex items-center gap-2"
@@ -755,56 +742,6 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
                                 </div>
 
 
-                                <div className="space-y-3">
-                                    <Label>Payment Method</Label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div
-                                            onClick={() => setValue('paymentProvider', 'paymob_card')}
-                                            className={cn(
-                                                "cursor-pointer rounded-lg border p-4 text-center transition-all",
-                                                paymentProvider === 'paymob_card'
-                                                    ? "border-primary bg-primary/20 text-white"
-                                                    : "border-white/10 bg-white/5 opacity-50 hover:opacity-100"
-                                            )}
-                                        >
-                                            <div className="font-bold">Card</div>
-                                            <div className="text-xs">Visa / MasterCard</div>
-                                        </div>
-                                        <div
-                                            onClick={() => setValue('paymentProvider', 'paymob_wallet')}
-                                            className={cn(
-                                                "cursor-pointer rounded-lg border p-4 text-center transition-all",
-                                                paymentProvider === 'paymob_wallet'
-                                                    ? "border-primary bg-primary/20 text-white"
-                                                    : "border-white/10 bg-white/5 opacity-50 hover:opacity-100"
-                                            )}
-                                        >
-                                            <div className="font-bold">Wallet</div>
-                                            <div className="text-xs">Vodafone/Etisalat/InstaPay/OrangePay/etc..</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Wallet Phone Input - Only shown when wallet is selected */}
-                                    {paymentProvider === 'paymob_wallet' && (
-                                        <div className="mt-4 space-y-2 p-4 rounded-lg border border-primary/30 bg-primary/5">
-                                            <Label className="flex items-center gap-2">
-                                                <span>رقم المحفظة</span>
-                                                <span className="text-xs text-primary">(Wallet Number)</span>
-                                            </Label>
-                                            <Input
-                                                {...register('walletPhone')}
-                                                placeholder="01xxxxxxxxx"
-                                                error={!!errors.walletPhone}
-                                                className="text-lg tracking-wider"
-                                            />
-                                            <p className="text-xs text-gray-400">
-                                                أدخل رقم التليفون المسجل عليه المحفظة (فودافون كاش / اتصالات كاش / اورانج كاش)
-                                            </p>
-                                            {errors.walletPhone && <p className="text-red-400 text-xs">{errors.walletPhone.message}</p>}
-                                        </div>
-                                    )}
-                                </div>
-
                                 {error && (
                                     <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm flex items-center gap-2">
                                         <AlertCircle size={16} />
@@ -814,8 +751,12 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
                                 <div className="pt-4 flex justify-between">
                                     <Button type="button" variant="ghost" onClick={() => setStep(2)}>Back</Button>
-                                    <Button type="submit" disabled={loading} className="w-1/2 bg-gradient-to-r from-primary to-amber-500 text-black font-bold">
-                                        {loading ? <Loader2 className="animate-spin" /> : "Complete Booking"}
+                                    <Button
+                                        type="submit"
+                                        className="w-[200px] h-12 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all"
+                                        disabled={loading}
+                                    >
+                                        {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Complete Booking"}
                                     </Button>
                                 </div>
 

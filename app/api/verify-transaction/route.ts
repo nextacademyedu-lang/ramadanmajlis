@@ -13,80 +13,53 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, message: "Missing parameters" }, { status: 400 });
         }
 
-        // 1. Authenticate with Paymob
-        const authResponse = await fetch('https://accept.paymob.com/api/auth/tokens', {
+        if (!bookingId) {
+            return NextResponse.json({ success: false, message: "Missing booking ID" }, { status: 400 });
+        }
+
+        // --- EASYKASH VERIFICATION ---
+        // EasyKash verification is done by "Inquiry" using the customerReference (which matches our bookingId)
+
+        console.log(`[EasyKash] Verifying Booking: ${bookingId}`);
+        const easyKashToken = process.env.EASYKASH_API_TOKEN;
+
+        if (!easyKashToken) {
+            console.error('[EasyKash] Token missing in env');
+            return NextResponse.json({ success: false, message: "Server configuration error" }, { status: 500 });
+        }
+
+        const verifyResponse = await fetch('https://back.easykash.net/api/cash-api/inquire', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ api_key: process.env.PAYMOB_API_KEY })
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': easyKashToken
+            },
+            body: JSON.stringify({ customerReference: bookingId })
         });
-        const authData = await authResponse.json();
 
-        if (!authData.token) {
-            console.error('Paymob Auth Failed during Verification:', authData);
-            return NextResponse.json({ success: false, message: "Payment provider error" }, { status: 500 });
-        }
-        const token = authData.token;
+        const transaction = await verifyResponse.json();
+        console.log(`[EasyKash] Inquiry Response for ${bookingId}:`, JSON.stringify(transaction));
 
-        // 2. Get Transaction Details from Paymob
-        const transactionResponse = await fetch(`https://accept.paymob.com/api/acceptance/transactions/${transactionId}`, {
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`, // Some endpoints use Header, some use query param. Usually Bearer works for retrieval.
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        // Convert to JSON
-        const transaction = await transactionResponse.json();
+        // Validation Logic:
+        // EasyKash usually returns: { status: "PAID", ... } or { status: "SUCCESS" ... } - Verification needed on exact string
+        // Based on common integrations, it's often "PAID" for cards.
 
-        // Fallback: If Bearer doesn't work, try Query Param (Paymob inconsistency)
-        /* 
-        const transactionResponse = await fetch(`https://accept.paymob.com/api/acceptance/transactions/${transactionId}?token=${token}`);
-        */
-        
-        if (transactionResponse.status !== 200 || !transaction.id) {
-             console.error('Paymob Get Transaction Failed:', transaction);
-             return NextResponse.json({ success: false, message: "Transaction check failed" }, { status: 500 });
-        }
-
-        console.log(`💳 Paymob Status for ${transactionId}: success=${transaction.success}, pending=${transaction.pending}`);
-
-        // 3. Verify Logic
-        // Check if successful AND not pending AND matches booking ID
-        const isSuccess = transaction.success === true && transaction.pending === false;
-        
-        // Verify Order ID matches Booking ID (Handling various ID formats if necessary)
-        // Paymob uses 'merchant_order_id' or inside 'order' object
-        const paymobOrderId = transaction.order?.merchant_order_id || transaction.merchant_order_id;
-        
-        if (paymobOrderId !== bookingId) {
-            console.warn(`⚠️ Transaction Checking: Booking ID Mismatch! Paymob says: ${paymobOrderId}, Request says: ${bookingId}`);
-            // Depending on strictness, we might return false. For now, strict.
-            // return NextResponse.json({ success: false, message: "Order mismatch" });
-        }
+        const isSuccess = transaction.status === 'PAID' || transaction.status === 'SUCCESS';
 
         if (isSuccess) {
-            // 4. Confirm Booking in Supabase (Idempotent)
+            // 4. Confirm Booking in Supabase
             const confirmation = await confirmBooking(bookingId);
-            
-            return NextResponse.json({ 
-                success: true, 
+
+            return NextResponse.json({
+                success: true,
                 message: "Transaction Verified",
                 booking: confirmation.booking
             });
         } else {
-             // Extract failure reason if available
-             const failureReason = transaction.daTa?.message || transaction.data?.message || transaction.source_data?.sub_type || "Unknown Reason";
-             
-             return NextResponse.json({ 
-                success: false, 
-                message: `Transaction Declined: ${failureReason}`,
-                details: { 
-                    success: transaction.success, 
-                    pending: transaction.pending,
-                    txn_response_code: transaction.txn_response_code,
-                    data_message: transaction.data?.message
-                }
+            return NextResponse.json({
+                success: false,
+                message: `Transaction not paid: ${transaction.status || 'Unknown'}`,
+                details: transaction
             });
         }
 

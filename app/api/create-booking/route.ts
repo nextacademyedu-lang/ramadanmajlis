@@ -24,21 +24,36 @@ export async function POST(request: Request) {
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
             const finalRedirectUrl = `${baseUrl}/payment-success?bookingId=${bookingId}`;
 
+            // --- PAYLOAD NORMALIZATION ---
+            // 1. Normalize Phone Number (EasyKash/Egypt Wallets expect 01xxxxxxxxx format)
+            let normalizedPhone = customer.phone.replace(/\D/g, ''); // Remove all non-digits
+            if (normalizedPhone.startsWith('20')) {
+                normalizedPhone = '0' + normalizedPhone.substring(2);
+            } else if (!normalizedPhone.startsWith('0')) {
+                normalizedPhone = '0' + normalizedPhone;
+            }
+            // Ensure exactly 11 digits for Egyptian mobile numbers
+            if (normalizedPhone.length > 11 && normalizedPhone.startsWith('0')) {
+                normalizedPhone = normalizedPhone.substring(0, 11);
+            }
+
+            // 2. Simplify Customer Reference (Remove hyphens from UUID)
+            // Some frontends crash when parsing specific characters in IDs
+            const simplifiedRef = bookingId.replace(/-/g, '');
+
             const payload = {
-                amount: amount, // EasyKash takes amount in main unit (EGP), unlike Paymob (cents) ? Verify docs. 
-                // Script says: "amount": 100. Docs say "amount (number)". Typically this means main unit. 
-                // Paymob used cents. I will use main amount as per my script.
+                amount: amount,
                 currency: "EGP",
                 paymentOptions: [2, 3, 4, 5, 6], // All options
                 cashExpiry: 24,
-                name: `${customer.first_name} ${customer.last_name}`,
+                name: `${customer.first_name} ${customer.last_name}`.trim(),
                 email: customer.email,
-                mobile: customer.phone,
+                mobile: normalizedPhone,
                 redirectUrl: finalRedirectUrl,
-                customerReference: bookingId
+                customerReference: simplifiedRef
             };
 
-            console.log('[EasyKash] Sending Payload:', JSON.stringify(payload));
+            console.log(`[EasyKash] Sending Payload for Booking ${bookingId}:`, JSON.stringify(payload, null, 2));
 
             const response = await fetch('https://back.easykash.net/api/directpayv1/pay', {
                 method: 'POST',
@@ -50,13 +65,13 @@ export async function POST(request: Request) {
             });
 
             const data = await response.json();
-            console.log('[EasyKash] Response:', data);
+            console.log(`[EasyKash] Response for ${bookingId}:`, JSON.stringify(data, null, 2));
 
             if (data.redirectUrl) {
                 return NextResponse.json({ paymentUrl: data.redirectUrl });
             } else {
                 console.error('[EasyKash] Payment Initiation Failed:', data);
-                throw new Error(`Payment Failed: ${JSON.stringify(data)}`);
+                throw new Error(`Payment Failed: ${data.message || JSON.stringify(data)}`);
             }
         }
         else {

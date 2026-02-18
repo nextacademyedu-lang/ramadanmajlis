@@ -34,7 +34,7 @@ export async function POST(request: Request) {
                 'Content-Type': 'application/json',
                 'authorization': easyKashToken
             },
-            body: JSON.stringify({ customerReference: bookingId })
+            body: JSON.stringify({ customerReference: bookingId.replace(/-/g, '') })
         });
 
         const transaction = await verifyResponse.json();

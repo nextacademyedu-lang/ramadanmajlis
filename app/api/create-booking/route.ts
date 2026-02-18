@@ -6,6 +6,13 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { bookingId, amount, customer, provider } = body;
 
+        console.log('[CreateBooking] Received:', JSON.stringify({ bookingId, amount, provider, customer: customer ? { ...customer, phone: customer.phone } : 'MISSING' }));
+
+        // Validate required fields
+        if (!bookingId || !amount || !customer || !provider) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+
         // --- PAYMOB INTEGRATION ---
         // --- EASYKASH INTEGRATION ---
         if (provider.startsWith('paymob') || provider === 'easykash' || provider === 'card') {
@@ -26,7 +33,8 @@ export async function POST(request: Request) {
 
             // --- PAYLOAD NORMALIZATION ---
             // 1. Normalize Phone Number (EasyKash/Egypt Wallets expect 01xxxxxxxxx format)
-            let normalizedPhone = customer.phone.replace(/\D/g, ''); // Remove all non-digits
+            const rawPhone = customer.phone || '01000000000';
+            let normalizedPhone = rawPhone.replace(/\D/g, ''); // Remove all non-digits
             if (normalizedPhone.startsWith('20')) {
                 normalizedPhone = '0' + normalizedPhone.substring(2);
             } else if (!normalizedPhone.startsWith('0')) {

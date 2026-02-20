@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Outfit, Playfair_Display } from 'next/font/google';
 import './globals.css';
+import { Analytics } from "@vercel/analytics/next";
+import FacebookPixel from '@/components/FacebookPixel';
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
@@ -53,6 +55,8 @@ export default function RootLayout({
     <html lang="en" dir="ltr">
       <body className={`${outfit.variable} ${playfair.variable} font-sans bg-background text-foreground antialiased`} suppressHydrationWarning={true}>
         {children}
+        <Analytics />
+        <FacebookPixel />
       </body>
     </html>
   );

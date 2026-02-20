@@ -680,7 +680,15 @@ function SponsorshipSection() {
 
                   <div className="space-y-3">
                     <button
-                      onClick={() => window.open(`https://wa.me/201505822735?text=${encodeURIComponent(`Hello, I am interested in the ${activePlan.name} sponsorship package for Ramadan Majlis.`)}`, '_blank')}
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.fbq) {
+                          window.fbq('track', 'Contact', {
+                            content_name: `WhatsApp - ${activePlan.name} Package`,
+                            content_category: 'Sponsorship'
+                          });
+                        }
+                        window.open(`https://wa.me/201505822735?text=${encodeURIComponent(`Hello, I am interested in the ${activePlan.name} sponsorship package for Ramadan Majlis.`)}`, '_blank')
+                      }}
                       className="w-full flex items-center justify-center h-12 text-lg bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl transition-colors"
                     >
                       <Phone className="w-5 h-5 ml-2" />
@@ -688,7 +696,15 @@ function SponsorshipSection() {
                     </button>
 
                     <button
-                      onClick={() => window.location.href = `mailto:contact@nextacademyedu.com?subject=${encodeURIComponent(`Sponsorship Inquiry - ${activePlan.name} Package`)}`}
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.fbq) {
+                          window.fbq('track', 'Contact', {
+                            content_name: `Email - ${activePlan.name} Package`,
+                            content_category: 'Sponsorship'
+                          });
+                        }
+                        window.location.href = `mailto:contact@nextacademyedu.com?subject=${encodeURIComponent(`Sponsorship Inquiry - ${activePlan.name} Package`)}`
+                      }}
                       className="w-full flex items-center justify-center h-12 text-lg bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors"
                     >
                       <Mail className="w-5 h-5 ml-2" />

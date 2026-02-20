@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { sendWelcomeEmail, sendTicketEmail } from '@/lib/email';
 import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
+import { sendFbEvent } from '@/lib/facebook';
 
 // Initialize Supabase Admin Client (needed to update bookings secureley)
 const supabaseAdmin = createClient(
@@ -51,26 +52,49 @@ export async function POST(request: Request) {
 
             if (existingBooking && existingBooking.status === 'confirmed') {
                 console.log(`⚠️ Booking ${bookingId} already confirmed, skipping webhook processing.`);
-                return NextResponse.json({ 
-                    received: true, 
+                return NextResponse.json({
+                    received: true,
                     status: 'already_processed',
-                    message: 'Booking already confirmed' 
+                    message: 'Booking already confirmed'
                 });
+            }
+
+            // --- FACEBOOK CAPI: Purchase ---
+            // If we found the booking, we have customer data to send to FB
+            if (existingBooking) {
+                sendFbEvent(
+                    'Purchase',
+                    {
+                        email: existingBooking.email,
+                        phone: existingBooking.phone,
+                        firstName: existingBooking.customer_name?.split(' ')[0] || '',
+                        lastName: existingBooking.customer_name?.split(' ').slice(1).join(' ') || '',
+                        // clientIp and userAgent are less reliable in webhooks but we can try headers or omit
+                    },
+                    {
+                        currency: 'EGP',
+                        value: existingBooking.total_amount,
+                        content_name: 'Ramadan Majlis Ticket',
+                        content_ids: [bookingId],
+                    },
+                    bookingId, // Event ID for deduplication (matches InitiateCheckout)
+                    'https://ramadan-event.vercel.app/payment-success' // Source URL
+                ).catch(err => console.error('Failed to send FB Purchase Event:', err));
             }
 
             // Use Shared Logic
             const { confirmBooking } = await import('@/lib/booking-service');
             const result = await confirmBooking(bookingId);
 
-            return NextResponse.json({ 
-                received: true, 
+            return NextResponse.json({
+                received: true,
                 status: 'success',
                 debug_notifications: result.notifications
             });
         }
 
-        return NextResponse.json({ 
-            received: true, 
+        return NextResponse.json({
+            received: true,
             ignored: true,
             debug_reason: "Payload validation failed or Update Failed",
             debug_info: {

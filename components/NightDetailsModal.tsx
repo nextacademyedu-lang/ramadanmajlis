@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Calendar, Clock, MapPin, User, Star, Utensils, Users, Mic2, Moon, ArrowDown } from "lucide-react";
 
@@ -10,7 +10,7 @@ interface NightDetailsModalProps {
 
 export default function NightDetailsModal({ night, speakers, onClose }: NightDetailsModalProps) {
     const agendaRef = useRef<HTMLDivElement>(null);
-    
+
     // Filter speakers for this night
     const nightSpeakers = speakers.filter(s => s.night_id === night.id);
 
@@ -56,6 +56,20 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
 
     const sortedAgenda = night.agenda ? sortAgendaItems(night.agenda) : [];
 
+    // Track ViewContent on mount
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.fbq) {
+            window.fbq('track', 'ViewContent', {
+                content_name: night.title,
+                content_ids: [night.id],
+                content_type: 'product', // or 'product_group' or 'event'
+                value: night.price,
+                currency: night.currency
+            });
+        }
+    }, [night]);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -65,7 +79,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                 onClick={onClose}
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
-            
+
             <motion.div
                 layoutId={`night-${night.id}`}
                 className="w-full max-w-2xl bg-[#031d16] border border-emerald-500/20 rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
@@ -83,7 +97,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                     <div className="flex justify-between items-start gap-3 mb-1">
                         <h2 className="text-xl sm:text-3xl font-bold text-white leading-tight font-serif">{night.title}</h2>
                         <div className="shrink-0 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
-                             {new Date(night.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                            {new Date(night.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                         </div>
                     </div>
                     <p className="text-emerald-100/60 text-xs sm:text-base">{night.subtitle}</p>
@@ -91,7 +105,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                     {/* Scroll to Agenda Button */}
                     {sortedAgenda.length > 0 && (
                         <div className="flex justify-center mt-3 sm:mt-6">
-                            <button 
+                            <button
                                 onClick={scrollToAgenda}
                                 className="group relative px-4 py-1.5 sm:px-6 sm:py-2 bg-white text-black font-bold rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 flex items-center gap-1.5 sm:gap-2 animate-pulse hover:animate-none hover:scale-105"
                             >
@@ -103,7 +117,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 scrollbar-hide">
-                    
+
                     {/* Description */}
                     <div className="text-emerald-100/80 leading-relaxed text-sm sm:text-base bg-white/5 p-4 rounded-xl border border-white/5">
                         {night.description}
@@ -111,7 +125,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
 
                     {/* Panel Details */}
                     {(night.panel_title || night.panel_description) && (
-                        <div className="bg-gradient-to-br from-emerald-900/40 to-black p-4 rounded-xl border border-emerald-500/20">
+                        <div className="bg-linear-to-br from-emerald-900/40 to-black p-4 rounded-xl border border-emerald-500/20">
                             {night.panel_title && (
                                 <h3 className="text-xl font-bold text-amber-400 mb-2 font-serif">{night.panel_title}</h3>
                             )}
@@ -125,7 +139,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                     {['Keynote Speaker', 'Panel Speaker', 'Host', 'Moderator', 'VIP Guest'].map(role => {
                         const roleSpeakers = nightSpeakers.filter(s => (s.role || 'Keynote Speaker') === role);
                         if (roleSpeakers.length === 0) return null;
-                        
+
                         return (
                             <div key={role}>
                                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -136,9 +150,9 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                                     {roleSpeakers.map((speaker, idx) => (
                                         <div key={idx} className="flex items-center gap-4 bg-[#0a2720] p-4 rounded-2xl border border-emerald-500/10 hover:border-emerald-500/30 transition-colors">
                                             <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-emerald-500/20">
-                                                <img 
-                                                    src={speaker.image_url || "/placeholder-user.jpg"} 
-                                                    alt={speaker.name} 
+                                                <img
+                                                    src={speaker.image_url || "/placeholder-user.jpg"}
+                                                    alt={speaker.name}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-user.jpg"; }}
                                                 />
@@ -161,14 +175,14 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
 
                     {/* Agenda */}
                     {sortedAgenda.length > 0 && (
-                         <div ref={agendaRef} className="scroll-mt-6">
+                        <div ref={agendaRef} className="scroll-mt-6">
                             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                                 <Clock className="text-emerald-400 w-5 h-5" />
                                 Night Agenda
                             </h3>
                             <div className="space-y-0 relative">
                                 {/* Vertical Line */}
-                                <div className="absolute left-[20px] top-4 bottom-4 w-px bg-white/10" />
+                                <div className="absolute left-5 top-4 bottom-4 w-px bg-white/10" />
 
                                 {sortedAgenda.map((item: any, idx: number) => {
                                     let linkedSpeakers: any[] = [];
@@ -185,7 +199,7 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                                             <div className="relative z-10 w-10 h-10 rounded-full bg-[#031d16] border-2 border-emerald-500 flex items-center justify-center shrink-0">
                                                 {getAgendaIcon(item.title)}
                                             </div>
-                                            
+
                                             <div className="flex-1 pt-1 min-w-0">
                                                 <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 mb-2">
                                                     <span className="text-amber-400 font-mono text-sm font-bold shrink-0">
@@ -213,11 +227,10 @@ export default function NightDetailsModal({ night, speakers, onClose }: NightDet
                                                                     <div>
                                                                         <div className="font-bold text-white text-sm">{speaker.name}</div>
                                                                         {customRole && (
-                                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase tracking-wider block w-fit mt-1 ${
-                                                                                customRole === 'Moderator' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium uppercase tracking-wider block w-fit mt-1 ${customRole === 'Moderator' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
                                                                                 customRole === 'Host' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
-                                                                                'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                                                            }`}>
+                                                                                    'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                                                                }`}>
                                                                                 {customRole}
                                                                             </span>
                                                                         )}

@@ -55,3 +55,9 @@ export const INDUSTRIES = [
     "Education",
     "Other"
 ] as const;
+
+declare global {
+    interface Window {
+        fbq: any;
+    }
+}

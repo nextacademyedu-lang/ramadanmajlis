@@ -1,17 +1,45 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { sendFbEvent } from '@/lib/facebook';
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { bookingId, amount, customer, provider } = body;
 
-        console.log('[CreateBooking] Received:', JSON.stringify({ bookingId, amount, provider, customer: customer ? { ...customer, phone: customer.phone } : 'MISSING' }));
+        // Get Client IP and User Agent
+        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+        const userAgent = request.headers.get('user-agent') || '';
+
+        console.log('[CreateBooking] Received:', JSON.stringify({ bookingId, amount, provider, customer: customer ? { ...customer, phone: customer.phone } : 'MISSING', clientIp, userAgent }));
 
         // Validate required fields
         if (!bookingId || !amount || !customer || !provider) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
+
+        // --- FACEBOOK CAPI: InitiateCheckout ---
+        // Fire asynchronously to not block payment flow
+        sendFbEvent(
+            'InitiateCheckout',
+            {
+                email: customer.email,
+                phone: customer.phone,
+                firstName: customer.first_name,
+                lastName: customer.last_name,
+                clientIp,
+                userAgent,
+            },
+            {
+                currency: 'EGP',
+                value: amount,
+                content_name: 'Ramadan Majlis Ticket',
+                content_ids: [bookingId],
+            },
+            bookingId, // Event ID for deduplication
+            'https://ramadan-event.vercel.app/booking' // Source URL
+        ).catch(err => console.error('Failed to send FB Event:', err));
+
 
         // --- PAYMOB INTEGRATION ---
         // --- EASYKASH INTEGRATION ---

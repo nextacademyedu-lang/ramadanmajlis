@@ -226,9 +226,9 @@ export default function BookingForm({ industries = [] }: BookingFormProps) {
     };
 
     const ticketOptions = [
-        { count: 1, label: '1 Ticket', price: '2,000 EGP' },
-        { count: 2, label: '2 Tickets', price: '3,500 EGP', save: 'Save 500 EGP' },
-        { count: 3, label: '3 Tickets', price: '4,500 EGP', save: 'Save 1,500 EGP' },
+        { count: 1, label: '1 Ticket' },
+        { count: 2, label: '2 Tickets', discount: '12% OFF' },
+        { count: 3, label: '3 Tickets', discount: '25% OFF' },
     ];
 
     return (
@@ -253,14 +253,26 @@ export default function BookingForm({ industries = [] }: BookingFormProps) {
                                         key={opt.count}
                                         onClick={() => setTicketCount(opt.count)}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border p-4 text-center transition-all",
+                                            "cursor-pointer rounded-xl border p-4 text-center transition-all relative",
+                                            opt.count === 2 && "ring-2 ring-emerald-500/60 scale-[1.04] z-10",
                                             ticketCount === opt.count
                                                 ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(212,175,55,0.15)]"
                                                 : "border-white/10 bg-white/5 hover:bg-white/10"
                                         )}
                                     >
+                                        {opt.count === 2 && (
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                Most Popular
+                                            </div>
+                                        )}
+                                        {opt.discount && opt.count !== 2 && (
+                                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                {opt.discount}
+                                            </div>
+                                        )}
                                         {ticketCount === opt.count && <CheckCircle2 className="w-4 h-4 text-primary mx-auto mb-1" />}
                                         <div className="font-bold text-white">{opt.label}</div>
+                                        {opt.discount && <div className="text-emerald-400 text-[10px] mt-0.5">{opt.discount}</div>}
                                     </div>
                                 ))}
                             </div>

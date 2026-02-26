@@ -27,11 +27,26 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [seatsLeft] = useState(() => Math.floor(Math.random() * 15) + 30);
+  const [showPopup, setShowPopup] = useState(false);
+  const POPUP_CODES = ['MAJLIS50A', 'MAJLIS50B', 'MAJLIS50C', 'MAJLIS50D', 'MAJLIS50E'];
+  const [popupCode] = useState(() => POPUP_CODES[Math.floor(Math.random() * POPUP_CODES.length)]);
 
   useEffect(() => {
-    const onScroll = () => setShowSticky(window.scrollY > 600);
+    const onScroll = () => {
+      setShowSticky(window.scrollY > 600);
+      const el = document.documentElement;
+      setScrollProgress((window.scrollY / (el.scrollHeight - el.clientHeight)) * 100);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('popup_shown')) return;
+    const t = setTimeout(() => { setShowPopup(true); sessionStorage.setItem('popup_shown', '1'); }, 3000);
+    return () => clearTimeout(t);
   }, []);
 
   // Payment verification is now handled in /payment-success page
@@ -50,7 +65,6 @@ export default function Home() {
   const [industries, setIndustries] = useState<string[]>([]);
   const [speakers, setSpeakers] = useState<any[]>([]);
   const [eventConfig, setEventConfig] = useState<any>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -111,7 +125,7 @@ export default function Home() {
 
       } catch (err: any) {
         console.error("Supabase Error:", err);
-        setFetchError(err.message || "Failed to load data");
+        console.error(err.message);
       } finally {
         // Add a small delay for smoother transition
         setTimeout(() => setIsLoading(false), 500);
@@ -122,6 +136,45 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative overflow-hidden font-sans">
+      {/* ========== SCROLL PROGRESS BAR ========== */}
+      <div className="fixed top-0 inset-x-0 z-50 h-0.5 bg-white/5 pointer-events-none">
+        <div className="h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-[width] duration-100" style={{ width: `${scrollProgress}%` }} />
+      </div>
+
+      {/* ========== PROMO POPUP ========== */}
+      <AnimatePresence>
+        {showPopup && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPopup(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.85, opacity: 0, y: 20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="pointer-events-auto w-full max-w-md bg-[#0a201b] border border-amber-500/40 rounded-3xl p-8 text-center shadow-2xl relative"
+              >
+                <button onClick={() => setShowPopup(false)} className="absolute top-4 right-4 p-1.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X className="w-4 h-4 text-white" /></button>
+                <div className="text-5xl mb-4">🎁</div>
+                <h3 className="text-2xl font-bold text-white mb-2 font-serif">Special Welcome Offer</h3>
+                <p className="text-emerald-200/70 mb-6 text-sm">Use this code at checkout to get <span className="text-amber-400 font-bold text-lg">50% OFF</span> your ticket!</p>
+                <div
+                  onClick={() => navigator.clipboard?.writeText(popupCode)}
+                  className="cursor-pointer bg-amber-400/10 border-2 border-dashed border-amber-400/60 rounded-2xl py-4 px-6 mb-6 group hover:bg-amber-400/20 transition-all"
+                >
+                  <div className="text-3xl font-bold font-mono text-amber-400 tracking-widest">{popupCode}</div>
+                  <div className="text-xs text-amber-400/60 mt-1 group-hover:text-amber-400 transition-colors">Click to copy</div>
+                </div>
+                <button onClick={() => { setShowPopup(false); scrollToBooking(); }} className="w-full bg-amber-400 hover:bg-amber-500 text-black font-bold py-3 rounded-full transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+                  Reserve Now &amp; Save 50%
+                </button>
+                <p className="text-xs text-white/30 mt-3">Limited time offer · {seatsLeft} seats remaining</p>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -404,19 +457,29 @@ export default function Home() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 inset-x-0 z-40 bg-[#022c22]/95 backdrop-blur-md border-t border-emerald-500/20 px-4 py-3"
+            className="fixed bottom-0 inset-x-0 z-40 bg-[#022c22]/95 backdrop-blur-md border-t border-emerald-500/30 px-4 py-4"
           >
             <div className="container mx-auto flex items-center justify-between gap-4 max-w-3xl">
-              <div className="hidden sm:flex items-center gap-3 text-sm text-emerald-200/70">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <span>{String(timeLeft.days).padStart(2,'0')}d {String(timeLeft.hours).padStart(2,'0')}h {String(timeLeft.minutes).padStart(2,'0')}m left</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <div className="flex items-center gap-2 text-sm text-emerald-200/70">
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="font-mono text-white font-semibold">
+                    {String(timeLeft.days).padStart(2,'0')}d {String(timeLeft.hours).padStart(2,'0')}h {String(timeLeft.minutes).padStart(2,'0')}m {String(timeLeft.seconds).padStart(2,'0')}s
+                  </span>
+                </div>
+                <span className="hidden sm:block text-white/20">·</span>
+                <span className="text-xs text-emerald-200/50">Only <span className="text-amber-400 font-bold">{seatsLeft}</span> seats left</span>
               </div>
-              <button
+              <motion.button
                 onClick={scrollToBooking}
-                className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-black font-bold px-8 py-2.5 rounded-full transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_30px_rgba(251,191,36,0.5)]"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                animate={{ boxShadow: ['0 0 15px rgba(251,191,36,0.3)', '0 0 30px rgba(251,191,36,0.6)', '0 0 15px rgba(251,191,36,0.3)'] }}
+                transition={{ boxShadow: { duration: 2, repeat: Infinity } }}
+                className="bg-amber-400 hover:bg-amber-500 text-black font-bold px-8 py-3 rounded-full text-base"
               >
                 Reserve Your Seat
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -427,7 +490,7 @@ export default function Home() {
 }
 
 function GrandSummitAgenda({ night, onBook, speakers }: { night: any; onBook: () => void; speakers: any[] }) {
-  const agenda: { time: string; title: string; type?: string; panel_key?: string }[] = night.agenda || [];
+  const agenda: { time: string; title: string; type?: string; panel_key?: string }[] = (night.agenda || []).filter((item: any) => item.type !== 'activity');
 
   const speakersByPanel: Record<string, any[]> = {};
   speakers.forEach(s => { if (s.panel_key) { (speakersByPanel[s.panel_key] ??= []).push(s); } });
@@ -484,8 +547,10 @@ function GrandSummitAgenda({ night, onBook, speakers }: { night: any; onBook: ()
                   <div className="flex flex-col overflow-hidden flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-sm font-semibold text-white truncate">{item.title}</span>
-                      <span className="text-white/30">·</span>
-                      <span className="text-xs text-amber-400 font-mono whitespace-nowrap">{item.time}</span>
+                      {item.type !== 'panel' && (
+                        <><span className="text-white/30">·</span>
+                        <span className="text-xs text-amber-400 font-mono whitespace-nowrap">{item.time}</span></>
+                      )}
                     </div>
                     {item.type === 'panel' && item.panel_key && speakersByPanel[item.panel_key] && (
                       <div className="flex gap-1.5 mt-1.5 flex-wrap">

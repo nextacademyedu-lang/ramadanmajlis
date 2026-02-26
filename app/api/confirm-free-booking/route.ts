@@ -46,8 +46,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             message: 'Booking confirmed and notifications sent',
-            ticketCount: result.tickets?.length || 0,
-            notifications: result.notifications?.map((r: any) => r.status)
+            notifications: (result as any).notifications?.map((r: any) => r.status)
         });
 
     } catch (error: any) {

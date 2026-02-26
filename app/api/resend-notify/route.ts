@@ -110,7 +110,14 @@ export async function GET(request: Request) {
         }));
 
         // 5. Send WhatsApp (Poster + Ticket)
-        const whatsappPoster = await sendWhatsAppMessage(booking);
+        const firstNight = eventNights?.[0];
+        const whatsappPoster = await sendWhatsAppMessage(
+            booking,
+            firstNight?.title || 'Grand Summit',
+            firstNight?.date || '2026-03-12',
+            'Pyramids Hotel, Dokki',
+            firstNight?.location_url || 'https://maps.app.goo.gl/aU81FrqETdqqM7Mh8'
+        );
 
         const whatsappTickets = await Promise.allSettled(tickets.map((ticket: any) => {
             if (ticket.night_date === 'ALL') {

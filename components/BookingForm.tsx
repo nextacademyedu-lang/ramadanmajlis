@@ -4,352 +4,211 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Upload, AlertCircle, CheckCircle2, MapPin } from 'lucide-react';
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, Calendar, MapPin, Ticket } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from './ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { INDUSTRIES } from '@/types';
 
-// Validation Schema
-// Validation Schema
-const formSchema = z.object({
-    ticketType: z.enum(['single', 'package']),
-    fullName: z.string()
-        .min(2, "Name is too short")
-        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
+const TICKET_PRICES: Record<number, number> = { 1: 2000, 2: 3500, 3: 4500 };
+
+const attendeeSchema = z.object({
+    fullName: z.string().min(2, "Name is too short").regex(/^[a-zA-Z\s]*$/, "English only"),
     email: z.string().email("Invalid email"),
-    phone: z.string().min(10, "Invalid phone number"),
-    jobTitle: z.string()
-        .min(2, "Required")
-        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
-    company: z.string()
-        .min(2, "Required")
-        .regex(/^[a-zA-Z\s]*$/, "English characters only"),
-    linkedin: z.string().url("Must be a valid URL").refine(
-        (val) => val.includes("linkedin.com"),
-        "Must be a LinkedIn URL"
-    ),
-    industry: z.string().min(1, "Please select an industry"),
-    selectedNights: z.array(z.string()).optional(),
-}).refine(data => {
-    if (data.ticketType === 'single' && (!data.selectedNights || data.selectedNights.length === 0)) {
-        return false;
-    }
-    return true;
-}, {
-    message: "Select at least one night",
-    path: ["selectedNights"]
+    phone: z.string().min(10, "Invalid phone"),
+    jobTitle: z.string().min(2, "Required").regex(/^[a-zA-Z\s]*$/, "English only"),
+    company: z.string().min(2, "Required").regex(/^[a-zA-Z\s]*$/, "English only"),
+    linkedin: z.string().url("Must be a valid URL").refine(v => v.includes("linkedin.com"), "Must be LinkedIn URL"),
+    industry: z.string().min(1, "Required"),
 });
 
-type FormData = z.infer<typeof formSchema>;
-
-interface Night {
-    date: string;
-    label?: string;
-    title?: string;
-    sub?: string;
-    subtitle?: string;
-    price?: number;
-    id?: string;
-    location?: string;
-}
-
-const NIGHTS: Night[] = [
-    { date: "2026-03-20", label: "Night 1", sub: "Mar 20" },
-    { date: "2026-03-21", label: "Night 2", sub: "Mar 21" },
-    { date: "2026-03-22", label: "Night 3", sub: "Mar 22" },
-];
+type AttendeeData = z.infer<typeof attendeeSchema> & { photoUrl: string };
 
 interface BookingFormProps {
-    nights?: Night[];
+    nights?: any[];
     packagePrice?: number;
     industries?: string[];
 }
 
-export default function BookingForm({ nights = [], packagePrice = 4999, industries = [] }: BookingFormProps) {
+export default function BookingForm({ industries = [] }: BookingFormProps) {
     const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
+    const [ticketCount, setTicketCount] = useState(1);
+    const [currentAttendee, setCurrentAttendee] = useState(0);
+    const [attendees, setAttendees] = useState<AttendeeData[]>([]);
     const [uploading, setUploading] = useState(false);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Promo Code States
     const [promoCode, setPromoCode] = useState('');
     const [promoApplied, setPromoApplied] = useState<{ id: string, type: string, value: number, code: string } | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState<string | null>(null);
 
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        watch,
-        formState: { errors },
-        trigger
-    } = useForm<FormData>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            ticketType: 'single',
-            selectedNights: [],
-        }
+    const { register, handleSubmit, setValue, watch, formState: { errors }, trigger, reset } = useForm<z.infer<typeof attendeeSchema>>({
+        resolver: zodResolver(attendeeSchema),
     });
 
-    const ticketType = watch('ticketType');
-    const selectedNights = watch('selectedNights') || [];
-
-    // Pricing
-    // Determine base price from the first night or default to 1999
-    const SINGLE_NIGHT_PRICE = nights.length > 0 ? Number(nights[0].price) : 1999;
-    const FULL_PACKAGE_PRICE = Number(packagePrice);
-
-    const baseAmount = ticketType === 'package' || (selectedNights.length === 3) // Use package price if 3 nights selected
-        ? FULL_PACKAGE_PRICE
-        : (selectedNights.length * SINGLE_NIGHT_PRICE);
-
-    // Calculate Discount
+    const baseAmount = TICKET_PRICES[ticketCount] || 2000;
     let discountAmount = 0;
     if (promoApplied) {
-        if (promoApplied.type === 'percentage') {
-            discountAmount = baseAmount * (promoApplied.value / 100);
-        } else {
-            discountAmount = promoApplied.value;
-        }
+        discountAmount = promoApplied.type === 'percentage'
+            ? baseAmount * (promoApplied.value / 100)
+            : promoApplied.value;
     }
-
-    // Ensure total doesn't go below 0
     const totalAmount = Math.max(0, baseAmount - discountAmount);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 20 * 1024 * 1024) { setError("File too large (max 20MB)"); return; }
+        setUploading(true);
+        setError(null);
+        try {
+            setPhotoUrl(URL.createObjectURL(file));
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+            const { error: uploadError } = await supabase.storage.from('event-uploads').upload(`profile-photos/${fileName}`, file, { cacheControl: '3600', upsert: false });
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl } } = supabase.storage.from('event-uploads').getPublicUrl(`profile-photos/${fileName}`);
+            setPhotoUrl(publicUrl);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Upload failed");
+            setPhotoUrl(null);
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleApplyPromo = async () => {
         if (!promoCode.trim()) return;
         setPromoLoading(true);
         setPromoError(null);
         try {
-            // Map Dates to IDs for verification
-            let nightIds: string[] = [];
-            const activeNights = nights.length > 0 ? nights : [];
-
-            if (ticketType === 'package') {
-                nightIds = activeNights.map((n: Night) => n.id).filter((id): id is string => !!id);
-            } else {
-                nightIds = selectedNights.map((date: string) => {
-                    const n = activeNights.find((night: Night) => night.date === date);
-                    return n && n.id ? n.id : date;
-                }).filter(Boolean);
-            }
-
             const res = await fetch('/api/validate-promo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    code: promoCode,
-                    selectedNights: nightIds,
-                    isPackage: ticketType === 'package'
-                })
+                body: JSON.stringify({ code: promoCode, selectedNights: [], isPackage: true })
             });
             const data = await res.json();
-
             if (data.valid) {
-                setPromoApplied({
-                    id: data.id,
-                    type: data.discount_type,
-                    value: data.discount_value,
-                    code: data.code
-                });
-                setPromoError(null);
+                setPromoApplied({ id: data.id, type: data.discount_type, value: data.discount_value, code: data.code });
             } else {
                 setPromoError(data.message || "Invalid Code");
                 setPromoApplied(null);
             }
-        } catch (err) {
-            console.error(err); // Log error to use the variable
+        } catch {
             setPromoError("Failed to validate code");
         } finally {
             setPromoLoading(false);
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            setUploading(true);
-            setError(null);
-            const file = e.target.files?.[0];
-            if (!file) return;
-
-            // Increase limit to 20MB (approx)
-            if (file.size > 20 * 1024 * 1024) throw new Error("File too large (max 20MB)");
-
-            // 1. Show Local Preview Immediately
-            const objectUrl = URL.createObjectURL(file);
-            setPhotoUrl(objectUrl);
-
-            // 2. Upload to Supabase
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `profile-photos/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('event-uploads')
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-
-            if (uploadError) throw uploadError;
-
-            // 3. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('event-uploads')
-                .getPublicUrl(filePath);
-
-            // 4. Update with actual remote URL (seamless switch)
-            setPhotoUrl(publicUrl);
-
-        } catch (err) {
-            console.error("Upload Error:", err);
-            const message = err instanceof Error ? err.message : "Upload failed";
-            setError(message);
-            setPhotoUrl(null); // Revert on error
-        } finally {
-            setUploading(false);
-        }
+    const saveCurrentAttendee = async () => {
+        const valid = await trigger();
+        if (!valid) return false;
+        if (!photoUrl) { setError("Profile photo required"); return false; }
+        const data = watch();
+        const newAttendees = [...attendees];
+        newAttendees[currentAttendee] = { ...data, photoUrl };
+        setAttendees(newAttendees);
+        return true;
     };
 
-    const onSubmit = async (data: FormData) => {
-        if (!photoUrl) {
-            setError("Please upload a profile photo");
-            return;
-        }
+    const nextAttendee = async () => {
+        const saved = await saveCurrentAttendee();
+        if (!saved) return;
+        setError(null);
+        reset();
+        setPhotoUrl(null);
+        setCurrentAttendee(i => i + 1);
+    };
+
+    const goToPayment = async () => {
+        const saved = await saveCurrentAttendee();
+        if (!saved) return;
+        setError(null);
+        setStep(3);
+    };
+
+    const onSubmit = async () => {
         setLoading(true);
+        setError(null);
         try {
-            // 0. Re-validate Promo Code (if applied)
-            if (promoApplied) {
-                // Re-calculate night IDs if needed (same logic as handleApplyPromo)
-                let nightIds: string[] = [];
-                if (data.ticketType === 'single') {
-                    const activeNights = nights.length > 0 ? nights : NIGHTS;
-                    nightIds = (data.selectedNights || []).map((date: string) => {
-                        const n = activeNights.find((night: Night) => night.date === date);
-                        return n && n.id ? n.id : date;
-                    }).filter(Boolean);
-                }
+            const nightDate = '2026-03-12';
+            const allBookingIds: string[] = [];
 
-                const res = await fetch('/api/validate-promo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        code: promoApplied.code,
-                        selectedNights: nightIds,
-                        isPackage: data.ticketType === 'package'
+            for (const attendee of attendees) {
+                const { data: booking, error: dbError } = await supabase
+                    .from('bookings')
+                    .insert({
+                        customer_name: attendee.fullName,
+                        email: attendee.email,
+                        phone: attendee.phone,
+                        job_title: attendee.jobTitle,
+                        company: attendee.company,
+                        linkedin_url: attendee.linkedin,
+                        industry: attendee.industry,
+                        selected_nights: [nightDate],
+                        ticket_count: 1,
+                        total_amount: attendee === attendees[0] ? totalAmount : 0,
+                        payment_provider: totalAmount === 0 ? 'free' : 'easykash',
+                        payment_status: 'pending',
+                        profile_image_url: attendee.photoUrl,
+                        promo_code_id: attendee === attendees[0] ? promoApplied?.id || null : null,
+                        discount_applied: attendee === attendees[0] ? discountAmount : 0,
+                        group_booking_ref: null,
                     })
-                });
-                const validationData = await res.json();
+                    .select()
+                    .single();
 
-                if (!validationData.valid) {
-                    throw new Error(validationData.message || "Promo code is no longer valid");
-                }
+                if (dbError) throw dbError;
+                allBookingIds.push(booking.id);
             }
 
-            // 1. Insert Booking
-            const { data: booking, error: dbError } = await supabase
-                .from('bookings')
-                .insert({
-                    customer_name: data.fullName,
-                    email: data.email,
-                    phone: data.phone,
-                    job_title: data.jobTitle,
-                    company: data.company,
-                    linkedin_url: data.linkedin,
-                    industry: data.industry,
-                    selected_nights: data.ticketType === 'package' ? ['ALL'] : data.selectedNights,
-                    ticket_count: 1,
-                    total_amount: totalAmount,
-                    payment_provider: totalAmount === 0 ? 'free' : 'easykash',
-                    payment_status: totalAmount === 0 ? 'paid' : 'pending',
-                    profile_image_url: photoUrl,
-                    // Add Promo Info
-                    promo_code_id: promoApplied?.id || null,
-                    discount_applied: discountAmount
-                })
-                .select()
-                .single();
+            // Save localStorage for success page
+            const primary = attendees[0];
+            localStorage.setItem('booking_name', primary.fullName);
+            localStorage.setItem('booking_title', primary.jobTitle);
+            localStorage.setItem('booking_company', primary.company);
+            localStorage.setItem('booking_date', '12 Mar 2026');
+            localStorage.setItem('booking_night_title', 'Grand Summit');
+            localStorage.setItem('booking_location', 'Pyramids Hotel, Dokki');
+            if (primary.photoUrl) localStorage.setItem('booking_photo', primary.photoUrl);
 
-            if (dbError) throw dbError;
-
-            // 2. Redirect to Payment
-            // Save data for Ticket generation on Success page
-            let dateStr = 'Ramadan 2026';
-            let nightTitle = 'All Nights Access';
-            let location = 'Tolip Hotel – New Cairo'; // Default
-
-            if (data.ticketType === 'single' && data.selectedNights && data.selectedNights.length > 0) {
-                const selectedDate = data.selectedNights[0];
-                const firstNight = new Date(selectedDate);
-                dateStr = format(firstNight, 'd MMM yyyy');
-
-                // Find the night object from props
-                const nightObj = nights.find((n: Night) => n.date === selectedDate);
-                if (nightObj) {
-                    nightTitle = nightObj.title || nightTitle;
-                    location = (nightObj.location || location).trim(); // Use DB location, fall back to default if null
-                }
-            } else {
-                dateStr = 'Full Package';
-                location = 'Tolip Hotel – New Cairo Hyatt Regency, 6th of October Pyramids Hotel, Dokki'; // Or some generic location for the package
-                // Check if we have specific locations for package? for now default is fine.
-            }
-
-            localStorage.setItem('booking_name', data.fullName);
-            localStorage.setItem('booking_title', data.jobTitle);
-            localStorage.setItem('booking_company', data.company);
-            localStorage.setItem('booking_date', dateStr);
-            localStorage.setItem('booking_night_title', nightTitle.trim());
-            localStorage.setItem('booking_location', location.trim());
-
-            if (photoUrl) {
-                localStorage.setItem('booking_photo', photoUrl);
-            }
-
-            // -- FREE BOOKING BYPASS --
+            // Free booking
             if (totalAmount === 0) {
-                // Confirm free booking and send notifications
-                try {
+                for (const id of allBookingIds) {
                     await fetch('/api/confirm-free-booking', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ bookingId: booking.id })
+                        body: JSON.stringify({ bookingId: id })
                     });
-                } catch (err) {
-                    console.error('Failed to confirm free booking:', err);
                 }
                 window.location.href = `${window.location.origin}/success`;
                 return;
+            }
+
+            // Link group bookings
+            if (allBookingIds.length > 1) {
+                await supabase.from('bookings').update({ group_booking_ref: allBookingIds[0] }).in('id', allBookingIds);
             }
 
             const response = await fetch('/api/create-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    bookingId: booking.id,
+                    bookingId: allBookingIds.join(','),
                     amount: totalAmount,
                     customer: {
-                        first_name: data.fullName.split(' ')[0],
-                        last_name: data.fullName.split(' ').slice(1).join(' ') || 'Customer',
-                        email: data.email,
-                        phone: data.phone
+                        first_name: primary.fullName.split(' ')[0],
+                        last_name: primary.fullName.split(' ').slice(1).join(' ') || 'Customer',
+                        email: primary.email,
+                        phone: primary.phone
                     },
                     provider: 'easykash'
                 })
@@ -357,414 +216,274 @@ export default function BookingForm({ nights = [], packagePrice = 4999, industri
 
             const { paymentUrl, error: apiError } = await response.json();
             if (apiError) throw new Error(apiError);
-
-            // Redirect
             window.location.href = paymentUrl;
 
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Something went wrong";
-            setError(message);
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setLoading(false);
         }
     };
 
-    const nextStep = async () => {
-        let valid = false;
-        if (step === 1) {
-            valid = await trigger(['selectedNights']);
-        } else if (step === 2) {
-            valid = await trigger(['fullName', 'email', 'phone', 'jobTitle', 'company', 'linkedin', 'industry']);
-            if (!photoUrl) { setError("Profile photo required"); valid = false; }
-
-            if (!valid && !error) {
-                setError("Please fix the highlighted fields to proceed.");
-            }
-        }
-
-        if (valid) {
-            setError(null);
-            setStep(s => s + 1);
-        }
-    };
+    const ticketOptions = [
+        { count: 1, label: '1 Ticket', price: '2,000 EGP' },
+        { count: 2, label: '2 Tickets', price: '3,500 EGP', save: 'Save 500 EGP' },
+        { count: 3, label: '3 Tickets', price: '4,500 EGP', save: 'Save 1,500 EGP' },
+    ];
 
     return (
         <Card className="border-primary/20 bg-black/40 backdrop-blur-xl">
             <CardHeader>
                 <CardTitle className="text-2xl text-primary">Reserve Your Spot</CardTitle>
-                <CardDescription>Step {step} of 3</CardDescription>
+                <CardDescription>
+                    {step === 1 && 'Select number of tickets'}
+                    {step === 2 && `Attendee ${currentAttendee + 1} of ${ticketCount} details`}
+                    {step === 3 && 'Review & Payment'}
+                </CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait">
 
-                        {/* STEP 1: NIGHT SELECTION */}
-                        {step === 1 && (
-                            <motion.div
-                                key="step1"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="space-y-6"
-                            >
-                                {/* Ticket Type Toggle */}
-                                <div className="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-lg">
-                                    <button
-                                        type="button"
-                                        onClick={() => setValue('ticketType', 'single')}
+                    {/* STEP 1: TICKET COUNT */}
+                    {step === 1 && (
+                        <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
+                            <div className="grid grid-cols-3 gap-3">
+                                {ticketOptions.map(opt => (
+                                    <div
+                                        key={opt.count}
+                                        onClick={() => setTicketCount(opt.count)}
                                         className={cn(
-                                            "py-2 rounded-md text-sm font-medium transition-all",
-                                            ticketType === 'single' ? "bg-primary text-black shadow-lg" : "text-gray-400 hover:text-white"
+                                            "cursor-pointer rounded-xl border p-4 text-center transition-all",
+                                            ticketCount === opt.count
+                                                ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(212,175,55,0.15)]"
+                                                : "border-white/10 bg-white/5 hover:bg-white/10"
                                         )}
                                     >
-                                        Single Night
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setValue('ticketType', 'package');
-                                            setValue('selectedNights', []);
-                                        }}
-                                        className={cn(
-                                            "py-2 rounded-md text-sm font-medium transition-all",
-                                            ticketType === 'package' ? "bg-amber-600 text-white shadow-lg" : "text-gray-400 hover:text-white"
-                                        )}
-                                    >
-                                        Full Package (Save 20%)
-                                    </button>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {ticketType === 'single' ? (
-                                        <>
-                                            <Label className="flex justify-between items-center">
-                                                <span>Select Nights ({SINGLE_NIGHT_PRICE.toLocaleString()} EGP / Night)</span>
-                                                <span className="text-xs text-primary font-normal">(Select one or more)</span>
-                                            </Label>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                {(nights.length > 0 ? nights : NIGHTS).map((night: Night) => (
-                                                    <div
-                                                        key={night.date}
-                                                        onClick={() => {
-                                                            const current = selectedNights || [];
-                                                            const newSelection = current.includes(night.date)
-                                                                ? current.filter((d: string) => d !== night.date)
-                                                                : [...current, night.date];
-                                                            setValue('selectedNights', newSelection);
-                                                        }}
-                                                        className={cn(
-                                                            "relative cursor-pointer rounded-lg border p-4 text-center transition-all hover:bg-primary/5",
-                                                            selectedNights?.includes(night.date)
-                                                                ? "border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(212,175,55,0.1)]"
-                                                                : "border-white/10 bg-white/5 text-gray-400"
-                                                        )}
-                                                    >
-                                                        {selectedNights?.includes(night.date) && (
-                                                            <div className="absolute top-2 right-2 text-primary animate-in zoom-in duration-200">
-                                                                <CheckCircle2 size={16} />
-                                                            </div>
-                                                        )}
-                                                        <div className="font-bold text-lg">{night.title || night.label}</div>
-                                                        <div className="text-sm text-emerald-400 font-medium mb-1">
-                                                            {format(new Date(night.date), 'd MMM yyyy')}
-                                                        </div>
-                                                        <div className="text-xs opacity-70">{night.subtitle}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            {errors.selectedNights && <p className="text-red-400 text-sm">{errors.selectedNights.message}</p>}
-                                        </>
-                                    ) : (
-                                        <div className="p-6 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/5 text-center space-y-2">
-                                            <div className="text-amber-400 font-bold text-xl">VIP Full Access</div>
-                                            <p className="text-sm text-gray-300">Access to all 3 nights + Exclusive Networking + Priority Seating</p>
-                                            <div className="text-2xl font-bold text-white pt-2">{FULL_PACKAGE_PRICE.toLocaleString()} EGP <span className="text-sm text-gray-500 line-through">{(SINGLE_NIGHT_PRICE * 3).toLocaleString()} EGP</span></div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Dynamic Location Preview */}
-                                <div className="bg-black/20 rounded-lg p-4 text-sm space-y-2 border border-white/5">
-                                    <div className="flex items-center gap-2 text-emerald-400 mb-2">
-                                        <MapPin className="w-4 h-4" />
-                                        <span className="font-bold">Locations & Dates</span>
+                                        {ticketCount === opt.count && <CheckCircle2 className="w-4 h-4 text-primary mx-auto mb-1" />}
+                                        <div className="font-bold text-white">{opt.label}</div>
                                     </div>
-                                    {ticketType === 'package' ? (
-                                        (nights.length > 0 ? nights : NIGHTS).map((night: Night) => (
-                                            <div key={night.date} className="flex justify-between items-center text-gray-300">
-                                                <span>{format(new Date(night.date), 'd MMM')}: {night.title}</span>
-                                                <span className="text-white opacity-80">{night.location || 'Creativa Hub'}</span>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        selectedNights.length > 0 ? (
-                                            selectedNights.sort().map((date: string) => {
-                                                const n = (nights.length > 0 ? nights : NIGHTS).find((night: Night) => night.date === date);
-                                                return (
-                                                    <div key={date} className="flex justify-between items-center text-gray-300">
-                                                        <span>{format(new Date(date), 'd MMM')}: {n?.title}</span>
-                                                        <span className="text-white opacity-80">{n?.location || 'Creativa Hub'}</span>
-                                                    </div>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="text-gray-500 italic">Select a night to see location details</div>
-                                        )
-                                    )}
-                                </div>
+                                ))}
+                            </div>
 
-                                <div className="pt-4 flex justify-end">
-                                    <Button type="button" onClick={nextStep} disabled={ticketType === 'single' && !selectedNights?.length}>
-                                        Next: Your Details
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* STEP 2: DETAILS & PHOTO */}
-                        {step === 2 && (
-                            <motion.div
-                                key="step2"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="space-y-4"
+                            <div
+                                onClick={() => window.open('https://wa.me/201505822735?text=' + encodeURIComponent('Hello, I need tickets for Ramadan Majlis Grand Summit (more than 3 tickets).'), '_blank')}
+                                className="cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 text-center hover:bg-white/10 transition-all"
                             >
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Full Name</Label>
-                                        <Input
-                                            {...register('fullName')}
-                                            englishOnly={true}
-                                            error={!!errors.fullName}
-                                            placeholder="John Doe"
-                                        />
-                                        {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Email</Label>
-                                        <Input
-                                            {...register('email')}
-                                            englishOnly={true}
-                                            error={!!errors.email}
-                                            placeholder="john@example.com"
-                                        />
-                                        {errors.email && <p className="text-red-400 text-xs">{errors.email.message}</p>}
-                                    </div>
+                                <div className="flex items-center justify-center gap-2 text-white font-medium">
+                                    <Users className="w-4 h-4 text-emerald-400" />
+                                    <span>Group (4+ tickets)</span>
                                 </div>
+                                <div className="text-xs text-gray-400 mt-1">Contact us for special pricing</div>
+                            </div>
 
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Phone</Label>
-                                        <Input
-                                            {...register('phone')}
-                                            error={!!errors.phone}
-                                            placeholder="+20 1xxxxxxxxx"
-                                        />
-                                        {errors.phone && <p className="text-red-400 text-xs">{errors.phone.message}</p>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>LinkedIn URL</Label>
-                                        <Input
-                                            {...register('linkedin')}
-                                            englishOnly={true}
-                                            error={!!errors.linkedin}
-                                            placeholder="https://linkedin.com/in/..."
-                                        />
-                                        {errors.linkedin && <p className="text-red-400 text-xs">{errors.linkedin.message}</p>}
-                                    </div>
+                            <div className="bg-black/20 rounded-lg p-4 text-sm border border-white/5 space-y-1">
+                                <div className="flex justify-between text-gray-300">
+                                    <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-amber-400" /> Date</span>
+                                    <span className="text-white">12 Mar 2026</span>
                                 </div>
-
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Job Title</Label>
-                                        <Input
-                                            {...register('jobTitle')}
-                                            englishOnly={true}
-                                            error={!!errors.jobTitle}
-                                            placeholder="e.g. Senior Manager"
-                                        />
-                                        {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Company</Label>
-                                        <Input
-                                            {...register('company')}
-                                            englishOnly={true}
-                                            error={!!errors.company}
-                                            placeholder="Company Name"
-                                        />
-                                        {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}
-                                    </div>
+                                <div className="flex justify-between text-gray-300">
+                                    <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-emerald-400" /> Venue</span>
+                                    <span className="text-white">Pyramids Hotel, Dokki</span>
                                 </div>
+                                <div className="flex justify-between text-gray-300">
+                                    <span className="flex items-center gap-1.5"><Ticket className="w-3.5 h-3.5 text-purple-400" /> Night</span>
+                                    <span className="text-white">Grand Summit</span>
+                                </div>
+                            </div>
 
+                            <div className="flex justify-end">
+                                <Button onClick={() => { setCurrentAttendee(0); setAttendees([]); reset(); setPhotoUrl(null); setStep(2); }}>
+                                    Next: Your Details
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 2: ATTENDEE DETAILS */}
+                    {step === 2 && (
+                        <motion.div key={`step2-${currentAttendee}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
+                            {ticketCount > 1 && (
+                                <div className="flex gap-2 mb-2">
+                                    {Array.from({ length: ticketCount }).map((_, i) => (
+                                        <div key={i} className={cn("flex-1 h-1.5 rounded-full", i <= currentAttendee ? "bg-primary" : "bg-white/10")} />
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Industry</Label>
-                                    <Select
-                                        value={watch('industry')}
-                                        onValueChange={(val: string) => {
-                                            setValue('industry', val, { shouldValidate: true });
-                                        }}
-                                    >
-                                        <SelectTrigger className={errors.industry ? "border-red-500 ring-red-500/50" : ""}>
-                                            <SelectValue placeholder="Select Industry" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                {(industries.length > 0 ? industries : INDUSTRIES).map(ind => (
-                                                    <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.industry && <p className="text-red-400 text-xs">{errors.industry.message}</p>}
+                                    <Label>Full Name</Label>
+                                    <Input {...register('fullName')} placeholder="John Doe" error={!!errors.fullName} />
+                                    {errors.fullName && <p className="text-red-400 text-xs">{errors.fullName.message}</p>}
                                 </div>
+                                <div className="space-y-2">
+                                    <Label>Email</Label>
+                                    <Input {...register('email')} placeholder="john@example.com" error={!!errors.email} />
+                                    {errors.email && <p className="text-red-400 text-xs">{errors.email.message}</p>}
+                                </div>
+                            </div>
 
-                                <div className="space-y-2 pt-2">
-                                    <Label>Profile Photo <span className="text-xs text-muted-foreground">(Required for Networking)</span></Label>
-                                    <div className="flex items-center gap-4">
-                                        {photoUrl ? (
-                                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary">
-                                                <Image src={photoUrl} alt="Profile" fill className="object-cover" />
-                                            </div>
-                                        ) : (
-                                            <div className="w-16 h-16 rounded-full bg-white/5 border border-dashed border-white/20 flex items-center justify-center">
-                                                <Upload className="w-6 h-6 opacity-50" />
-                                            </div>
-                                        )}
-                                        <div className="flex-1">
-                                            <Input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileUpload}
-                                                error={!photoUrl && error === "Profile photo required"}
-                                                className="w-auto cursor-pointer file:cursor-pointer"
-                                            />
-                                            {/* Specific Upload Error */}
-                                            {error && error.includes("File too large") && (
-                                                <p className="text-red-400 text-xs mt-1">{error}</p>
-                                            )}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Phone</Label>
+                                    <Input {...register('phone')} placeholder="+20 1xxxxxxxxx" error={!!errors.phone} />
+                                    {errors.phone && <p className="text-red-400 text-xs">{errors.phone.message}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>LinkedIn URL</Label>
+                                    <Input {...register('linkedin')} placeholder="https://linkedin.com/in/..." error={!!errors.linkedin} />
+                                    {errors.linkedin && <p className="text-red-400 text-xs">{errors.linkedin.message}</p>}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Job Title</Label>
+                                    <Input {...register('jobTitle')} placeholder="e.g. Senior Manager" error={!!errors.jobTitle} />
+                                    {errors.jobTitle && <p className="text-red-400 text-xs">{errors.jobTitle.message}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Company</Label>
+                                    <Input {...register('company')} placeholder="Company Name" error={!!errors.company} />
+                                    {errors.company && <p className="text-red-400 text-xs">{errors.company.message}</p>}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Industry</Label>
+                                <Select value={watch('industry')} onValueChange={(val: string) => setValue('industry', val, { shouldValidate: true })}>
+                                    <SelectTrigger className={errors.industry ? "border-red-500" : ""}>
+                                        <SelectValue placeholder="Select Industry" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            {(industries.length > 0 ? industries : INDUSTRIES).map(ind => (
+                                                <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                                {errors.industry && <p className="text-red-400 text-xs">{errors.industry.message}</p>}
+                            </div>
+
+                            <div className="space-y-2 pt-2">
+                                <Label>Profile Photo <span className="text-xs text-muted-foreground">(Required for Networking)</span></Label>
+                                <div className="flex items-center gap-4">
+                                    {photoUrl ? (
+                                        <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary">
+                                            <Image src={photoUrl} alt="Profile" fill className="object-cover" />
                                         </div>
-                                    </div>
-                                    {uploading && <p className="text-xs text-primary animate-pulse">Uploading... Please wait</p>}
-                                </div>
-
-                                <div className="pt-4 flex justify-between">
-                                    <Button type="button" variant="ghost" onClick={() => setStep(1)}>Back</Button>
-                                    <Button type="button" onClick={nextStep} disabled={uploading}>Next: Payment</Button>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* STEP 3: PAYMENT & CONFIRM */}
-                        {step === 3 && (
-                            <motion.div
-                                key="step3"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="space-y-6"
-                            >
-                                <div className="glass p-4 rounded-lg space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Package</span>
-                                        <span className="text-white capitalize">{ticketType === 'package' ? 'Full Access' : `${selectedNights.length} Night(s)`}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Subtotal</span>
-                                        <span className="text-white">{baseAmount.toLocaleString()} EGP</span>
-                                    </div>
-
-                                    {/* Discount Row */}
-                                    {promoApplied && (
-                                        <div className="flex justify-between text-sm text-green-400 animate-pulse">
-                                            <span>Discount ({promoApplied.code})</span>
-                                            <span>- {discountAmount.toLocaleString()} EGP</span>
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full bg-white/5 border border-dashed border-white/20 flex items-center justify-center">
+                                            <Upload className="w-6 h-6 opacity-50" />
                                         </div>
                                     )}
-
-                                    <div className="border-t border-white/10 my-2 pt-2 flex justify-between text-lg font-bold text-primary">
-                                        <span>Total</span>
-                                        <span>{totalAmount.toLocaleString()} EGP</span>
-                                    </div>
+                                    <Input type="file" accept="image/*" onChange={handleFileUpload} className="w-auto cursor-pointer file:cursor-pointer" />
                                 </div>
+                                {uploading && <p className="text-xs text-primary animate-pulse">Uploading...</p>}
+                            </div>
 
-                                {/* Promo Code Input */}
-                                <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
-                                    <Label className="text-base font-semibold text-primary flex items-center gap-2">
-                                        Have a Promo Code?
-                                        <span className="text-xs text-muted-foreground">(Optional)</span>
-                                    </Label>
-                                    <div className="flex gap-3">
-                                        <div className="relative flex-1">
-                                            <Input
-                                                value={promoCode}
-                                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                                                englishOnly={true}
-                                                placeholder="ENTER CODE"
-                                                disabled={!!promoApplied || promoLoading}
-                                                className={cn(
-                                                    "uppercase text-lg h-12 tracking-widest font-mono transition-all",
-                                                    promoApplied ? "border-green-500 text-green-500 bg-green-500/10" : "bg-black/40 focus:ring-primary/50"
-                                                )}
-                                            />
-                                            {promoApplied && <CheckCircle2 className="absolute right-3 top-3.5 text-green-500 w-5 h-5" />}
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            onClick={handleApplyPromo}
-                                            disabled={!promoCode || !!promoApplied || promoLoading}
-                                            variant={promoApplied ? "outline" : "default"}
-                                            className={cn(
-                                                "h-12 px-8 font-bold text-lg min-w-[120px] transition-all duration-300",
-                                                promoApplied
-                                                    ? "border-green-500 text-green-500 hover:text-green-400 hover:bg-green-500/10"
-                                                    : "bg-primary text-black hover:bg-amber-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(251,191,36,0.4)]"
-                                            )}
-                                        >
-                                            {promoLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (promoApplied ? "APPLIED" : "APPLY")}
-                                        </Button>
-                                    </div>
-                                    <p className="text-xs text-gray-400 flex items-center gap-1.5 px-1">
-                                        <span className="text-amber-400 text-sm">💡</span>
-                                        <span>Hint: Check our social media for exclusive codes!</span>
-                                    </p>
-                                    {promoError && (
-                                        <motion.p
-                                            initial={{ opacity: 0, y: -5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-red-400 text-sm font-medium bg-red-500/10 p-2 rounded border border-red-500/20 flex items-center gap-2"
-                                        >
-                                            <AlertCircle className="w-4 h-4" />
-                                            {promoError}
-                                        </motion.p>
-                                    )}
+                            {error && (
+                                <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm flex items-center gap-2">
+                                    <AlertCircle size={16} />{error}
                                 </div>
+                            )}
 
+                            <div className="pt-4 flex justify-between">
+                                <Button type="button" variant="ghost" onClick={() => {
+                                    if (currentAttendee === 0) { setStep(1); } else { setCurrentAttendee(i => i - 1); reset(attendees[currentAttendee - 1]); setPhotoUrl(attendees[currentAttendee - 1]?.photoUrl || null); }
+                                }}>Back</Button>
+                                {currentAttendee < ticketCount - 1 ? (
+                                    <Button type="button" onClick={nextAttendee} disabled={uploading}>
+                                        Next Attendee →
+                                    </Button>
+                                ) : (
+                                    <Button type="button" onClick={goToPayment} disabled={uploading}>
+                                        Next: Payment
+                                    </Button>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
 
-                                {error && (
-                                    <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm flex items-center gap-2">
-                                        <AlertCircle size={16} />
-                                        {error}
+                    {/* STEP 3: PAYMENT */}
+                    {step === 3 && (
+                        <motion.div key="step3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
+                            <div className="glass p-4 rounded-lg space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Tickets</span>
+                                    <span className="text-white">{ticketCount} ticket{ticketCount > 1 ? 's' : ''}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Subtotal</span>
+                                    <span className="text-white">{baseAmount.toLocaleString()} EGP</span>
+                                </div>
+                                {promoApplied && (
+                                    <div className="flex justify-between text-sm text-green-400">
+                                        <span>Discount ({promoApplied.code})</span>
+                                        <span>- {discountAmount.toLocaleString()} EGP</span>
                                     </div>
                                 )}
+                                <div className="border-t border-white/10 pt-2 flex justify-between text-lg font-bold text-primary">
+                                    <span>Total</span>
+                                    <span>{totalAmount.toLocaleString()} EGP</span>
+                                </div>
+                            </div>
 
-                                <div className="pt-4 flex justify-between">
-                                    <Button type="button" variant="ghost" onClick={() => setStep(2)}>Back</Button>
-                                    <Button
-                                        type="submit"
-                                        className="w-[200px] h-12 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all"
-                                        disabled={loading}
-                                    >
-                                        {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Complete Booking"}
+                            {/* Attendees summary */}
+                            <div className="space-y-2">
+                                {attendees.map((a, i) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                                        {a.photoUrl && <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50"><Image src={a.photoUrl} alt={a.fullName} fill className="object-cover" /></div>}
+                                        <div>
+                                            <div className="text-white text-sm font-medium">{a.fullName}</div>
+                                            <div className="text-gray-400 text-xs">{a.jobTitle} · {a.company}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Promo Code */}
+                            <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                                <Label className="text-base font-semibold text-primary">Have a Promo Code? <span className="text-xs text-muted-foreground">(Optional)</span></Label>
+                                <div className="flex gap-3">
+                                    <div className="relative flex-1">
+                                        <Input
+                                            value={promoCode}
+                                            onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                                            placeholder="ENTER CODE"
+                                            disabled={!!promoApplied || promoLoading}
+                                            className={cn("uppercase tracking-widest font-mono h-12", promoApplied ? "border-green-500 text-green-500 bg-green-500/10" : "")}
+                                        />
+                                        {promoApplied && <CheckCircle2 className="absolute right-3 top-3.5 text-green-500 w-5 h-5" />}
+                                    </div>
+                                    <Button type="button" onClick={handleApplyPromo} disabled={!promoCode || !!promoApplied || promoLoading} className="h-12 px-6 font-bold">
+                                        {promoLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : promoApplied ? "APPLIED" : "APPLY"}
                                     </Button>
                                 </div>
+                                {promoError && <p className="text-red-400 text-sm flex items-center gap-2"><AlertCircle className="w-4 h-4" />{promoError}</p>}
+                            </div>
 
-                            </motion.div>
-                        )}
+                            {error && (
+                                <div className="bg-red-500/20 text-red-200 p-3 rounded-lg text-sm flex items-center gap-2">
+                                    <AlertCircle size={16} />{error}
+                                </div>
+                            )}
 
-                    </AnimatePresence>
-                </form>
+                            <div className="pt-4 flex justify-between">
+                                <Button type="button" variant="ghost" onClick={() => { setStep(2); setCurrentAttendee(ticketCount - 1); reset(attendees[ticketCount - 1]); setPhotoUrl(attendees[ticketCount - 1]?.photoUrl || null); }}>Back</Button>
+                                <Button
+                                    onClick={onSubmit}
+                                    disabled={loading}
+                                    className="w-[200px] h-12 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-black shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                                >
+                                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Complete Booking"}
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                </AnimatePresence>
             </CardContent>
         </Card>
     );

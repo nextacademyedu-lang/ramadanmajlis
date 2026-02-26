@@ -24,7 +24,7 @@ export interface AgendaItem {
 }
 
 // 1. WELCOME EMAIL (Immediate - No QR)
-export async function sendWelcomeEmail(booking: BookingData) {
+export async function sendWelcomeEmail(booking: BookingData, nightTitle = 'Grand Summit', nightDate = '2026-03-12', nightLocation = 'Pyramids Hotel, Dokki') {
     if (!process.env.RESEND_API_KEY) {
         console.warn('⚠️ RESEND_API_KEY not configured, skipping email.');
         return null;
@@ -45,10 +45,10 @@ export async function sendWelcomeEmail(booking: BookingData) {
                     <p style="color: #d1fae5; line-height: 1.6;">Thank you for registering! We are thrilled to have you join us for this transformative experience.</p>
                     
                     <div style="background-color: #064e3b; padding: 15px; border-radius: 8px; margin: 25px 0; text-align: left;">
-                        <p style="margin: 0 0 10px; color: #6ee7b7; font-weight: bold;">Your Selected Nights:</p>
-                        <ul style="margin: 0; padding-left: 20px; color: #ecfdf5;">
-                            ${booking.selected_nights.map(night => `<li style="margin-bottom: 5px;">${night}</li>`).join('')}
-                        </ul>
+                        <p style="margin: 0 0 10px; color: #6ee7b7; font-weight: bold;">Your Event:</p>
+                        <p style="margin: 0; color: #ecfdf5;">🌙 <strong>${nightTitle}</strong></p>
+                        <p style="margin: 4px 0 0; color: #d1fae5;">📅 ${new Date(nightDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p style="margin: 4px 0 0; color: #d1fae5;">📍 ${nightLocation}</p>
                     </div>
 
                     <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
@@ -58,6 +58,7 @@ export async function sendWelcomeEmail(booking: BookingData) {
 
                 <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
                     <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
+                    <p style="margin: 6px 0 0; color: #6ee7b7;">Tech Partner: <a href="https://muhammedmekky.com" target="_blank" style="color: #34d399; text-decoration: underline;">Muhammed Mekky</a></p>
                 </div>
             </div>
         `,
@@ -139,6 +140,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData, 
 
                 <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
                     <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
+                    <p style="margin: 6px 0 0; color: #6ee7b7;">Tech Partner: <a href="https://muhammedmekky.com" target="_blank" style="color: #34d399; text-decoration: underline;">Muhammed Mekky</a></p>
                 </div>
             </div>
         `,

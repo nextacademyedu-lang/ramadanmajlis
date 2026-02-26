@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X, Download } from "lucide-react";
+import { Sparkles, Calendar, MapPin, ChevronDown, Crown, Award, Star, CheckCircle, Phone, Mail, X, Download, Users, Mic2, Clock } from "lucide-react";
 import SpeakerSessions from '@/components/SpeakerSessions';
 import BookingForm from '@/components/BookingForm';
+import { ScrollVelocityContainer, ScrollVelocityRow } from '@/registry/magicui/scroll-based-velocity';
+import { cn } from '@/lib/utils';
+import { AnimatedList } from '@/registry/magicui/animated-list';
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import NightDetailsModal from '@/components/NightDetailsModal';
 
 // Generate stars
 const generateStars = (count: number) =>
@@ -25,7 +26,13 @@ export default function Home() {
   const [stars, setStars] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [showSticky, setShowSticky] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowSticky(window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Payment verification is now handled in /payment-success page
   useEffect(() => {
@@ -44,7 +51,7 @@ export default function Home() {
   const [speakers, setSpeakers] = useState<any[]>([]);
   const [eventConfig, setEventConfig] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeNight, setActiveNight] = useState<any>(null);
+
 
   useEffect(() => {
     if (!eventConfig?.start_date) return;
@@ -233,13 +240,9 @@ export default function Home() {
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <Calendar size={16} className="text-amber-400" />
                 <span>
-                  {eventConfig?.start_date ? (
-                    <>
-                      {new Date(eventConfig.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                      {' - '}
-                      {new Date(eventConfig.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </>
-                  ) : "Date TBD"}
+                  {eventConfig?.start_date
+                    ? new Date(eventConfig.start_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })
+                    : "Date TBD"}
                 </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
@@ -275,95 +278,61 @@ export default function Home() {
 
       </div>
 
-      {/* ========== NIGHTS SECTION ========== */}
-      <SectionSeparator />
-      <section className="py-24 bg-[#0a352a]/20 relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-7xl relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">The Nights</h2>
-            <p className="text-emerald-200/60 max-w-2xl mx-auto">A comprehensive journey designed to cover all aspects of success</p>
-          </div>
+      {/* ========== SCROLL VELOCITY ========== */}
+      <div className="relative -my-2 overflow-hidden" style={{ transform: 'rotate(-5deg) scaleX(1.1)', transformOrigin: 'center' }}>
+        <ScrollVelocityContainer className="text-xl font-semibold tracking-widest uppercase text-white/25 py-3">
+          <ScrollVelocityRow baseVelocity={80} direction={1}>
+            Elite Networking · Strategic Partnerships · Business Growth · Expert Panels · Exclusive Access ·
+          </ScrollVelocityRow>
+          <ScrollVelocityRow baseVelocity={80} direction={-1}>
+            Leadership Insights · AI & Innovation · Financial Mastery · Brand Building · Legacy Creation ·
+          </ScrollVelocityRow>
+        </ScrollVelocityContainer>
+      </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {nights.length > 0 ? nights.map((night, idx) => (
-              <motion.div
-                key={night.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + idx * 0.1 }}
-                onClick={() => setActiveNight(night)}
-                className={`group cursor-pointer relative p-5 md:p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md hover:border-amber-500/40 hover:bg-white/10 hover:shadow-[0_0_40px_rgba(245,158,11,0.15)] transition-all duration-500 overflow-hidden`}
-              >
-                {/* Hover Glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${night.color_theme === 'blue' ? 'from-blue-500/10' : night.color_theme === 'amber' ? 'from-amber-500/10' : 'from-emerald-500/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-
-                <div className={`p-3 md:p-4 rounded-2xl bg-white/5 border border-white/5 w-fit mb-4 md:mb-6 ${night.color_theme === 'blue' ? 'text-blue-300' : night.color_theme === 'amber' ? 'text-amber-300' : 'text-emerald-300'} group-hover:scale-110 transition-transform duration-500`}>
-                  <span className="text-xl md:text-2xl font-bold font-serif">{idx + 1}</span>
-                </div>
-                <h4 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2 font-serif group-hover:text-amber-400 transition-colors duration-300">{night.title}</h4>
-                <p className="text-emerald-100/60 font-medium mb-3 md:mb-4 text-xs md:text-sm uppercase tracking-widest">{night.subtitle}</p>
-                <p className="text-emerald-100/80 text-sm leading-relaxed mb-6 md:mb-8 line-clamp-3">{night.description}</p>
-
-                <div className="pt-4 md:pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
-                  <div>
-                    <span className="text-amber-400 font-bold block text-base md:text-lg font-serif">{night.price} {night.currency}</span>
-                    <span className="text-[10px] md:text-xs text-emerald-200/40">{night.capacity} Seats</span>
-                  </div>
-                  <button className="px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-white/5 hover:bg-amber-500 hover:text-black text-white text-[10px] md:text-xs font-bold tracking-wide transition-all duration-300 uppercase border border-white/10 hover:border-amber-500">
-                    Show Details
-                  </button>
-                </div>
-              </motion.div>
-            )) : (
-              <div className="col-span-3 text-center text-emerald-200/50">
-                {fetchError ? (
-                  <span className="text-red-400">Error loading data: {fetchError}</span>
-                ) : (
-                  "Loading nights..."
-                )}
+      {/* ========== SOCIAL PROOF STRIP ========== */}
+      <div className="py-8 border-y border-white/5 bg-white/[0.02]">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+            {[
+              { icon: Mic2, value: '15+', label: 'Elite Speakers' },
+              { icon: Users, value: '500+', label: 'Attendees' },
+              { icon: Clock, value: '1', label: 'Night Only' },
+            ].map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex items-center gap-3">
+                <Icon className="w-5 h-5 text-amber-400" />
+                <span className="text-2xl font-bold text-white">{value}</span>
+                <span className="text-emerald-200/50 text-sm">{label}</span>
               </div>
-            )}
-          </div>
-
-          <div className="mt-12 text-center">
-            <button
-              onClick={scrollToBooking}
-              className="bg-amber-400 hover:bg-amber-500 text-black text-lg px-8 py-3 rounded-full font-bold transition-all shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)]"
-            >
-              Secure Your Seat
-            </button>
+            ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      <AnimatePresence>
-        {activeNight && (
-          <NightDetailsModal
-            night={activeNight}
-            speakers={speakers}
-            onClose={() => setActiveNight(null)}
-          />
-        )}
-      </AnimatePresence>
+      {/* ========== GRAND SUMMIT AGENDA ========== */}
+      <SectionSeparator />
+      {nights.find(n => n.title === 'Grand Summit') && <GrandSummitAgenda night={nights.find(n => n.title === 'Grand Summit')} onBook={scrollToBooking} speakers={speakers} />}
+
+      {/* CTA after Agenda */}
+      <div className="text-center py-6">
+        <button onClick={scrollToBooking} className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-emerald-500/20">
+          Reserve Your Seat Now
+        </button>
+      </div>
 
       {/* ========== ELITE SPEAKERS SECTION ========== */}
-
-
-      {/* ========== ELITE SPEAKERS SECTION (Grid) ========== */}
       <SectionSeparator />
       <SpeakerSessions
         speakers={speakers.filter(s => s.role !== 'VIP Guest' && s.role !== 'Moderator')}
-        nights={nights}
         title="Elite Speakers"
       />
 
-      {/* ========== MODERATORS SECTION ========== */}
-      <SpeakerSessions
-        speakers={speakers.filter(s => s.role === 'Moderator')}
-        nights={nights}
-        title="Event Moderators"
-      />
+      {/* CTA after Speakers */}
+      <div className="text-center py-6 -mt-8">
+        <button onClick={scrollToBooking} className="bg-amber-400 hover:bg-amber-500 text-black px-8 py-3 rounded-full font-bold transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+          Secure Your Spot
+        </button>
+      </div>
 
       {/* ========== VIP GUESTS SECTION (NOW MARQUEE) ========== */}
       {speakers.filter(s => s.role === 'VIP Guest').length > 0 && (
@@ -416,7 +385,141 @@ export default function Home() {
       <SectionSeparator />
       <Footer />
 
+      {/* ========== WHATSAPP FLOAT BUTTON ========== */}
+      <a
+        href="https://wa.me/201505822735"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-20 right-5 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] rounded-full flex items-center justify-center shadow-lg hover:shadow-[#25D366]/40 transition-all duration-300 hover:scale-110"
+        aria-label="Chat on WhatsApp"
+      >
+        <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+
+      {/* ========== STICKY CTA BAR ========== */}
+      <AnimatePresence>
+        {showSticky && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 inset-x-0 z-40 bg-[#022c22]/95 backdrop-blur-md border-t border-emerald-500/20 px-4 py-3"
+          >
+            <div className="container mx-auto flex items-center justify-between gap-4 max-w-3xl">
+              <div className="hidden sm:flex items-center gap-3 text-sm text-emerald-200/70">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>{String(timeLeft.days).padStart(2,'0')}d {String(timeLeft.hours).padStart(2,'0')}h {String(timeLeft.minutes).padStart(2,'0')}m left</span>
+              </div>
+              <button
+                onClick={scrollToBooking}
+                className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-black font-bold px-8 py-2.5 rounded-full transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_30px_rgba(251,191,36,0.5)]"
+              >
+                Reserve Your Seat
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </main>
+  );
+}
+
+function GrandSummitAgenda({ night, onBook, speakers }: { night: any; onBook: () => void; speakers: any[] }) {
+  const agenda: { time: string; title: string; type?: string; panel_key?: string }[] = night.agenda || [];
+
+  const speakersByPanel: Record<string, any[]> = {};
+  speakers.forEach(s => { if (s.panel_key) { (speakersByPanel[s.panel_key] ??= []).push(s); } });
+
+  const typeColor: Record<string, string> = {
+    panel: 'border-amber-500/40 bg-amber-500/5',
+    activity: 'border-emerald-500/30 bg-emerald-500/5',
+    welcome: 'border-emerald-500/30 bg-emerald-500/5',
+    suhoor: 'border-purple-500/30 bg-purple-500/5',
+  };
+
+  const [y, m, d] = (night.date as string).split('-').map(Number);
+  const nightDate = new Date(y, m - 1, d);
+
+  return (
+    <section className="py-24 bg-[#0a352a]/20 relative overflow-hidden">
+      <div className="container mx-auto px-4 max-w-3xl relative z-10">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4" />
+            One Night Only
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 font-serif">{night.title}</h2>
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-emerald-200/60 mt-4">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-amber-400" />
+              {nightDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+            <a href="https://maps.app.goo.gl/aU81FrqETdqqM7Mh8" target="_blank" className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors">
+              <MapPin className="w-4 h-4 text-emerald-400" />{night.location}
+            </a>
+          </div>
+        </div>
+
+        <div className="relative">
+          <AnimatedList delay={400}>
+            {agenda.map((item, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "relative w-full cursor-default overflow-hidden rounded-2xl p-4",
+                  "transition-all duration-200 hover:scale-[1.02]",
+                  "dark:bg-transparent dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)]",
+                  typeColor[item.type || ''] || 'border-white/10 bg-white/5'
+                )}
+              >
+                <div className="flex flex-row items-start gap-3">
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg"
+                    style={{ backgroundColor: item.type === 'panel' ? '#92400e' : item.type === 'suhoor' ? '#4c1d95' : '#064e3b' }}
+                  >
+                    {item.type === 'panel' ? '🎙' : item.type === 'activity' ? '⚡' : item.type === 'welcome' ? '☕' : '🌙'}
+                  </div>
+                  <div className="flex flex-col overflow-hidden flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-semibold text-white truncate">{item.title}</span>
+                      <span className="text-white/30">·</span>
+                      <span className="text-xs text-amber-400 font-mono whitespace-nowrap">{item.time}</span>
+                    </div>
+                    {item.type === 'panel' && item.panel_key && speakersByPanel[item.panel_key] && (
+                      <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                        {speakersByPanel[item.panel_key].map(s => (
+                          <div key={s.id} className="flex items-center gap-1 bg-white/5 rounded-full px-2 py-0.5">
+                            <img
+                              src={s.image_url || '/placeholder-user.jpg'}
+                              alt={s.name}
+                              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-user.jpg'; }}
+                              className="w-4 h-4 rounded-full object-cover border border-white/20"
+                            />
+                            <span className="text-[10px] text-emerald-200/70 whitespace-nowrap">{s.name.trim()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </AnimatedList>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0a352a]/60 to-transparent" />
+        </div>
+
+        <div className="mt-12 text-center">
+          <button
+            onClick={onBook}
+            className="bg-amber-400 hover:bg-amber-500 text-black text-lg px-8 py-3 rounded-full font-bold transition-all shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)]"
+          >
+            Secure Your Seat
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -785,6 +888,10 @@ function Footer() {
               <img src="/Eventocity.png" alt="Eventocity" className="h-10 w-auto brightness-0 invert opacity-90" />
             </div>
             <p className="text-emerald-200/40 text-sm md:mr-4 mt-4 md:mt-0">All Rights Reserved © 2026</p>
+            <a href="https://muhammedmekky.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-2 opacity-60 hover:opacity-100 transition-opacity">
+              <span className="text-emerald-200/40 text-xs">Tech Partner</span>
+              <img src="/tech_partner.svg" alt="Muhammed Mekky" className="h-16 w-auto" />
+            </a>
           </div>
 
           <div className="flex gap-6">

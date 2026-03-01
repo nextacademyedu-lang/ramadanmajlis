@@ -157,7 +157,7 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
                         selected_nights: [nightDate],
                         ticket_count: 1,
                         total_amount: attendee === attendees[0] ? totalAmount : 0,
-                        payment_provider: totalAmount === 0 ? 'free' : 'easykash',
+                        payment_provider: 'easykash', // ALWAYS set to easykash to pass DB check "bookings_payment_provider_check"
                         payment_status: 'pending',
                         profile_image_url: attendee.photoUrl,
                         promo_code_id: attendee === attendees[0] ? promoApplied?.id || null : null,

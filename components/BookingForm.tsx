@@ -34,9 +34,10 @@ interface BookingFormProps {
     nights?: any[];
     packagePrice?: number;
     industries?: string[];
+    initialPromoCode?: string;
 }
 
-export default function BookingForm({ industries = [] }: BookingFormProps) {
+export default function BookingForm({ industries = [], initialPromoCode = '' }: BookingFormProps) {
     const [step, setStep] = useState(1);
     const [ticketCount, setTicketCount] = useState(1);
     const [currentAttendee, setCurrentAttendee] = useState(0);
@@ -45,7 +46,7 @@ export default function BookingForm({ industries = [] }: BookingFormProps) {
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [promoCode, setPromoCode] = useState('');
+    const [promoCode, setPromoCode] = useState(initialPromoCode);
     const [promoApplied, setPromoApplied] = useState<{ id: string, type: string, value: number, code: string } | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState<string | null>(null);

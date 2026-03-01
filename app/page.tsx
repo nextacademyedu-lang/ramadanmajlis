@@ -323,7 +323,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full -z-10" />
 
             <div className="relative" id="booking-form">
-              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} industries={industries} />
+              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} industries={industries} initialPromoCode={popupCode} />
             </div>
           </motion.div>
 

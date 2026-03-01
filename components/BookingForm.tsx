@@ -189,11 +189,15 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
             // Free booking
             if (totalAmount === 0) {
                 // Confirming just the primary ID will confirm all group members automatically based on our group-booking logic
-                await fetch('/api/confirm-free-booking', {
+                const confirmResponse = await fetch('/api/confirm-free-booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ bookingId: allBookingIds[0] })
                 });
+
+                if (!confirmResponse.ok) {
+                    console.error("Free booking confirm failed:", await confirmResponse.text());
+                }
 
                 window.location.href = `${window.location.origin}/success`;
                 return;

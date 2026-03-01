@@ -38,7 +38,15 @@ export async function POST(request: Request) {
         // 3. Confirm the booking using shared service
         // We verified it's free above, so we can proceed to confirm.
         const { confirmBooking } = await import('@/lib/booking-service');
+
+        console.log('--- START FREE CONFIRM LOGS ---');
+        console.log('EVOLUTION URL:', process.env.EVOLUTION_API_URL);
+        console.log('EVOLUTION KEY EXISTS:', !!process.env.EVOLUTION_API_KEY);
+        console.log('-------------------------------');
+
         const result = await confirmBooking(bookingId);
+
+        console.log('CONFIRM RESULT:', JSON.stringify(result, null, 2));
 
         if (result.status === 'already_processed') {
             return NextResponse.json({ success: true, message: 'Already confirmed' });

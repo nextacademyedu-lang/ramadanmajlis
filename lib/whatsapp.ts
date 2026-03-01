@@ -65,9 +65,8 @@ Register: https://ramadanmajlis.nextacademyedu.com/
 https://www.facebook.com/profile.php?id=61575666404676
 https://www.facebook.com/Eventocity1
 
-#RamadanMajlis2026 #GrandSummit #NextAcademy
 
-Tech Partner: muhammedmekky.com`;
+#RamadanMajlis2026 #GrandSummit #NextAcademy`;
 
     try {
         const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
@@ -117,7 +116,7 @@ export async function sendWhatsAppTicket(
                 number: formattedPhone,
                 mediatype: 'image',
                 media: qrCodeImageUrl,
-                caption: `🎟️ *Your Ticket - ${nightTitle || ticket.night_date}*${titlePart}${agendaText}${locationPart}\n\nShow this QR code at the entrance!\n\n_Tech Partner: muhammedmekky.com_`
+                caption: `🎟️ *Your Ticket - ${nightTitle || ticket.night_date}*${titlePart}${agendaText}${locationPart}\n\nShow this QR code at the entrance!`
             })
         });
         const data = await response.json();

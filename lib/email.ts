@@ -58,7 +58,6 @@ export async function sendWelcomeEmail(booking: BookingData, nightTitle = 'Grand
 
                 <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
                     <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
-                    <p style="margin: 6px 0 0; color: #6ee7b7;">Tech Partner: <a href="https://muhammedmekky.com" target="_blank" style="color: #34d399; text-decoration: underline;">Muhammed Mekky</a></p>
                 </div>
             </div>
         `,
@@ -80,7 +79,7 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData, 
     }
 
     // Generate Agenda HTML
-    const agendaHtml = agenda.length > 0 
+    const agendaHtml = agenda.length > 0
         ? agenda.map(item => {
             if (item.isHeader) {
                 return `
@@ -140,7 +139,6 @@ export async function sendTicketEmail(booking: BookingData, ticket: TicketData, 
 
                 <div style="background-color: #064e3b; padding: 15px; text-align: center; font-size: 12px; color: #6ee7b7;">
                     <p style="margin: 0;">&copy; 2026 Next Academy. All rights reserved.</p>
-                    <p style="margin: 6px 0 0; color: #6ee7b7;">Tech Partner: <a href="https://muhammedmekky.com" target="_blank" style="color: #34d399; text-decoration: underline;">Muhammed Mekky</a></p>
                 </div>
             </div>
         `,

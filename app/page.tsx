@@ -814,6 +814,8 @@ function SponsorshipSection() {
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.13 PM.jpeg", alt: "Community Partner 4" },
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.14 PM.jpeg", alt: "Community Partner 5" },
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.15 PM.jpeg", alt: "Community Partner 6" },
+                { src: "/ksa.jpeg", alt: "KSA" },
+                { src: "/logo-01.PNG", alt: "Logo 01" },
               ].map((sponsor, i) => (
                 <motion.div
                   key={i}

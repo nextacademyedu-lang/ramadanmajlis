@@ -180,22 +180,22 @@ export default function BookingForm({ industries = [] }: BookingFormProps) {
             localStorage.setItem('booking_location', 'Pyramids Hotel, Dokki');
             if (primary.photoUrl) localStorage.setItem('booking_photo', primary.photoUrl);
 
-            // Free booking
-            if (totalAmount === 0) {
-                for (const id of allBookingIds) {
-                    await fetch('/api/confirm-free-booking', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ bookingId: id })
-                    });
-                }
-                window.location.href = `${window.location.origin}/success`;
-                return;
-            }
-
-            // Link group bookings
+            // Link group bookings BEFORE confirming (vital for group free bookings)
             if (allBookingIds.length > 1) {
                 await supabase.from('bookings').update({ group_booking_ref: allBookingIds[0] }).in('id', allBookingIds);
+            }
+
+            // Free booking
+            if (totalAmount === 0) {
+                // Confirming just the primary ID will confirm all group members automatically based on our group-booking logic
+                await fetch('/api/confirm-free-booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookingId: allBookingIds[0] })
+                });
+
+                window.location.href = `${window.location.origin}/success`;
+                return;
             }
 
             const response = await fetch('/api/create-booking', {

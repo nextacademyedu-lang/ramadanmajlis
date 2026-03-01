@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { confirmBooking } from '@/lib/booking-service';
 
 // Init Supabase Admin
 const supabaseAdmin = createClient(
@@ -29,18 +30,27 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Update Booking
-        const { error } = await supabaseAdmin
-            .from('bookings')
-            .update({
-                payment_status: status === 'paid' ? 'paid' : 'pending',
-                status: status === 'paid' ? 'confirmed' : 'pending',
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', bookingId);
+        if (status === 'paid') {
+            // Use the central confirmBooking service to handle DB updates + Emails + WhatsApp
+            const result = await confirmBooking(bookingId);
+            if (result.status === 'already_processed') {
+                return NextResponse.json({ success: true, message: 'Already marked as paid previously' });
+            }
+        } else {
+            // For pending or other statuses, just update the DB
+            const { error } = await supabaseAdmin
+                .from('bookings')
+                .update({
+                    payment_status: 'pending',
+                    status: 'pending',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', bookingId);
 
-        if (error) {
-            console.error("Update Error:", error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            if (error) {
+                console.error("Update Error:", error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
         }
 
         return NextResponse.json({ success: true });

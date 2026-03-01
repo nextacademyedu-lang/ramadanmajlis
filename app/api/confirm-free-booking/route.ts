@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
         // 2. Verify this is a free booking (total_amount = 0)
         if (booking.total_amount > 0) {
+            // Only parent bookings are checked, but group members also have 0
             return NextResponse.json({ error: 'Not a free booking' }, { status: 400 });
         }
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
         const result = await confirmBooking(bookingId);
 
         if (result.status === 'already_processed') {
-             return NextResponse.json({ success: true, message: 'Already confirmed' });
+            return NextResponse.json({ success: true, message: 'Already confirmed' });
         }
 
         return NextResponse.json({

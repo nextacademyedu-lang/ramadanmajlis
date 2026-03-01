@@ -90,7 +90,17 @@ export default function AdminNightsPage() {
     };
 
     const handleEditAgendaClick = (night: Night) => {
-        setAgendaData(night.agenda || []);
+        let parsedAgenda = [];
+        try {
+            if (typeof night.agenda === 'string') {
+                parsedAgenda = JSON.parse(night.agenda);
+            } else if (Array.isArray(night.agenda)) {
+                parsedAgenda = night.agenda;
+            }
+        } catch (e) {
+            console.error("Failed to parse agenda", e);
+        }
+        setAgendaData(parsedAgenda);
         setIsEditingAgenda(true);
     };
 
@@ -106,10 +116,10 @@ export default function AdminNightsPage() {
                     ...panelFormData
                 })
             });
-            
+
             if (res.ok) {
                 const updatedNight = await res.json();
-                
+
                 // Update local state
                 setNights(nights.map(n => n.id === updatedNight.id ? { ...n, ...updatedNight, speakers: n.speakers } : n));
                 setSelectedNight(prev => prev ? { ...prev, ...updatedNight } : null);
@@ -138,7 +148,7 @@ export default function AdminNightsPage() {
 
             if (res.ok) {
                 const updatedNight = await res.json();
-                
+
                 // Update local state
                 setNights(nights.map(n => n.id === updatedNight.id ? { ...n, ...updatedNight, speakers: n.speakers } : n));
                 setSelectedNight(prev => prev ? { ...prev, ...updatedNight } : null);
@@ -159,16 +169,15 @@ export default function AdminNightsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold">Event Nights</h1>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {nights.map((night) => (
-                    <Card 
-                        key={night.id} 
-                        className={`cursor-pointer hover:border-emerald-500/50 transition-all ${
-                            night.color_theme === 'blue' ? 'bg-blue-900/10 border-blue-500/20' : 
-                            night.color_theme === 'amber' ? 'bg-amber-900/10 border-amber-500/20' : 
-                            'bg-emerald-900/10 border-emerald-500/20'
-                        }`}
+                    <Card
+                        key={night.id}
+                        className={`cursor-pointer hover:border-emerald-500/50 transition-all ${night.color_theme === 'blue' ? 'bg-blue-900/10 border-blue-500/20' :
+                                night.color_theme === 'amber' ? 'bg-amber-900/10 border-amber-500/20' :
+                                    'bg-emerald-900/10 border-emerald-500/20'
+                            }`}
                         onClick={() => setSelectedNight(night)}
                     >
                         <CardHeader>
@@ -177,9 +186,9 @@ export default function AdminNightsPage() {
                                     {format(new Date(night.date), "MMM d, yyyy")}
                                 </Badge>
                                 <Badge className={
-                                    night.color_theme === 'blue' ? 'bg-blue-500' : 
-                                    night.color_theme === 'amber' ? 'bg-amber-500 text-black' : 
-                                    'bg-emerald-500'
+                                    night.color_theme === 'blue' ? 'bg-blue-500' :
+                                        night.color_theme === 'amber' ? 'bg-amber-500 text-black' :
+                                            'bg-emerald-500'
                                 }>
                                     {night.color_theme}
                                 </Badge>
@@ -234,7 +243,7 @@ export default function AdminNightsPage() {
                                     </div>
                                 </div>
                             </DialogHeader>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
                                 <div className="space-y-4 md:col-span-2">
                                     <div className="text-gray-300 leading-relaxed">
@@ -248,7 +257,7 @@ export default function AdminNightsPage() {
                                             <p className="text-sm text-gray-300">{selectedNight.panel_description}</p>
                                         </div>
                                     )}
-                                    
+
                                     {/* Agenda Preview */}
                                     {selectedNight.agenda && selectedNight.agenda.length > 0 && (
                                         <div className="bg-black/20 p-4 rounded-xl border border-emerald-500/10 my-4">
@@ -332,27 +341,27 @@ export default function AdminNightsPage() {
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Panel Title</label>
-                            <input 
+                            <input
                                 className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-white"
                                 value={panelFormData.panel_title}
-                                onChange={(e) => setPanelFormData({...panelFormData, panel_title: e.target.value})}
+                                onChange={(e) => setPanelFormData({ ...panelFormData, panel_title: e.target.value })}
                                 placeholder="From Manual to Magical: AI in Operation"
                             />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Panel Description</label>
-                            <textarea 
+                            <textarea
                                 className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-white min-h-[120px]"
                                 value={panelFormData.panel_description}
-                                onChange={(e) => setPanelFormData({...panelFormData, panel_description: e.target.value})}
+                                onChange={(e) => setPanelFormData({ ...panelFormData, panel_description: e.target.value })}
                                 placeholder="Panel description..."
                             />
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">
                         <button onClick={() => setIsEditingPanel(false)} className="px-4 py-2 hover:bg-white/10 rounded-md">Cancel</button>
-                        <button 
-                            onClick={handleSavePanel} 
+                        <button
+                            onClick={handleSavePanel}
                             disabled={saving}
                             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-md flex items-center gap-2"
                         >

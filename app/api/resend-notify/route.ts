@@ -115,7 +115,7 @@ export async function GET(request: Request) {
             booking,
             firstNight?.title || 'Grand Summit',
             firstNight?.date || '2026-03-12',
-            'Pyramids Hotel, Dokki',
+            'Pyramisa Suites Hotel, Dokki',
             firstNight?.location_url || 'https://maps.app.goo.gl/aU81FrqETdqqM7Mh8'
         );
 

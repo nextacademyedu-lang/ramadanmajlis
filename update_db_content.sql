@@ -36,7 +36,7 @@ SET
     subtitle = 'Networking & Partnerships',
     description = 'Moving from individual success to collective influence and long-term impact.',
     date = '2026-03-12',
-    location = 'Pyramids Hotel, Dokki',
+    location = 'Pyramisa Suites Hotel, Dokki',
     price = 1999,
     capacity = 100,
     color_theme = 'amber'

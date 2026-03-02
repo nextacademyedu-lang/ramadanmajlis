@@ -24,7 +24,7 @@ export interface AgendaItem {
 }
 
 // 1. WELCOME EMAIL (Immediate - No QR)
-export async function sendWelcomeEmail(booking: BookingData, nightTitle = 'Grand Summit', nightDate = '2026-03-12', nightLocation = 'Pyramids Hotel, Dokki') {
+export async function sendWelcomeEmail(booking: BookingData, nightTitle = 'Grand Summit', nightDate = '2026-03-12', nightLocation = 'Pyramisa Suites Hotel, Dokki') {
     if (!process.env.RESEND_API_KEY) {
         console.warn('⚠️ RESEND_API_KEY not configured, skipping email.');
         return null;

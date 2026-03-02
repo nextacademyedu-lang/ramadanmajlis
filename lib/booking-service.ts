@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 
 const NIGHT_DATE = '2026-03-12';
 const NIGHT_TITLE = 'Grand Summit';
-const NIGHT_LOCATION = 'Pyramids Hotel, Dokki';
+const NIGHT_LOCATION = 'Pyramisa Suites Hotel, Dokki';
 const NIGHT_LOCATION_URL = 'https://maps.app.goo.gl/aU81FrqETdqqM7Mh8';
 
 async function confirmSingleBooking(bookingId: string) {

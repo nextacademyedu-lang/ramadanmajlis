@@ -178,7 +178,7 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
             localStorage.setItem('booking_company', primary.company);
             localStorage.setItem('booking_date', '12 Mar 2026');
             localStorage.setItem('booking_night_title', 'Grand Summit');
-            localStorage.setItem('booking_location', 'Pyramids Hotel, Dokki');
+            localStorage.setItem('booking_location', 'Pyramisa Suites Hotel, Dokki');
             if (primary.photoUrl) localStorage.setItem('booking_photo', primary.photoUrl);
 
             // Link group bookings BEFORE confirming (vital for group free bookings)
@@ -300,7 +300,7 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
                                 </div>
                                 <div className="flex justify-between text-gray-300">
                                     <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-emerald-400" /> Venue</span>
-                                    <span className="text-white">Pyramids Hotel, Dokki</span>
+                                    <span className="text-white">Pyramisa Suites Hotel, Dokki</span>
                                 </div>
                                 <div className="flex justify-between text-gray-300">
                                     <span className="flex items-center gap-1.5"><Ticket className="w-3.5 h-3.5 text-purple-400" /> Night</span>

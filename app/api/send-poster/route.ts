@@ -66,7 +66,7 @@ Three transformative Thursday nights with 12 world-class experts, strategic netw
 
 📍 Night 1: Tolip Hotel, New Cairo | 🗓 Feb 28 – The Compass
 📍 Night 2: Hyatt Regency, 6th October | 🗓 Mar 5 – The Resilience
-📍 Night 3: Pyramisa Hotel, Dokki | 🗓 Mar 12 – The Legacy
+📍 Night 3: Pyramisa Suites Hotel, Dokki | 🗓 Mar 12 – The Legacy
 
 Register: https://ramadanmajlis.nextacademyedu.com/
 

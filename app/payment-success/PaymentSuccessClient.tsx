@@ -47,7 +47,7 @@ export default function PaymentSuccessClient({ isSuccess, isPending }: PaymentSu
             photo: (localStorage.getItem('booking_photo') || '').trim(),
         };
         setBookingData(data);
-        
+
         if (isSuccess) {
             // Auto-scroll to share section only on success
             setTimeout(() => {
@@ -76,7 +76,7 @@ Three transformative Thursday nights with 12 world-class experts, strategic netw
 
 📍 Night 1: Tolip Hotel, New Cairo | 🗓 Feb 28 – The Compass
 📍 Night 2: Hyatt Regency, 6th October | 🗓 Mar 5 – The Resilience
-📍 Night 3: Pyramisa Hotel, Dokki | 🗓 Mar 12 – The Legacy
+📍 Night 3: Pyramisa Suites Hotel, Dokki | 🗓 Mar 12 – The Legacy
 
 Register: https://ramadanmajlis.nextacademyedu.com/
 
@@ -148,7 +148,7 @@ https://www.facebook.com/Eventocity1
     // --- RENDER FAILURE STATE ---
     if (!isSuccess && !isPending) {
         return (
-             <main className="min-h-screen bg-gradient-to-b from-red-900 via-red-800 to-black relative overflow-hidden flex items-center justify-center p-4">
+            <main className="min-h-screen bg-gradient-to-b from-red-900 via-red-800 to-black relative overflow-hidden flex items-center justify-center p-4">
                 <div className="max-w-md w-full bg-black/40 backdrop-blur-md border border-red-500/30 rounded-2xl p-8 text-center shadow-2xl">
                     <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-6 border-2 border-red-500/40">
                         <XCircle className="w-10 h-10 text-red-500" />
@@ -157,9 +157,9 @@ https://www.facebook.com/Eventocity1
                     <p className="text-red-200/80 mb-8">
                         Unfortunately, your payment could not be processed. Please try again or use a different payment method.
                     </p>
-                    
-                    <Link 
-                        href="/" 
+
+                    <Link
+                        href="/"
                         className="inline-flex items-center justify-center gap-2 w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -169,7 +169,7 @@ https://www.facebook.com/Eventocity1
             </main>
         );
     }
-    
+
     // --- RENDER SUCCESS STATE (Original UI) ---
     return (
         <main className="min-h-screen bg-gradient-to-b from-[#064e3b] via-[#065f46] to-[#022c22] relative overflow-hidden">

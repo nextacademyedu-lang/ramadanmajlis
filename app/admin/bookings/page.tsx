@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -61,6 +62,37 @@ export default function BookingsPage() {
         }
     };
 
+    const toggleContacted = async (bookingId: string, currentStatus: boolean) => {
+        try {
+            const newStatus = !currentStatus;
+
+            // Optimistic update
+            setBookings(bookings.map(b =>
+                b.id === bookingId ? { ...b, is_contacted: newStatus } : b
+            ));
+
+            const res = await fetch('/api/admin/bookings/contacted', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId, contacted: newStatus })
+            });
+
+            if (!res.ok) {
+                // Revert on failure
+                alert("Failed to update contact status");
+                setBookings(bookings.map(b =>
+                    b.id === bookingId ? { ...b, is_contacted: currentStatus } : b
+                ));
+            }
+        } catch (err) {
+            console.error("Error updating contact status:", err);
+            // Revert on failure
+            setBookings(bookings.map(b =>
+                b.id === bookingId ? { ...b, is_contacted: currentStatus } : b
+            ));
+        }
+    };
+
     const updateBookingStatus = async (bookingId: string, status: 'paid' | 'pending') => {
         if (!confirm(`Are you sure you want to mark this booking as ${status.toUpperCase()}?`)) return;
 
@@ -73,9 +105,9 @@ export default function BookingsPage() {
 
             if (res.ok) {
                 // Optimistic update
-                setBookings(bookings.map(b => 
-                    b.id === bookingId 
-                        ? { ...b, payment_status: status, status: status === 'paid' ? 'confirmed' : 'pending' } 
+                setBookings(bookings.map(b =>
+                    b.id === bookingId
+                        ? { ...b, payment_status: status, status: status === 'paid' ? 'confirmed' : 'pending' }
                         : b
                 ));
             } else {
@@ -92,7 +124,7 @@ export default function BookingsPage() {
         const matchesSearch =
             b.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
             b.email?.toLowerCase().includes(search.toLowerCase()) ||
-            b.phone?.includes(search) || 
+            b.phone?.includes(search) ||
             b.company?.toLowerCase().includes(search.toLowerCase()) ||
             b.id?.toLowerCase().includes(search.toLowerCase());
 
@@ -202,28 +234,46 @@ export default function BookingsPage() {
                                                 {booking.ticket_count > 1 || (booking.total_amount > 2000 && booking.selected_nights?.length !== 1) ? 'Package' : 'Single'}
                                             </Badge>
                                             {booking.promo_codes?.code && (
-                                                 <div className="text-[10px] text-purple-400">Code: {booking.promo_codes.code}</div>
+                                                <div className="text-[10px] text-purple-400">Code: {booking.promo_codes.code}</div>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-white font-mono">
                                             {booking.total_amount.toLocaleString()} EGP
                                         </TableCell>
                                         <TableCell>
-                                            <Badge
-                                                className={
-                                                    booking.payment_status === 'paid'
-                                                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                                                        : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
-                                                }
-                                            >
-                                                {booking.payment_status.toUpperCase()}
-                                            </Badge>
+                                            <div className="flex flex-col gap-2 items-start">
+                                                <Badge
+                                                    className={
+                                                        booking.payment_status === 'paid'
+                                                            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                                            : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                                                    }
+                                                >
+                                                    {booking.payment_status.toUpperCase()}
+                                                </Badge>
+                                                {booking.payment_status === 'pending' && (
+                                                    <div className="flex items-center space-x-2 mt-1">
+                                                        <Checkbox
+                                                            id={`contacted-${booking.id}`}
+                                                            checked={!!booking.is_contacted}
+                                                            onCheckedChange={() => toggleContacted(booking.id, !!booking.is_contacted)}
+                                                            className="border-white/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                                        />
+                                                        <label
+                                                            htmlFor={`contacted-${booking.id}`}
+                                                            className="text-xs font-medium leading-none text-gray-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                        >
+                                                            Contacted
+                                                        </label>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     className="h-8 w-8 hover:bg-white/10 hover:text-white"
                                                     onClick={() => setSelectedBooking(booking)}
                                                 >
@@ -273,7 +323,7 @@ export default function BookingsPage() {
                             </Badge>
                         </DialogTitle>
                     </DialogHeader>
-                    
+
                     {selectedBooking && (
                         <div className="grid gap-6 py-4">
                             {/* Header Section with Photo */}
@@ -299,9 +349,9 @@ export default function BookingsPage() {
                                             {selectedBooking.industry}
                                         </Badge>
                                         {selectedBooking.linkedin_url && (
-                                            <a 
-                                                href={selectedBooking.linkedin_url} 
-                                                target="_blank" 
+                                            <a
+                                                href={selectedBooking.linkedin_url}
+                                                target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1 transition-colors"
                                             >
@@ -365,8 +415,8 @@ export default function BookingsPage() {
                                 </div>
                             </div>
 
-                             {/* Financials */}
-                             <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                            {/* Financials */}
+                            <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
                                 <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Financial Details</h4>
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
@@ -378,7 +428,7 @@ export default function BookingsPage() {
                                         <div className="flex gap-1 flex-wrap justify-end">
                                             {selectedBooking.selected_nights && selectedBooking.selected_nights.map((night: string) => (
                                                 <Badge key={night} variant="outline" className="bg-white/5 text-xs">
-                                                    {night === 'ALL' ? 'All Nights' : new Date(night).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                                                    {night === 'ALL' ? 'All Nights' : new Date(night).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                 </Badge>
                                             ))}
                                             {(!selectedBooking.selected_nights || selectedBooking.selected_nights.length === 0) && <span className="text-gray-500">-</span>}

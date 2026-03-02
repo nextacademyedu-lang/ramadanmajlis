@@ -9,6 +9,7 @@ import { ScrollVelocityContainer, ScrollVelocityRow } from '@/registry/magicui/s
 import { cn } from '@/lib/utils';
 import { AnimatedList } from '@/registry/magicui/animated-list';
 import { supabase } from "@/lib/supabase";
+import RoulettePopup from '@/components/RoulettePopup';
 
 // Generate stars
 const generateStars = (count: number) =>
@@ -29,9 +30,6 @@ export default function Home() {
   const [showSticky, setShowSticky] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [seatsLeft] = useState(() => Math.floor(Math.random() * 15) + 30);
-  const [showPopup, setShowPopup] = useState(false);
-  const POPUP_CODES = ['MAJLIS50A', 'MAJLIS50B', 'MAJLIS50C', 'MAJLIS50D', 'MAJLIS50E'];
-  const [popupCode] = useState(() => POPUP_CODES[Math.floor(Math.random() * POPUP_CODES.length)]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -43,11 +41,7 @@ export default function Home() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    if (sessionStorage.getItem('popup_shown')) return;
-    const t = setTimeout(() => { setShowPopup(true); sessionStorage.setItem('popup_shown', '1'); }, 3000);
-    return () => clearTimeout(t);
-  }, []);
+
 
   // Payment verification is now handled in /payment-success page
   useEffect(() => {
@@ -142,38 +136,7 @@ export default function Home() {
       </div>
 
       {/* ========== PROMO POPUP ========== */}
-      <AnimatePresence>
-        {showPopup && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPopup(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-              <motion.div
-                initial={{ scale: 0.85, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.85, opacity: 0, y: 20 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="pointer-events-auto w-full max-w-md bg-[#0a201b] border border-amber-500/40 rounded-3xl p-8 text-center shadow-2xl relative"
-              >
-                <button onClick={() => setShowPopup(false)} className="absolute top-4 right-4 p-1.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X className="w-4 h-4 text-white" /></button>
-                <div className="text-5xl mb-4">🎁</div>
-                <h3 className="text-2xl font-bold text-white mb-2 font-serif">Special Welcome Offer</h3>
-                <p className="text-emerald-200/70 mb-6 text-sm">Use this code at checkout to get <span className="text-amber-400 font-bold text-lg">50% OFF</span> your ticket!</p>
-                <div
-                  onClick={() => navigator.clipboard?.writeText(popupCode)}
-                  className="cursor-pointer bg-amber-400/10 border-2 border-dashed border-amber-400/60 rounded-2xl py-4 px-6 mb-6 group hover:bg-amber-400/20 transition-all"
-                >
-                  <div className="text-3xl font-bold font-mono text-amber-400 tracking-widest">{popupCode}</div>
-                  <div className="text-xs text-amber-400/60 mt-1 group-hover:text-amber-400 transition-colors">Click to copy</div>
-                </div>
-                <button onClick={() => { setShowPopup(false); scrollToBooking(); }} className="w-full bg-amber-400 hover:bg-amber-500 text-black font-bold py-3 rounded-full transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)]">
-                  Reserve Now &amp; Save 50%
-                </button>
-                <p className="text-xs text-white/30 mt-3">Limited time offer · {seatsLeft} seats remaining</p>
-              </motion.div>
-            </div>
-          </>
-        )}
-      </AnimatePresence>
+      <RoulettePopup />
 
       <AnimatePresence>
         {isLoading && (
@@ -323,7 +286,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full -z-10" />
 
             <div className="relative" id="booking-form">
-              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} industries={industries} initialPromoCode={popupCode} />
+              <BookingForm nights={nights} packagePrice={eventConfig?.package_price} industries={industries} initialPromoCode={""} />
             </div>
           </motion.div>
 

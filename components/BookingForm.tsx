@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -85,19 +85,21 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
         }
     };
 
-    const handleApplyPromo = async () => {
-        if (!promoCode.trim()) return;
+    const handleApplyPromo = async (codeToVerify?: string) => {
+        const code = codeToVerify || promoCode;
+        if (!code.trim()) return;
         setPromoLoading(true);
         setPromoError(null);
         try {
             const res = await fetch('/api/validate-promo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: promoCode, selectedNights: [], isPackage: true })
+                body: JSON.stringify({ code, selectedNights: [], isPackage: true })
             });
             const data = await res.json();
             if (data.valid) {
                 setPromoApplied({ id: data.id, type: data.discount_type, value: data.discount_value, code: data.code });
+                setPromoCode(data.code);
             } else {
                 setPromoError(data.message || "Invalid Code");
                 setPromoApplied(null);
@@ -108,6 +110,24 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
             setPromoLoading(false);
         }
     };
+
+    // Auto apply promo if set from props or from event
+    useEffect(() => {
+        if (initialPromoCode && !promoApplied) {
+            handleApplyPromo(initialPromoCode);
+        }
+    }, [initialPromoCode]);
+
+    useEffect(() => {
+        const handleRouletteWin = (e: CustomEvent) => {
+            if (e.detail?.code) {
+                setPromoCode(e.detail.code);
+                handleApplyPromo(e.detail.code);
+            }
+        };
+        window.addEventListener('roulette-win', handleRouletteWin as EventListener);
+        return () => window.removeEventListener('roulette-win', handleRouletteWin as EventListener);
+    }, []);
 
     const saveCurrentAttendee = async () => {
         const valid = await trigger();
@@ -474,7 +494,7 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
                                         />
                                         {promoApplied && <CheckCircle2 className="absolute right-3 top-3.5 text-green-500 w-5 h-5" />}
                                     </div>
-                                    <Button type="button" onClick={handleApplyPromo} disabled={!promoCode || !!promoApplied || promoLoading} className="h-12 px-6 font-bold">
+                                    <Button type="button" onClick={() => handleApplyPromo()} disabled={!promoCode || !!promoApplied || promoLoading} className="h-12 px-6 font-bold">
                                         {promoLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : promoApplied ? "APPLIED" : "APPLY"}
                                     </Button>
                                 </div>

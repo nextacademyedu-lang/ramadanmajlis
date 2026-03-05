@@ -40,52 +40,53 @@ export default function RoulettePopup() {
         return () => clearTimeout(t);
     }, []);
 
-    const spin = () => {
+    const spin = async () => {
         if (isSpinning || hasSpun) return;
         setIsSpinning(true);
 
-        const totalWeight = PRIZES.reduce((sum, prize) => sum + prize.weight, 0);
-        const random = Math.random() * totalWeight;
+        try {
+            const res = await fetch('/api/roulette/spin', { method: 'POST' });
+            const data = await res.json();
 
-        let cumulativeWeight = 0;
-        let selectedPrizeIndex = 0;
-
-        for (let i = 0; i < PRIZES.length; i++) {
-            cumulativeWeight += PRIZES[i].weight;
-            if (random <= cumulativeWeight) {
-                selectedPrizeIndex = i;
-                break;
+            if (!data.success) {
+                setIsSpinning(false);
+                return;
             }
-        }
 
-        const prize = PRIZES[selectedPrizeIndex];
-        const sliceAngle = 360 / PRIZES.length;
-        const targetAngle = selectedPrizeIndex * sliceAngle;
+            const { prizeIndex, prize, code } = data;
+            const sliceAngle = 360 / PRIZES.length;
 
-        // Add extra rotations and land on the selected slice
-        const extraRotations = 5 * 360;
+            // Target the center of the slice (start angle + half slice)
+            const targetAngle = prizeIndex * sliceAngle + sliceAngle / 2;
+            const extraRotations = 5 * 360;
 
-        // Calculate final rotation. 
-        // We want the selected slice to be at the top (0 degrees or 270 depending on drawing).
-        // Usually the pointer is at the top (0 deg). 
-        // If slice 0 is at top initially, to bring slice N to top, we need to rotate backwards by N * sliceAngle.
-        const newRotation = rotation + extraRotations - targetAngle + (Math.random() * sliceAngle - sliceAngle / 2); // Add some randomness within the slice
+            // Add a random offset within the safe bounds of the slice (10 degrees margin total)
+            const offset = (Math.random() - 0.5) * (sliceAngle - 10);
 
-        setRotation(newRotation);
+            // Since the wheel pointer is at 0 degrees, finding the slice offset requires
+            // rotating it backwards by targetAngle and the offset.
+            const newRotation = rotation + extraRotations - targetAngle - offset;
 
-        setTimeout(() => {
+            setRotation(newRotation);
+
+            setTimeout(() => {
+                setIsSpinning(false);
+                setHasSpun(true);
+                setWonPrize(prize);
+                setWonCode(code);
+
+                // Dispatch global event so BookingForm can auto-apply it
+                const event = new CustomEvent('roulette-win', { detail: { code } });
+                window.dispatchEvent(event);
+
+                // Save state
+                localStorage.setItem('has_spun_roulette', 'true');
+                document.cookie = "has_spun_roulette=true; max-age=31536000; path=/";
+            }, 5000); // 5 seconds spin duration
+        } catch (error) {
+            console.error('Spin failed:', error);
             setIsSpinning(false);
-            setHasSpun(true);
-            setWonPrize(prize);
-
-            // Pick a random code from the prize's codes
-            const code = prize.codes[Math.floor(Math.random() * prize.codes.length)];
-            setWonCode(code);
-
-            // Save state
-            localStorage.setItem('has_spun_roulette', 'true');
-            document.cookie = "has_spun_roulette=true; max-age=31536000; path=/";
-        }, 5000); // 5 seconds spin duration
+        }
     };
 
     const close = () => {

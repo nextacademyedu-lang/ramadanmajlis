@@ -684,8 +684,7 @@ function SponsorshipSection() {
                   </h3>
 
                   <div className="flex items-baseline gap-1 my-4">
-                    <span className="text-3xl md:text-4xl font-bold text-white tracking-tight group-hover:text-slate-900 transition-colors">{plan.price}</span>
-                    <span className="text-emerald-200/50 text-sm font-medium group-hover:text-slate-500 transition-colors">EGP</span>
+                    <span className="text-lg font-semibold text-amber-400 group-hover:text-amber-600 transition-colors">Contact Sales</span>
                   </div>
 
                   <ul className="space-y-3 mb-8 flex-1">
@@ -777,6 +776,7 @@ function SponsorshipSection() {
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.13 PM.jpeg", alt: "Community Partner 4" },
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.14 PM.jpeg", alt: "Community Partner 5" },
                 { src: "/cpmmuinty partner/WhatsApp Image 2026-02-27 at 11.37.15 PM.jpeg", alt: "Community Partner 6" },
+                { src: "/cpmmuinty partner/2.png", alt: "Community Partner 7" },
                 { src: "/ksa.jpeg", alt: "KSA" },
                 { src: "/logo-01.PNG", alt: "Logo 01" },
               ].map((sponsor, i) => (
@@ -844,7 +844,7 @@ function SponsorshipSection() {
                   <h3 className={`text-3xl font-bold bg-gradient-to-r ${activePlan.color} bg-clip-text text-transparent mb-2`}>
                     {activePlan.name}
                   </h3>
-                  <div className="text-2xl font-bold text-white mb-8">{activePlan.price} <span className="text-sm font-normal text-white/50">EGP</span></div>
+                  <div className="text-lg font-semibold text-amber-400 mb-8">Contact our sales team for pricing</div>
 
                   <div className="text-left space-y-4 mb-8 bg-white/5 rounded-2xl p-6">
                     <h4 className="text-white font-bold mb-4 text-center">Package Benefits</h4>

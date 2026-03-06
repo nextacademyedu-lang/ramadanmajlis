@@ -93,18 +93,27 @@ async function confirmSingleBooking(bookingId: string) {
     if (ticket) {
         // WhatsApp poster
         try {
+            console.log('📱 Sending WhatsApp poster to:', updatedBooking.phone);
+            console.log('   EVOLUTION_API_URL:', process.env.EVOLUTION_API_URL);
+            console.log('   EVOLUTION_KEY exists:', !!process.env.EVOLUTION_API_KEY);
+            console.log('   EVOLUTION_INSTANCE:', process.env.EVOLUTION_INSTANCE_NAME);
             const posterResult = await sendWhatsAppMessage(updatedBooking, NIGHT_TITLE, NIGHT_DATE, NIGHT_LOCATION, locationUrl);
+            console.log('   WhatsApp poster result:', posterResult ? '✅ sent' : '❌ failed');
             notifications.push({ status: 'fulfilled', value: posterResult } as PromiseSettledResult<unknown>);
         } catch (e) {
+            console.error('   WhatsApp poster exception:', e);
             notifications.push({ status: 'rejected', reason: e } as PromiseSettledResult<unknown>);
         }
 
         // WhatsApp ticket
         await new Promise(r => setTimeout(r, 2000));
         try {
+            console.log('🎟️  Sending WhatsApp ticket to:', updatedBooking.phone);
             const ticketResult = await sendWhatsAppTicket(updatedBooking, ticket, NIGHT_TITLE, agenda, locationUrl);
+            console.log('   WhatsApp ticket result:', ticketResult ? '✅ sent' : '❌ failed');
             notifications.push({ status: 'fulfilled', value: ticketResult } as PromiseSettledResult<unknown>);
         } catch (e) {
+            console.error('   WhatsApp ticket exception:', e);
             notifications.push({ status: 'rejected', reason: e } as PromiseSettledResult<unknown>);
         }
 

@@ -3,7 +3,7 @@ function getEvolutionConfig() {
     return {
         url: process.env.EVOLUTION_API_URL || 'https://evolution-api-production-da45.up.railway.app',
         key: process.env.EVOLUTION_API_KEY,
-        instance: process.env.EVOLUTION_INSTANCE_NAME || 'RamadanEvent confirm',
+        instance: process.env.EVOLUTION_INSTANCE_NAME || 'RamadanMajlis',
     };
 }
 

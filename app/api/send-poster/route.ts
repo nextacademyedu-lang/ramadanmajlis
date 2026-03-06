@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
 
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-production-8da6.up.railway.app';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'RamadanEvent confirm';
+const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'RamadanMajlis';
 
 function formatPhoneNumber(phone: string): string {
     let cleaned = phone.replace(/\D/g, '');

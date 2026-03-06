@@ -1,7 +1,7 @@
 // Test script to send poster via WhatsApp
 const EVOLUTION_API_URL = "https://evolution-api-production-da45.up.railway.app";
 const EVOLUTION_API_KEY = "108200@@aA";
-const EVOLUTION_INSTANCE_NAME = "RamadanEvent confirm";
+const EVOLUTION_INSTANCE_NAME = "RamadanMajlis";
 
 const name = "Muhammed Mekky";
 const title = "CEO";

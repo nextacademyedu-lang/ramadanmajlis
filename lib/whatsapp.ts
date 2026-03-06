@@ -1,6 +1,11 @@
-const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-production-8da6.up.railway.app';
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'RamadanEvent confirm';
+// Read env vars at call time, not module load time, to avoid stale/missing values
+function getEvolutionConfig() {
+    return {
+        url: process.env.EVOLUTION_API_URL || 'https://evolution-api-production-da45.up.railway.app',
+        key: process.env.EVOLUTION_API_KEY,
+        instance: process.env.EVOLUTION_INSTANCE_NAME || 'RamadanEvent confirm',
+    };
+}
 
 interface BookingData {
     id: string;
@@ -34,7 +39,8 @@ export async function sendWhatsAppMessage(
     nightLocation: string,
     locationUrl: string
 ) {
-    if (!EVOLUTION_API_KEY) return null;
+    const config = getEvolutionConfig();
+    if (!config.key) return null;
 
     const formattedPhone = formatPhoneNumber(booking.phone);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
@@ -69,9 +75,9 @@ https://www.facebook.com/Eventocity1
 #RamadanMajlis2026 #GrandSummit #NextAcademy`;
 
     try {
-        const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
+        const response = await fetch(`${config.url}/message/sendMedia/${config.instance}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+            headers: { 'Content-Type': 'application/json', 'apikey': config.key },
             body: JSON.stringify({ number: formattedPhone, mediatype: 'image', media: imageUrl, caption })
         });
         const data = await response.json();
@@ -93,7 +99,8 @@ export async function sendWhatsAppTicket(
     agenda: AgendaItem[] = [],
     locationUrl?: string
 ) {
-    if (!EVOLUTION_API_KEY) return null;
+    const config = getEvolutionConfig();
+    if (!config.key) return null;
 
     const formattedPhone = formatPhoneNumber(booking.phone);
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;
@@ -109,9 +116,9 @@ export async function sendWhatsAppTicket(
     const locationPart = locationUrl ? `\n\n📍 *Location:* ${locationUrl}` : '';
 
     try {
-        const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
+        const response = await fetch(`${config.url}/message/sendMedia/${config.instance}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+            headers: { 'Content-Type': 'application/json', 'apikey': config.key },
             body: JSON.stringify({
                 number: formattedPhone,
                 mediatype: 'image',

@@ -40,7 +40,11 @@ export async function sendWhatsAppMessage(
     locationUrl: string
 ) {
     const config = getEvolutionConfig();
-    if (!config.key) return null;
+    console.log('📱 WhatsApp config:', { url: config.url, hasKey: !!config.key, instance: config.instance });
+    if (!config.key) {
+        console.error('🚨🚨🚨 EVOLUTION_API_KEY is MISSING! WhatsApp will NOT send. Add it to Vercel env vars!');
+        return null;
+    }
 
     const formattedPhone = formatPhoneNumber(booking.phone);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ramadanmajlis.nextacademyedu.com';
@@ -100,7 +104,10 @@ export async function sendWhatsAppTicket(
     locationUrl?: string
 ) {
     const config = getEvolutionConfig();
-    if (!config.key) return null;
+    if (!config.key) {
+        console.error('🚨🚨🚨 EVOLUTION_API_KEY is MISSING! WhatsApp Ticket will NOT send. Add it to Vercel env vars!');
+        return null;
+    }
 
     const formattedPhone = formatPhoneNumber(booking.phone);
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(ticket.qr_code)}`;

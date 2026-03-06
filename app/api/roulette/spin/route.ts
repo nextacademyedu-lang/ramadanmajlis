@@ -8,13 +8,9 @@ const supabase = createClient(
 
 const PRIZES = [
     { label: "20%", value: 20, weight: 35 },
-    { label: "40%", value: 40, weight: 25 },
+    { label: "40%", value: 40, weight: 30 },
     { label: "50%", value: 50, weight: 20 },
-    { label: "60%", value: 60, weight: 10 },
-    { label: "70%", value: 70, weight: 5 },
-    { label: "80%", value: 80, weight: 3 },
-    { label: "90%", value: 90, weight: 1.5 },
-    { label: "100%", value: 100, weight: 0.5 },
+    { label: "60%", value: 60, weight: 15 },
 ];
 
 export async function POST(request: Request) {
@@ -34,7 +30,7 @@ export async function POST(request: Request) {
         }
 
         const prize = PRIZES[selectedPrizeIndex];
-        
+
         // Generate a random unique code (e.g. RM26-WIN-4A9XYZ)
         const randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
         const code = `RM26-WIN-${randomString}`;
@@ -46,7 +42,7 @@ export async function POST(request: Request) {
             discount_value: prize.value,
             sales_agent: 'Roulette Spin',
             is_active: true,
-            usage_limit: 1 // Only one usage per generated code
+            usage_limit: 1
         });
 
         if (error) {

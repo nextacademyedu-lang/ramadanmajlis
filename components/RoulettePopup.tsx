@@ -5,14 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Gift, Sparkles } from "lucide-react";
 
 const PRIZES = [
-    { label: "20%", value: 20, weight: 35, codes: ['RM26-20X9', 'RM26-20K4', 'RM26-20M1'] },
-    { label: "40%", value: 40, weight: 25, codes: ['RM26-40B7', 'RM26-40D2', 'RM26-40R8'] },
-    { label: "50%", value: 50, weight: 20, codes: ['RM26-50V3', 'RM26-50L6', 'RM26-50C9'] },
-    { label: "60%", value: 60, weight: 10, codes: ['RM26-60N5', 'RM26-60F2', 'RM26-60W7'] },
-    { label: "70%", value: 70, weight: 5, codes: ['RM26-70T4', 'RM26-70P8', 'RM26-70H1'] },
-    { label: "80%", value: 80, weight: 3, codes: ['RM26-80S6', 'RM26-80Y3', 'RM26-80E9'] },
-    { label: "90%", value: 90, weight: 1.5, codes: ['RM26-90J2', 'RM26-90A5', 'RM26-90G8'] },
-    { label: "100%", value: 100, weight: 0.5, codes: ['RM26-MAX100', 'RM26-FREE100'] },
+    { label: "20%", value: 20, weight: 35 },
+    { label: "40%", value: 40, weight: 30 },
+    { label: "50%", value: 50, weight: 20 },
+    { label: "60%", value: 60, weight: 15 },
 ];
 
 export default function RoulettePopup() {
@@ -128,7 +124,7 @@ export default function RoulettePopup() {
                                     <Gift className="w-8 h-8 text-amber-400" />
                                 </div>
                                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 font-serif">Spin & Win!</h3>
-                                <p className="text-emerald-200/70 text-sm">Spin the wheel for a chance to get up to 100% OFF your ticket.</p>
+                                <p className="text-emerald-200/70 text-sm">Spin the wheel for a chance to get up to 60% OFF your ticket.</p>
                             </div>
 
                             {/* Roulette Wheel */}
@@ -156,8 +152,6 @@ export default function RoulettePopup() {
                                                         top: 0,
                                                         left: 0,
                                                         transform: `rotate(${rotationAngle}deg)`,
-                                                        // A simple way to draw slices using clip-path or simply rotating boxes inside a rounded overflow hidden
-                                                        // This is a simplified CSS trick for pie slices
                                                     }}
                                                 >
                                                     <div
@@ -166,7 +160,7 @@ export default function RoulettePopup() {
                                                             left: '-100%',
                                                             transform: `rotate(${sliceAngle / 2}deg)`,
                                                             background: isAlternate ? 'linear-gradient(45deg, #059669, #047857)' : 'linear-gradient(45deg, #d97706, #b45309)',
-                                                            clipPath: `polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)` // Requires more math for exact slices, let's use a simpler SVG approach 
+                                                            clipPath: `polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)`
                                                         }}
                                                     >
 
@@ -196,24 +190,26 @@ export default function RoulettePopup() {
                                                     `Z`
                                                 ].join(' ');
 
+                                                const colors = ['#065f46', '#b45309', '#059669', '#d97706'];
+
                                                 return (
                                                     <g key={index}>
                                                         <path
                                                             d={pathData}
-                                                            fill={index % 2 === 0 ? '#065f46' : '#b45309'} // emerald-800 vs amber-700
+                                                            fill={colors[index % colors.length]}
                                                             stroke="rgba(255,255,255,0.1)"
                                                             strokeWidth="0.5"
                                                         />
                                                         {/* Text positioning requires calculating center of slice */}
                                                         <text
-                                                            x={50 + 35 * Math.cos(Math.PI * (startAngle + sliceAngle / 2) / 180)}
-                                                            y={50 + 35 * Math.sin(Math.PI * (startAngle + sliceAngle / 2) / 180)}
+                                                            x={50 + 32 * Math.cos(Math.PI * (startAngle + sliceAngle / 2) / 180)}
+                                                            y={50 + 32 * Math.sin(Math.PI * (startAngle + sliceAngle / 2) / 180)}
                                                             fill="white"
-                                                            fontSize="6"
+                                                            fontSize="8"
                                                             fontWeight="bold"
                                                             textAnchor="middle"
                                                             dominantBaseline="middle"
-                                                            transform={`rotate(${startAngle + sliceAngle / 2 + 90}, ${50 + 35 * Math.cos(Math.PI * (startAngle + sliceAngle / 2) / 180)}, ${50 + 35 * Math.sin(Math.PI * (startAngle + sliceAngle / 2) / 180)})`}
+                                                            transform={`rotate(${startAngle + sliceAngle / 2 + 90}, ${50 + 32 * Math.cos(Math.PI * (startAngle + sliceAngle / 2) / 180)}, ${50 + 32 * Math.sin(Math.PI * (startAngle + sliceAngle / 2) / 180)})`}
                                                         >
                                                             {prize.label}
                                                         </text>

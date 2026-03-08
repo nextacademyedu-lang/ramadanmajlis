@@ -42,8 +42,7 @@ export async function POST(req: NextRequest) {
                 .from('bookings')
                 .update({
                     payment_status: 'pending',
-                    status: 'pending',
-                    updated_at: new Date().toISOString()
+                    status: 'pending'
                 })
                 .eq('id', bookingId);
 

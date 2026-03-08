@@ -1,0 +1,5 @@
+{
+  "name": "Event Connect",
+  "description": "An interactive event app for attendees to complete tasks, connect with others, view a live leaderboard, and participate in live Q&A.",
+  "requestFramePermissions": ["camera"]
+}

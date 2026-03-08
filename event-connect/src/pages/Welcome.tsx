@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { motion } from 'motion/react';
-import { Download, LogIn, Sparkles, Trophy, MessageSquare, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Download, LogIn, Sparkles, Trophy, MessageSquare, Users, Share, Plus, CheckCircle2, Smartphone } from 'lucide-react';
 
 export default function Welcome() {
   const { user } = useUser();
@@ -75,22 +75,59 @@ export default function Welcome() {
         {/* Install PWA */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="w-full mb-4">
-          {installed ? (
-            <div className="w-full py-3 rounded-xl text-center text-sm text-emerald-400 border border-emerald-500/20 bg-emerald-900/20">
-              ✓ App installed successfully
-            </div>
-          ) : isIOS ? (
-            <div className="w-full p-4 rounded-xl border border-emerald-500/20 bg-white/5 text-sm text-emerald-200/70 text-center">
-              <Download className="w-5 h-5 mx-auto mb-2 text-amber-400" />
-              To install: tap <span className="text-white font-medium">Share</span> → <span className="text-white font-medium">Add to Home Screen</span>
-            </div>
-          ) : deferredPrompt ? (
-            <button onClick={handleInstall}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm border border-emerald-500/30 bg-emerald-900/30 text-emerald-300 hover:bg-emerald-900/50 transition-colors">
-              <Download size={18} />
-              Install App on Your Phone
-            </button>
-          ) : null}
+          <AnimatePresence mode="wait">
+            {installed ? (
+              <motion.div key="installed"
+                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                className="w-full p-4 rounded-2xl border border-emerald-500/30 bg-emerald-900/20 flex items-center gap-3">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-semibold text-sm">App Installed! 🎉</p>
+                  <p className="text-emerald-200/50 text-xs mt-0.5">Find it on your home screen</p>
+                </div>
+              </motion.div>
+            ) : isIOS ? (
+              <motion.div key="ios"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="w-full p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Smartphone className="w-4 h-4 text-amber-400" />
+                  <p className="text-amber-300 text-xs font-semibold uppercase tracking-wider">Install on iPhone</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {[
+                    { icon: Share, label: 'Tap Share', sub: 'bottom bar' },
+                    { icon: Plus, label: 'Add to Home', sub: 'scroll down' },
+                    { icon: CheckCircle2, label: 'Done!', sub: 'open app' },
+                  ].map(({ icon: Icon, label, sub }, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <p className="text-white text-xs font-medium text-center leading-tight">{label}</p>
+                      <p className="text-white/30 text-[10px] text-center">{sub}</p>
+                      {i < 2 && <div className="absolute" />}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ) : deferredPrompt ? (
+              <motion.button key="android" onClick={handleInstall} whileTap={{ scale: 0.97 }}
+                className="w-full p-4 rounded-2xl border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                    <Download className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-semibold text-sm">Install App</p>
+                    <p className="text-emerald-200/50 text-xs mt-0.5">Add to home screen for quick access</p>
+                  </div>
+                  <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="ml-auto text-emerald-400/50 text-lg">›</motion.div>
+                </div>
+              </motion.button>
+            ) : null}
+          </AnimatePresence>
         </motion.div>
 
         {/* Login CTA */}

@@ -42,6 +42,8 @@ export default function BookingsPage() {
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all'); // all, paid, pending
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const [editAmountId, setEditAmountId] = useState<string | null>(null);
+    const [editAmountValue, setEditAmountValue] = useState('');
 
     useEffect(() => {
         fetchBookings();
@@ -91,6 +93,31 @@ export default function BookingsPage() {
                 b.id === bookingId ? { ...b, is_contacted: currentStatus } : b
             ));
         }
+    };
+
+    const deleteBooking = async (bookingId: string) => {
+        if (!confirm('Are you sure you want to DELETE this booking? This cannot be undone.')) return;
+        const res = await fetch('/api/admin/bookings/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingId })
+        });
+        if (res.ok) setBookings(bookings.filter(b => b.id !== bookingId));
+        else alert('Failed to delete booking');
+    };
+
+    const updateAmount = async (bookingId: string) => {
+        const amount = parseFloat(editAmountValue);
+        if (isNaN(amount) || amount < 0) return;
+        const res = await fetch('/api/admin/bookings/update-amount', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingId, amount })
+        });
+        if (res.ok) {
+            setBookings(bookings.map(b => b.id === bookingId ? { ...b, total_amount: amount } : b));
+            setEditAmountId(null);
+        } else alert('Failed to update amount');
     };
 
     const updateBookingStatus = async (bookingId: string, status: 'paid' | 'pending') => {
@@ -238,7 +265,23 @@ export default function BookingsPage() {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-white font-mono">
-                                            {booking.total_amount.toLocaleString()} EGP
+                                            {editAmountId === booking.id ? (
+                                                <div className="flex gap-1 items-center">
+                                                    <Input
+                                                        className="w-24 h-7 text-xs bg-black/50 border-white/20"
+                                                        value={editAmountValue}
+                                                        onChange={e => setEditAmountValue(e.target.value)}
+                                                        onKeyDown={e => { if (e.key === 'Enter') updateAmount(booking.id); if (e.key === 'Escape') setEditAmountId(null); }}
+                                                        autoFocus
+                                                    />
+                                                    <Button size="sm" className="h-7 text-xs px-2" onClick={() => updateAmount(booking.id)}>✓</Button>
+                                                    <Button size="sm" variant="ghost" className="h-7 text-xs px-2" onClick={() => setEditAmountId(null)}>✕</Button>
+                                                </div>
+                                            ) : (
+                                                <span className="cursor-pointer hover:text-emerald-400" onClick={() => { setEditAmountId(booking.id); setEditAmountValue(String(booking.total_amount)); }}>
+                                                    {booking.total_amount.toLocaleString()} EGP
+                                                </span>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col gap-2 items-start">
@@ -296,9 +339,21 @@ export default function BookingsPage() {
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="hover:bg-white/10 cursor-pointer"
+                                                            onClick={() => { setEditAmountId(booking.id); setEditAmountValue(String(booking.total_amount)); }}
+                                                        >
+                                                            Edit Amount
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="hover:bg-white/10 cursor-pointer"
                                                             onClick={() => navigator.clipboard.writeText(booking.id)}
                                                         >
                                                             Copy ID
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="hover:bg-red-500/20 text-red-400 cursor-pointer"
+                                                            onClick={() => deleteBooking(booking.id)}
+                                                        >
+                                                            Delete Booking
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>

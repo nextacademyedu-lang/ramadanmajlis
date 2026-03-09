@@ -1,15 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { sendWelcomeEmail, sendTicketEmail } from '@/lib/email';
-import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
-
-// Initialize Supabase Admin Client
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(request: Request) {
+    const supabaseAdmin = createClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     try {
         const { bookingId } = await request.json();
 

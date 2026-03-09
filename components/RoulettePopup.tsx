@@ -12,6 +12,7 @@ const PRIZES = [
 ];
 
 export default function RoulettePopup() {
+    return null;
     const [showPopup, setShowPopup] = useState(false);
     const [isSpinning, setIsSpinning] = useState(false);
     const [hasSpun, setHasSpun] = useState(false);

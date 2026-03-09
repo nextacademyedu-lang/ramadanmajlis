@@ -3,20 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { confirmBooking } from '@/lib/booking-service';
 
-// Init Supabase Admin
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-        auth: {
-            persistSession: false
-        }
-    }
-);
-
 export async function POST(req: NextRequest) {
     try {
-        // 1. Check Admin Auth
         const cookieStore = await cookies();
         const adminSession = cookieStore.get('admin_session');
         if (!adminSession && process.env.NODE_ENV === 'production') {
@@ -28,6 +16,12 @@ export async function POST(req: NextRequest) {
         if (!bookingId || !status) {
             return NextResponse.json({ error: 'Missing bookingId or status' }, { status: 400 });
         }
+
+        const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            { auth: { persistSession: false } }
+        );
 
         // 2. Update Booking
         if (status === 'paid') {

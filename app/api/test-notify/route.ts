@@ -3,20 +3,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { confirmBooking } from '@/lib/booking-service';
 
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Scenarios:
-// 1 = Night 1 only (Feb 28)
-// 2 = Night 2 only (Mar 5)
-// 3 = Night 3 only (Mar 12)
-// 12 = Night 1 + Night 2
-// 23 = Night 2 + Night 3
-// 13 = Night 1 + Night 3
-// all = Full Package (ALL)
-
 const SCENARIO_MAP: Record<string, string[]> = {
     '1': ['2026-02-28'],
     '2': ['2026-03-05'],
@@ -40,6 +26,11 @@ export async function GET(request: Request) {
                 error: `Invalid scenario "${scenario}". Valid: ${Object.keys(SCENARIO_MAP).join(', ')}` 
             }, { status: 400 });
         }
+
+        const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
 
         // 1. Create a Test Booking
         const { data: booking, error } = await supabaseAdmin

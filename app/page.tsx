@@ -192,34 +192,34 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 md:py-16 relative z-10">
 
         {/* Header / Nav Placeholder (Simple) */}
-        <div className="flex justify-between items-center mb-12">
-          <div className="text-2xl font-bold text-white flex items-center gap-2">
-            <span className="bg-amber-500 text-black px-2 py-1 rounded-md text-sm">2026</span>
+        <div className="flex justify-between items-center mb-8 md:mb-12">
+          <div className="text-lg md:text-2xl font-bold text-white flex items-center gap-2">
+            <span className="bg-amber-500 text-black px-2 py-1 rounded-md text-xs md:text-sm">2026</span>
             Ramadan Majlis
           </div>
           <button
             onClick={scrollToBooking}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-full font-medium transition-all shadow-lg hover:shadow-emerald-500/20"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 md:px-6 py-2 rounded-full text-sm md:text-base font-medium transition-all shadow-lg hover:shadow-emerald-500/20"
           >
             Reserve Now
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
 
           {/* Right Content (Text) */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center lg:text-left lg:sticky lg:top-24 space-y-8"
+            className="text-center lg:text-left lg:sticky lg:top-24 space-y-6 md:space-y-8"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-900/50 border border-emerald-500/30 text-emerald-300 font-medium text-sm">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>The Premier Ramadan Event of 2026</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight font-serif">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-tight font-serif">
               {eventConfig?.name?.split(' ')[0] || "Ramadan"} <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-yellow-200 to-amber-400">{eventConfig?.name?.split(' ').slice(1).join(' ') || "Majlis"}</span>
               <br />
               <span className="text-3xl md:text-5xl font-light text-emerald-100/90 mt-2 block font-sans">{eventConfig?.subtitle || "For Entrepreneurs"}</span>

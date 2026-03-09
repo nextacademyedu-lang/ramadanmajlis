@@ -36,11 +36,7 @@ export async function GET() {
         try {
             supabase = getServiceSupabase();
         } catch (e) {
-            // Fallback for reading if key is missing (since RLS allows global read)
-            supabase = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-            );
+            throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
         }
 
         const { data, error } = await supabase

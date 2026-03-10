@@ -733,13 +733,19 @@ function SponsorshipSection() {
                 { src: "/coachu.jpg", alt: "CoachU" },
                 { src: "/ex.png", alt: "X's Agency" },
                 { src: "/sapika.jpg", alt: "Sapika" },
+                { src: "/sponsors/1.png", alt: "Sponsor 1" },
+                { src: "/sponsors/3.png", alt: "Sponsor 3" },
+                { src: "/sponsors/4.png", alt: "Sponsor 4" },
+                { src: "/sponsors/6.png", alt: "Sponsor 6" },
+                { src: "/sponsors/7.png", alt: "Sponsor 7" },
+                { src: "/sponsors/8.png", alt: "Sponsor 8" },
               ].map((sponsor, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.15 }}
+                  transition={{ delay: i * 0.1 }}
                   className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-4 w-32 h-32 md:w-40 md:h-40 flex items-center justify-center shadow-lg hover:border-amber-500/30 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 group"
                 >
                   <img src={sponsor.src} alt={sponsor.alt} className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0" />

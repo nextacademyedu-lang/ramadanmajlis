@@ -85,7 +85,7 @@ async function startServer() {
       .eq('id', taskId)
       .single();
 
-    await supabase.from('event_user_tasks').insert({
+    const { error: insertError } = await supabase.from('event_user_tasks').insert({
       user_id: userId,
       task_id: taskId,
       met_person_name: metPersonName,
@@ -94,7 +94,11 @@ async function startServer() {
       custom_data: customData || {},
     });
 
-    await supabase.rpc('increment_user_score', { uid: userId, pts: task?.points || 10 });
+    if (insertError) return res.status(500).json({ error: 'Failed to save task: ' + insertError.message });
+
+    const { error: rpcError } = await supabase.rpc('increment_user_score', { uid: userId, pts: task?.points || 10 });
+
+    if (rpcError) return res.status(500).json({ error: 'Failed to update score: ' + rpcError.message });
 
     const { data: leaderboard } = await supabase
       .from('event_users')
@@ -182,8 +186,13 @@ async function startServer() {
 
   // ── ADMIN ─────────────────────────────────────────────────────────────────
   app.post('/api/admin/tasks', async (req, res) => {
-    const { title, description, points, required_fields } = req.body;
-    await supabase.from('event_tasks').insert({ title, description, points, required_fields });
+    const { title, description, points, required_fields, task_type, poll_options, poll_duration_seconds } = req.body;
+    await supabase.from('event_tasks').insert({
+      title, description, points, required_fields,
+      task_type: task_type || 'regular',
+      poll_options: poll_options || null,
+      poll_duration_seconds: poll_duration_seconds || null,
+    });
     res.json({ success: true });
   });
 
@@ -208,6 +217,48 @@ async function startServer() {
   app.post('/api/notifications', (req, res) => {
     io.emit('notification', req.body);
     res.json({ success: true });
+  });
+
+  // ── POLL ──────────────────────────────────────────────────────────────────
+  app.post('/api/poll/vote', async (req, res) => {
+    const { taskId, userId, option } = req.body;
+    if (!taskId || !userId || !option) return res.status(400).json({ error: 'Missing fields' });
+
+    const { error } = await supabase.from('event_poll_votes').insert({ task_id: taskId, user_id: userId, option });
+    if (error) return res.status(400).json({ error: error.message });
+
+    // جيب النتائج المحدثة وابعتها real-time
+    const { data: votes } = await supabase
+      .from('event_poll_votes')
+      .select('option')
+      .eq('task_id', taskId);
+
+    const results: Record<string, number> = {};
+    (votes || []).forEach((v: any) => { results[v.option] = (results[v.option] || 0) + 1; });
+    io.emit('poll_update', { taskId, results });
+
+    res.json({ success: true, results });
+  });
+
+  app.get('/api/poll/:taskId/results', async (req, res) => {
+    const { data: votes } = await supabase
+      .from('event_poll_votes')
+      .select('option')
+      .eq('task_id', req.params.taskId);
+
+    const results: Record<string, number> = {};
+    (votes || []).forEach((v: any) => { results[v.option] = (results[v.option] || 0) + 1; });
+    res.json(results);
+  });
+
+  app.get('/api/poll/:taskId/user/:userId', async (req, res) => {
+    const { data } = await supabase
+      .from('event_poll_votes')
+      .select('option')
+      .eq('task_id', req.params.taskId)
+      .eq('user_id', req.params.userId)
+      .single();
+    res.json({ voted: !!data, option: data?.option || null });
   });
 
   // ── USERS (admin) ─────────────────────────────────────────────────────────

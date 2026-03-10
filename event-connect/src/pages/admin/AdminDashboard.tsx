@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
-  const [newTask, setNewTask] = useState({ title: '', description: '', points: 10 });
+  const [newTask, setNewTask] = useState({ title: '', description: '', points: 10, task_type: 'regular' as 'regular' | 'poll', poll_options: '', poll_duration_seconds: 60 });
   const [stdFields, setStdFields] = useState({ name: true, field: true, phone: true });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [newField, setNewField] = useState<CustomField>({ name: '', type: 'text', options: '' });
@@ -67,9 +67,16 @@ export default function AdminDashboard() {
     await fetch('/api/admin/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...newTask, required_fields }),
+      body: JSON.stringify({
+        ...newTask,
+        required_fields: newTask.task_type === 'poll' ? [] : required_fields,
+        poll_options: newTask.task_type === 'poll'
+          ? newTask.poll_options.split(',').map(o => o.trim()).filter(Boolean)
+          : null,
+        poll_duration_seconds: newTask.task_type === 'poll' ? newTask.poll_duration_seconds : null,
+      }),
     });
-    setNewTask({ title: '', description: '', points: 10 });
+    setNewTask({ title: '', description: '', points: 10, task_type: 'regular', poll_options: '', poll_duration_seconds: 60 });
     setStdFields({ name: true, field: true, phone: true });
     setCustomFields([]);
     fetchData();
@@ -187,57 +194,94 @@ export default function AdminDashboard() {
                 onChange={e => setNewTask({ ...newTask, points: Number(e.target.value) })}
                 className="w-full p-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
 
-              {/* Standard fields toggles */}
+              {/* Task Type */}
               <div>
-                <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">Standard Fields</p>
-                <div className="flex gap-2 flex-wrap">
-                  {(['name', 'field', 'phone'] as const).map(f => (
-                    <button key={f} type="button"
-                      onClick={() => setStdFields(p => ({ ...p, [f]: !p[f] }))}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        stdFields[f] ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-white/5 text-white/30 border-white/10'
+                <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">Task Type</p>
+                <div className="flex gap-2">
+                  {(['regular', 'poll'] as const).map(t => (
+                    <button key={t} type="button"
+                      onClick={() => setNewTask(p => ({ ...p, task_type: t }))}
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors capitalize ${
+                        newTask.task_type === t
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          : 'bg-white/5 text-white/30 border-white/10'
                       }`}>
-                      {stdFields[f] ? '✓ ' : ''}{f}
+                      {t === 'poll' ? '📊 Poll' : '✅ Regular'}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Custom fields */}
-              <div>
-                <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">Custom Fields</p>
-                {customFields.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 mb-1.5 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                    <span className="text-white/70 text-sm flex-1">{f.name}</span>
-                    <span className="text-white/30 text-xs">{f.type}</span>
-                    <button type="button" onClick={() => setCustomFields(p => p.filter((_, j) => j !== i))}
-                      className="text-red-400/60 hover:text-red-400">
-                      <X size={14} />
-                    </button>
+              {/* Poll specific fields */}
+              {newTask.task_type === 'poll' && (
+                <div className="space-y-2 bg-purple-500/5 border border-purple-500/20 rounded-xl p-3">
+                  <p className="text-xs text-purple-300/70 uppercase tracking-wider">Poll Settings</p>
+                  <input type="text" placeholder="Options: Option A, Option B, Option C" value={newTask.poll_options}
+                    onChange={e => setNewTask(p => ({ ...p, poll_options: e.target.value }))}
+                    className="w-full p-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-500/50 text-sm" />
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-white/40 whitespace-nowrap">Duration (seconds)</label>
+                    <input type="number" min={10} value={newTask.poll_duration_seconds}
+                      onChange={e => setNewTask(p => ({ ...p, poll_duration_seconds: Number(e.target.value) }))}
+                      className="flex-1 p-2 bg-white/5 border border-white/10 rounded-md text-white focus:outline-none focus:ring-1 focus:ring-purple-500/50 text-sm" />
                   </div>
-                ))}
-                <div className="flex gap-2 mt-2">
-                  <input type="text" placeholder="Field name" value={newField.name}
-                    onChange={e => setNewField(p => ({ ...p, name: e.target.value }))}
-                    className="flex-1 p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
-                  <select value={newField.type}
-                    onChange={e => setNewField(p => ({ ...p, type: e.target.value as FieldType }))}
-                    className="p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm focus:outline-none">
-                    {(['text','number','tel','email','date','dropdown','photo'] as FieldType[]).map(t => (
-                      <option key={t} value={t} className="bg-[#022c22]">{t}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={addCustomField}
-                    className="px-3 py-1.5 bg-emerald-600/50 hover:bg-emerald-600 text-white rounded-md text-sm">
-                    <Plus size={14} />
-                  </button>
                 </div>
-                {newField.type === 'dropdown' && (
-                  <input type="text" placeholder="Options: A, B, C" value={newField.options}
-                    onChange={e => setNewField(p => ({ ...p, options: e.target.value }))}
-                    className="w-full mt-1.5 p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
-                )}
-              </div>
+              )}
+
+              {/* Standard fields & Custom fields — only for regular tasks */}
+              {newTask.task_type === 'regular' && (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">Standard Fields</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {(['name', 'field', 'phone'] as const).map(f => (
+                        <button key={f} type="button"
+                          onClick={() => setStdFields(p => ({ ...p, [f]: !p[f] }))}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                            stdFields[f] ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-white/5 text-white/30 border-white/10'
+                          }`}>
+                          {stdFields[f] ? '✓ ' : ''}{f}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">Custom Fields</p>
+                    {customFields.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1.5 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                        <span className="text-white/70 text-sm flex-1">{f.name}</span>
+                        <span className="text-white/30 text-xs">{f.type}</span>
+                        <button type="button" onClick={() => setCustomFields(p => p.filter((_, j) => j !== i))}
+                          className="text-red-400/60 hover:text-red-400">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2 mt-2">
+                      <input type="text" placeholder="Field name" value={newField.name}
+                        onChange={e => setNewField(p => ({ ...p, name: e.target.value }))}
+                        className="flex-1 p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
+                      <select value={newField.type}
+                        onChange={e => setNewField(p => ({ ...p, type: e.target.value as FieldType }))}
+                        className="p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm focus:outline-none">
+                        {(['text','number','tel','email','date','dropdown','photo'] as FieldType[]).map(t => (
+                          <option key={t} value={t} className="bg-[#022c22]">{t}</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={addCustomField}
+                        className="px-3 py-1.5 bg-emerald-600/50 hover:bg-emerald-600 text-white rounded-md text-sm">
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                    {newField.type === 'dropdown' && (
+                      <input type="text" placeholder="Options: A, B, C" value={newField.options}
+                        onChange={e => setNewField(p => ({ ...p, options: e.target.value }))}
+                        className="w-full mt-1.5 p-1.5 bg-white/5 border border-white/10 rounded-md text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
+                    )}
+                  </div>
+                </div>
+              )}
 
               <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-md flex items-center justify-center">
                 <Plus size={18} className="mr-2" /> Add Task

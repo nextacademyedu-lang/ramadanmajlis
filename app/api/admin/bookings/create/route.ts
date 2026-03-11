@@ -12,15 +12,10 @@ export async function POST(request: Request) {
 
             for (const bookingId of body.bookingIds) {
                 try {
-                    // First mark as paid/confirmed
-                    await supabaseAdmin
-                        .from('bookings')
-                        .update({ payment_status: 'paid', status: 'confirmed' })
-                        .eq('id', bookingId);
-
+                    // confirmBooking handles everything: status update, QR, event_user, ticket, notifications
                     const result = await confirmBooking(bookingId);
                     results.push({ bookingId, status: result.status });
-                    console.log(`✅ Admin confirmed booking ${bookingId}`);
+                    console.log(`✅ Admin confirmed booking ${bookingId}:`, result.status);
                 } catch (err) {
                     console.error(`❌ Admin confirm failed for ${bookingId}:`, err);
                     results.push({ bookingId, status: 'error', error: (err as Error).message });

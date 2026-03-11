@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendTicketEmail, AgendaItem } from '@/lib/email';
 import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
 

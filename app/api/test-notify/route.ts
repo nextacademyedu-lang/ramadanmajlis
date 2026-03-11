@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { confirmBooking } from '@/lib/booking-service';
 
 const SCENARIO_MAP: Record<string, string[]> = {

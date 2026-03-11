@@ -6,8 +6,10 @@ import {
     MoreHorizontal,
     Loader2,
     Eye,
-    ExternalLink
+    ExternalLink,
+    Plus
 } from 'lucide-react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -168,6 +170,11 @@ export default function BookingsPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Bookings Management</h1>
                 <div className="flex gap-2">
+                    <Link href="/admin/bookings/new">
+                        <Button className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="w-4 h-4 mr-2" /> Add Booking
+                        </Button>
+                    </Link>
                     <Button variant="outline" onClick={fetchBookings}>
                         Refresh
                     </Button>

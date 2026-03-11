@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Upload, AlertCircle, CheckCircle2, Users, Calendar, MapPin, Ticket } from 'lucide-react';
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, Calendar, MapPin, Ticket, Clock, MessageCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -17,6 +17,11 @@ import { cn } from '@/lib/utils';
 import { INDUSTRIES } from '@/types';
 
 const TICKET_PRICES: Record<number, number> = { 1: 2000, 2: 3500, 3: 4500 };
+
+// Booking cutoff: 8 PM Cairo time on March 11, 2026
+// Cairo is UTC+2, so 8 PM Cairo = 6 PM UTC
+const BOOKING_CUTOFF = new Date('2026-03-11T18:00:00Z');
+const WHATSAPP_URL = 'https://wa.me/201505822735?text=' + encodeURIComponent('Hello, I would like to book a ticket for Ramadan Majlis Grand Summit.');
 
 const attendeeSchema = z.object({
     fullName: z.string().min(2, "Name is too short").regex(/^[a-zA-Z\s]*$/, "English only"),
@@ -35,9 +40,10 @@ interface BookingFormProps {
     packagePrice?: number;
     industries?: string[];
     initialPromoCode?: string;
+    isAdmin?: boolean;
 }
 
-export default function BookingForm({ industries = [], initialPromoCode = '' }: BookingFormProps) {
+export default function BookingForm({ industries = [], initialPromoCode = '', isAdmin = false }: BookingFormProps) {
     const [step, setStep] = useState(1);
     const [ticketCount, setTicketCount] = useState(1);
     const [currentAttendee, setCurrentAttendee] = useState(0);
@@ -50,6 +56,31 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
     const [promoApplied, setPromoApplied] = useState<{ id: string, type: string, value: number, code: string } | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState<string | null>(null);
+
+    // Booking cutoff state
+    const [isClosed, setIsClosed] = useState(false);
+    const [cutoffCountdown, setCutoffCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+        if (isAdmin) return; // Admin bypasses cutoff
+        const tick = () => {
+            const now = new Date().getTime();
+            const diff = BOOKING_CUTOFF.getTime() - now;
+            if (diff <= 0) {
+                setIsClosed(true);
+                setCutoffCountdown({ hours: 0, minutes: 0, seconds: 0 });
+                return;
+            }
+            setIsClosed(false);
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            setCutoffCountdown({ hours: h, minutes: m, seconds: s });
+        };
+        tick();
+        const interval = setInterval(tick, 1000);
+        return () => clearInterval(interval);
+    }, [isAdmin]);
 
     const { register, handleSubmit, setValue, watch, formState: { errors }, trigger, reset } = useForm<z.infer<typeof attendeeSchema>>({
         resolver: zodResolver(attendeeSchema),
@@ -206,6 +237,23 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
                 await supabase.from('bookings').update({ group_booking_ref: allBookingIds[0] }).in('id', allBookingIds);
             }
 
+            // Admin mode: directly confirm via admin API (no payment redirect)
+            if (isAdmin) {
+                for (const id of allBookingIds) {
+                    const confirmRes = await fetch('/api/admin/bookings/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ bookingIds: [id], confirmOnly: true })
+                    });
+                    if (!confirmRes.ok) {
+                        console.error('Admin confirm failed for', id);
+                    }
+                }
+                alert('✅ Booking created and confirmed successfully!');
+                window.location.href = '/admin/bookings';
+                return;
+            }
+
             // Free booking
             if (totalAmount === 0) {
                 // Confirming just the primary ID will confirm all group members automatically based on our group-booking logic
@@ -256,6 +304,32 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
         { count: 3, label: '3 Tickets', discount: '25% OFF' },
     ];
 
+    // If booking is closed (only for public, not admin), show closed state
+    if (isClosed && !isAdmin) {
+        return (
+            <Card className="border-red-500/30 bg-black/40 backdrop-blur-xl">
+                <CardContent className="py-12 text-center space-y-6">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                        <Clock className="w-10 h-10 text-red-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Registration is Closed</h3>
+                        <p className="text-gray-400 text-sm">Online booking has ended. Contact us on WhatsApp to reserve your spot.</p>
+                    </div>
+                    <a
+                        href={WHATSAPP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-lg transition-all shadow-lg hover:shadow-[#25D366]/40 hover:scale-105"
+                    >
+                        <MessageCircle className="w-6 h-6" />
+                        Contact us on WhatsApp
+                    </a>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="border-primary/20 bg-black/40 backdrop-blur-xl">
             <CardHeader>
@@ -267,6 +341,19 @@ export default function BookingForm({ industries = [], initialPromoCode = '' }: 
                 </CardDescription>
             </CardHeader>
             <CardContent>
+                {/* Countdown warning banner */}
+                {!isClosed && (cutoffCountdown.hours < 6) && (
+                    <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
+                        <div className="text-sm">
+                            <span className="text-amber-300 font-semibold">Booking closes in </span>
+                            <span className="text-white font-mono font-bold">
+                                {cutoffCountdown.hours > 0 && `${cutoffCountdown.hours}h `}
+                                {cutoffCountdown.minutes}m {cutoffCountdown.seconds}s
+                            </span>
+                        </div>
+                    </div>
+                )}
                 <AnimatePresence mode="wait">
 
                     {/* STEP 1: TICKET COUNT */}

@@ -1,12 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { sendFbEvent } from '@/lib/facebook';
 
 export async function POST(request: Request) {
-    const supabaseAdmin = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
     try {
         const data = await request.json();
         console.log('🔔 Webhook Received:', JSON.stringify(data, null, 2));

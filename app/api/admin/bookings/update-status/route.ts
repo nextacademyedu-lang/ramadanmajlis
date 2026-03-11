@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { confirmBooking } from '@/lib/booking-service';
@@ -17,11 +17,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing bookingId or status' }, { status: 400 });
         }
 
-        const supabaseAdmin = createClient(
-            process.env.SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!,
-            { auth: { persistSession: false } }
-        );
 
         // 2. Update Booking
         if (status === 'paid') {

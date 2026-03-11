@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { confirmBooking } from '@/lib/booking-service';
 
 const SCENARIO_MAP: Record<string, string[]> = {
@@ -27,10 +27,6 @@ export async function GET(request: Request) {
             }, { status: 400 });
         }
 
-        const supabaseAdmin = createClient(
-            process.env.SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
 
         // 1. Create a Test Booking
         const { data: booking, error } = await supabaseAdmin

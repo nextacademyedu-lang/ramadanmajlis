@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-production-8da6.up.railway.app';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
@@ -26,10 +26,6 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Missing booking id' }, { status: 400 });
         }
 
-        const supabaseAdmin = createClient(
-            process.env.SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
 
         // Fetch booking
         const { data: booking, error } = await supabaseAdmin

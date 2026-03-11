@@ -1,14 +1,10 @@
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 import { sendTicketEmail, AgendaItem } from '@/lib/email';
 import { sendWhatsAppMessage, sendWhatsAppTicket } from '@/lib/whatsapp';
 
 export async function GET(request: Request) {
-    const supabaseAdmin = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
     try {
         const { searchParams } = new URL(request.url);
         const bookingId = searchParams.get('id');

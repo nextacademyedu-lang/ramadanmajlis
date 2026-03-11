@@ -31,7 +31,7 @@ export default function SponsorsMarquee() {
             <img
               src={s.src}
               alt={s.alt}
-              className="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+              className="max-h-full max-w-full object-contain transition-all duration-300"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           </div>

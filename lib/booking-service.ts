@@ -37,6 +37,26 @@ async function confirmSingleBooking(bookingId: string) {
 
     if (updateError) throw new Error(`Failed to update booking: ${updateError.message}`);
 
+    // Ensure event_user exists (fallback for DB trigger)
+    try {
+        const password = crypto.randomUUID().substring(0, 6);
+        await supabaseAdmin
+            .from('event_users')
+            .upsert({
+                booking_id: bookingId,
+                phone: updatedBooking.phone,
+                name: updatedBooking.customer_name,
+                field: updatedBooking.industry,
+                company: updatedBooking.company,
+                linkedin_url: updatedBooking.linkedin_url,
+                photo_url: updatedBooking.profile_image_url,
+                password: password,
+            }, { onConflict: 'booking_id', ignoreDuplicates: true });
+        console.log(`✅ event_user ensured for booking ${bookingId}`);
+    } catch (euError) {
+        console.error(`⚠️ Failed to create event_user for booking ${bookingId}:`, euError);
+    }
+
     // Increment promo usage (primary booking only)
     if (updatedBooking.promo_code_id) {
         const { error: promoError } = await supabaseAdmin.rpc('increment_promo_usage', { row_id: updatedBooking.promo_code_id });

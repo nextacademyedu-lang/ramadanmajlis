@@ -739,6 +739,8 @@ function SponsorshipSection() {
                 { src: "/sponsors/6.png", alt: "Sponsor 6" },
                 { src: "/sponsors/7.png", alt: "Sponsor 7" },
                 { src: "/sponsors/8.png", alt: "Sponsor 8" },
+                { src: "/sponsors/WhatsApp Image 2026-03-11 at 3.13.02 AM.jpeg", alt: "Sponsor" },
+                { src: "/sponsors/WhatsApp Image 2026-03-11 at 3.11.50 AM.jpeg", alt: "Sponsor" },
               ].map((sponsor, i) => (
                 <motion.div
                   key={i}

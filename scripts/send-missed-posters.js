@@ -1,7 +1,7 @@
 // Script to send poster messages to bookings that missed their WhatsApp messages
-const EVOLUTION_API_URL = "https://evolution-api-production-da45.up.railway.app";
-const EVOLUTION_API_KEY = "108200@@aA";
-const EVOLUTION_INSTANCE_NAME = "RamadanMajlis";
+const EVOLUTION_API_URL = "http://evo-sgwcco4kw80sckwg4c08sgk4.72.62.50.238.sslip.io";
+const EVOLUTION_API_KEY = "xLksPzWYBxfxOXW29pY8LytHMAfxPaGg";
+const EVOLUTION_INSTANCE_NAME = "RamadanMajlis1";
 
 const SUPABASE_URL = "https://afokabguqrexeqkfretn.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmb2thYmd1cXJleGVxa2ZyZXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTAyNzIsImV4cCI6MjA4MTgyNjI3Mn0.LwRJNBpH8hNt6GSOma4WzTrSoeM2tKz_KkTVSNI9ZHM";

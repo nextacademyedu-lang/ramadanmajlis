@@ -1,9 +1,9 @@
 // Read env vars at call time, not module load time, to avoid stale/missing values
 function getEvolutionConfig() {
     return {
-        url: process.env.EVOLUTION_API_URL || 'https://evolution-api-production-da45.up.railway.app',
+        url: process.env.EVOLUTION_API_URL || 'http://evo-sgwcco4kw80sckwg4c08sgk4.72.62.50.238.sslip.io',
         key: process.env.EVOLUTION_API_KEY,
-        instance: process.env.EVOLUTION_INSTANCE_NAME || 'RamadanMajlis',
+        instance: process.env.EVOLUTION_INSTANCE_NAME || 'RamadanMajlis1',
     };
 }
 

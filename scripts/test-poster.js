@@ -1,7 +1,7 @@
 // Test script to send poster via WhatsApp
-const EVOLUTION_API_URL = "https://evolution-api-production-da45.up.railway.app";
-const EVOLUTION_API_KEY = "108200@@aA";
-const EVOLUTION_INSTANCE_NAME = "RamadanMajlis";
+const EVOLUTION_API_URL = "http://evo-sgwcco4kw80sckwg4c08sgk4.72.62.50.238.sslip.io";
+const EVOLUTION_API_KEY = "xLksPzWYBxfxOXW29pY8LytHMAfxPaGg";
+const EVOLUTION_INSTANCE_NAME = "RamadanMajlis1";
 
 const name = "Muhammed Mekky";
 const title = "CEO";

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Medal, Award } from 'lucide-react';
+import SponsorsMarquee from '../components/SponsorsMarquee';
 
 interface LeaderboardUser { id: string; name: string; photo_url: string; score: number; }
 
@@ -46,6 +47,9 @@ export default function Leaderboard() {
             ))}
           </AnimatePresence>
         </ul>
+      </div>
+      <div className="mt-6">
+        <SponsorsMarquee />
       </div>
     </div>
   );

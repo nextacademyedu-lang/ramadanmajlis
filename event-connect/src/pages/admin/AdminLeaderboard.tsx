@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence, useSpring, useTransform } from 'motion/react';
 import { Trophy, Medal, Star, Maximize, Minimize, Flame, Zap, Users, Target, Heart } from 'lucide-react';
+import SponsorsMarquee from '../../components/SponsorsMarquee';
 
 function AnimatedNumber({ value }: { value: number }) {
   const spring = useSpring(value, { bounce: 0, duration: 1200 });
@@ -224,8 +225,11 @@ export default function AdminLeaderboard() {
         </div>
       )}
 
+      {/* Sponsors */}
+      <SponsorsMarquee />
+
       {/* Carousel */}
-      <div className="relative z-10 mt-auto flex-shrink-0 border-t border-emerald-500/20 bg-[#022c22]/90 backdrop-blur-md overflow-hidden">
+      <div className="relative z-10 flex-shrink-0 border-t border-emerald-500/20 bg-[#022c22]/90 backdrop-blur-md overflow-hidden">
         <AnimatePresence mode="wait">
           {(() => {
             const slide = CAROUSEL_SLIDES[slideIdx];

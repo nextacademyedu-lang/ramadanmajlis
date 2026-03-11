@@ -4,6 +4,7 @@ import { useUser } from '../context/UserContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, MessageSquare, Lock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import SponsorsMarquee from '../components/SponsorsMarquee';
 
 interface Question { id: string; text: string; created_at: string; user_name: string; user_photo: string; }
 
@@ -44,6 +45,7 @@ export default function QnA() {
         <h1 className="text-2xl font-bold text-white">Live Q&A</h1>
         <p className="text-emerald-200/50 text-sm mt-1">Ask questions to the speakers</p>
       </header>
+      <SponsorsMarquee />
 
       {!qaOpen ? (
         <div className="flex flex-col items-center justify-center flex-1 text-center py-16">

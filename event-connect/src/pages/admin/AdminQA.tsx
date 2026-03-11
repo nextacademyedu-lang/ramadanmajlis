@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, Maximize, Minimize, Mic } from 'lucide-react';
+import SponsorsMarquee from '../../components/SponsorsMarquee';
 
 export default function AdminQA() {
   const [questions, setQuestions] = useState<any[]>([]);
@@ -136,6 +137,9 @@ export default function AdminQA() {
           </div>
         )}
       </div>
+
+      {/* Sponsors */}
+      <SponsorsMarquee />
 
       {/* Footer bar */}
       <div className="relative z-10 flex-shrink-0 border-t border-emerald-500/20 bg-[#022c22]/80 backdrop-blur-md px-8 py-3 flex items-center justify-between">

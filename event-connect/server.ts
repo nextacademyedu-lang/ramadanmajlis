@@ -217,6 +217,19 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Admin: update task
+  app.put('/api/admin/tasks/:id', async (req, res) => {
+    const { title, description, points, poll_options, poll_duration_seconds } = req.body;
+    const update: Record<string, unknown> = {};
+    if (title !== undefined) update.title = title;
+    if (description !== undefined) update.description = description;
+    if (points !== undefined) update.points = points;
+    if (poll_options !== undefined) update.poll_options = poll_options;
+    if (poll_duration_seconds !== undefined) update.poll_duration_seconds = poll_duration_seconds;
+    await supabase.from('event_tasks').update(update).eq('id', req.params.id);
+    res.json({ success: true });
+  });
+
   app.delete('/api/admin/questions/:id', async (req, res) => {
     await supabase.from('event_questions').delete().eq('id', req.params.id);
     io.emit('delete_question', req.params.id);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Settings, Maximize2, ToggleLeft, ToggleRight, Bell, Send, X } from 'lucide-react';
+import { Trash2, Plus, Settings, Maximize2, ToggleLeft, ToggleRight, Bell, Send, X, Pencil, Check } from 'lucide-react';
 
 type FieldType = 'text' | 'number' | 'tel' | 'email' | 'date' | 'dropdown' | 'photo';
 type CustomField = { name: string; type: FieldType; options?: string };
@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [newField, setNewField] = useState<CustomField>({ name: '', type: 'text', options: '' });
   const [notif, setNotif] = useState({ title: '', message: '' });
   const [notifSent, setNotifSent] = useState(false);
+  const [editingTask, setEditingTask] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: '', description: '', points: 0 });
 
   useEffect(() => {
     fetchData();
@@ -96,6 +98,21 @@ export default function AdminDashboard() {
       body: JSON.stringify({ is_active: !currentActive }),
     });
     setTasks(prev => prev.map(t => t.id === id ? { ...t, is_active: !currentActive } : t));
+  };
+
+  const startEditTask = (task: { id: string; title: string; description: string; points: number }) => {
+    setEditingTask(task.id);
+    setEditForm({ title: task.title, description: task.description || '', points: task.points });
+  };
+
+  const saveEditTask = async (id: string) => {
+    await fetch(`/api/admin/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editForm),
+    });
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...editForm } : t));
+    setEditingTask(null);
   };
 
   const handleSendNotification = async (e: React.FormEvent) => {
@@ -303,31 +320,62 @@ export default function AdminDashboard() {
 
             <div className="space-y-3">
               {tasks.map(task => (
-                <div key={task.id} className={`flex items-center justify-between p-4 border rounded-xl transition-colors ${
+                <div key={task.id} className={`p-4 border rounded-xl transition-colors ${
                   task.is_active
                     ? 'border-emerald-500/30 bg-emerald-500/5'
                     : 'border-white/10 bg-white/5 opacity-60'
                 }`}>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-white">{task.title}</h4>
-                    <p className="text-sm text-emerald-400">{task.points} Points</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleToggleTask(task.id, task.is_active)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                        task.is_active
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                          : 'bg-white/5 text-white/40 border-white/10'
-                      }`}
-                    >
-                      {task.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                      {task.is_active ? 'ON' : 'OFF'}
-                    </button>
-                    <button onClick={() => handleDeleteTask(task.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded-full">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  {editingTask === task.id ? (
+                    <div className="space-y-2">
+                      <input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
+                        className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                        placeholder="Title" />
+                      <input value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
+                        className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                        placeholder="Description" />
+                      <div className="flex items-center gap-2">
+                        <input type="number" value={editForm.points} onChange={e => setEditForm(p => ({ ...p, points: +e.target.value }))}
+                          className="w-24 p-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
+                        <span className="text-white/40 text-xs">Points</span>
+                        <div className="flex-1" />
+                        <button onClick={() => saveEditTask(task.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white">
+                          <Check size={14} /> Save
+                        </button>
+                        <button onClick={() => setEditingTask(null)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white">
+                          <X size={14} /> Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-white">{task.title}</h4>
+                        {task.description && <p className="text-xs text-white/40 mt-0.5">{task.description}</p>}
+                        <p className="text-sm text-emerald-400">{task.points} Points</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleTask(task.id, task.is_active)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                            task.is_active
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-white/5 text-white/40 border-white/10'
+                          }`}
+                        >
+                          {task.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                          {task.is_active ? 'ON' : 'OFF'}
+                        </button>
+                        <button onClick={() => startEditTask(task)} className="text-amber-400 hover:bg-amber-500/10 p-2 rounded-full">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteTask(task.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded-full">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

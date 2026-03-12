@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     const [tasksRes, qRes, settingsRes] = await Promise.all([
-      fetch('/api/tasks'),
+      fetch('/api/admin/tasks'),
       fetch('/api/questions'),
       fetch('/api/settings'),
     ]);
@@ -87,6 +87,15 @@ export default function AdminDashboard() {
       await fetch(`/api/admin/tasks/${id}`, { method: 'DELETE' });
       fetchData();
     }
+  };
+
+  const handleToggleTask = async (id: string, currentActive: boolean) => {
+    await fetch(`/api/admin/tasks/${id}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !currentActive }),
+    });
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, is_active: !currentActive } : t));
   };
 
   const handleSendNotification = async (e: React.FormEvent) => {
@@ -290,14 +299,31 @@ export default function AdminDashboard() {
 
             <div className="space-y-3">
               {tasks.map(task => (
-                <div key={task.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5">
-                  <div>
+                <div key={task.id} className={`flex items-center justify-between p-4 border rounded-xl transition-colors ${
+                  task.is_active
+                    ? 'border-emerald-500/30 bg-emerald-500/5'
+                    : 'border-white/10 bg-white/5 opacity-60'
+                }`}>
+                  <div className="flex-1">
                     <h4 className="font-bold text-white">{task.title}</h4>
                     <p className="text-sm text-emerald-400">{task.points} Points</p>
                   </div>
-                  <button onClick={() => handleDeleteTask(task.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded-full">
-                    <Trash2 size={20} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleTask(task.id, task.is_active)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        task.is_active
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          : 'bg-white/5 text-white/40 border-white/10'
+                      }`}
+                    >
+                      {task.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                      {task.is_active ? 'ON' : 'OFF'}
+                    </button>
+                    <button onClick={() => handleDeleteTask(task.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded-full">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

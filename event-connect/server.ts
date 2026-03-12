@@ -196,6 +196,22 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Admin: get ALL tasks (including inactive)
+  app.get('/api/admin/tasks', async (_req, res) => {
+    const { data } = await supabase
+      .from('event_tasks')
+      .select('*')
+      .order('display_order');
+    res.json(data || []);
+  });
+
+  // Admin: toggle task is_active
+  app.patch('/api/admin/tasks/:id/toggle', async (req, res) => {
+    const { is_active } = req.body;
+    await supabase.from('event_tasks').update({ is_active }).eq('id', req.params.id);
+    res.json({ success: true });
+  });
+
   app.delete('/api/admin/tasks/:id', async (req, res) => {
     await supabase.from('event_tasks').delete().eq('id', req.params.id);
     res.json({ success: true });

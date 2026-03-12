@@ -13,6 +13,7 @@ import Layout from './components/Layout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLeaderboard from './pages/admin/AdminLeaderboard';
 import AdminQA from './pages/admin/AdminQA';
+import AdminPoll from './pages/admin/AdminPoll';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/manageappramadan" element={<AdminDashboard />} />
             <Route path="/manageappramadan/leaderboard" element={<AdminLeaderboard />} />
             <Route path="/manageappramadan/qa" element={<AdminQA />} />
+            <Route path="/manageappramadan/poll" element={<AdminPoll />} />
             <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
               <Route index element={<Home />} />
               <Route path="task/:id" element={<TaskDetail />} />

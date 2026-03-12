@@ -189,6 +189,10 @@ export default function AdminDashboard() {
                 className="flex items-center text-sm text-black bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg font-medium">
                 <Maximize2 size={16} className="mr-2" /> Present Leaderboard
               </Link>
+              <Link to="/manageappramadan/poll" target="_blank"
+                className="flex items-center text-sm text-white bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg font-medium">
+                <Maximize2 size={16} className="mr-2" /> Present Poll
+              </Link>
             </div>
 
             <form onSubmit={handleAddTask} className="space-y-3 mb-6 bg-white/5 p-4 rounded-xl border border-white/10">

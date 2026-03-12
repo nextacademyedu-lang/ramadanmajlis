@@ -1,14 +1,18 @@
-// Campaign 2: CREDENTIALS — Send login details (Send TOMORROW morning)
-// بيانات الدخول — الـ username والـ password
+// Campaign 2: CREDENTIALS — Send login details (user + password)
+// بيانات الدخول — موزعة على 4 instances
 // Usage: node scripts/campaign-2-credentials.mjs
 
 const EVOLUTION_API_URL = "http://evo-sgwcco4kw80sckwg4c08sgk4.72.62.50.238.sslip.io";
 const EVOLUTION_API_KEY = "xLksPzWYBxfxOXW29pY8LytHMAfxPaGg";
-const EVOLUTION_INSTANCE_NAME = "RamadanMajlis1";
+const INSTANCES = ["RamadanMajlis1", "Basmla1", "gehad1", "dr2"];
+
 const SUPABASE_URL = "https://dqduxsimueexppfiinpw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZHV4c2ltdWVleHBwZmlpbnB3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjk2OTEzOSwiZXhwIjoyMDg4NTQ1MTM5fQ.MpTDqmopBMvJXXbICU_FsdqAP92dcwhRK6liRzEJMyw";
 
 const APP_URL = "https://app.nextacademyedu.com";
+
+// ⛔ استثناء — متبعتش لده
+const SKIP_PHONES = new Set(["201098620547", "01098620547"]);
 
 function formatPhone(phone) {
     let c = phone.replace(/\D/g, '');
@@ -21,8 +25,8 @@ function extractPhones(phone) {
     return phone.split(/[\/,]/).map(p => formatPhone(p.trim())).filter(p => p.length >= 10);
 }
 
-async function sendText(phone, text) {
-    const res = await fetch(`${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE_NAME)}`, {
+async function sendText(instance, phone, text) {
+    const res = await fetch(`${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(instance)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
         body: JSON.stringify({ number: phone, text })
@@ -31,48 +35,59 @@ async function sendText(phone, text) {
 }
 
 async function main() {
-    // Fetch ALL event_users (regular + speakers)
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/event_users?select=name,phone,password`, {
+    // Fetch event_users (non-speakers only)
+    const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/event_users?password=neq.majlis2026&select=name,phone,password`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
-    const users = await res.json();
+    const users = await usersRes.json();
 
-    // Also fetch bookings to get the real phone numbers for messaging
+    // Fetch bookings to get real phone numbers
     const bookingsRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings?payment_status=eq.paid&select=customer_name,phone`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
     const bookings = await bookingsRes.json();
 
-    // Map booking name → real phone
-    const bookingPhoneMap = {};
+    // Map: normalized phone → booking real phone
+    const userPhoneToBookingPhone = {};
     for (const b of bookings) {
-        bookingPhoneMap[b.customer_name.trim()] = b.phone;
+        const phones = extractPhones(b.phone);
+        for (const p of phones) {
+            userPhoneToBookingPhone[p] = b.phone;
+        }
+        // Also map by name
+        userPhoneToBookingPhone[b.customer_name.trim().toLowerCase()] = b.phone;
     }
 
-    console.log(`\n🔑 Campaign 2: CREDENTIALS — ${users.length} users\n`);
-
-    let success = 0, fail = 0, skipped = 0;
-
+    // Build send list: match event_user → booking phone
+    const sendList = [];
     for (const u of users) {
-        // Get the real phone number for messaging
-        const isSpeaker = u.password === 'majlis2026';
-        const realPhone = bookingPhoneMap[u.name.trim()];
+        const loginId = u.phone; // what they login with
+        const normalizedLogin = formatPhone(loginId);
 
-        // Speakers don't have bookings, skip them (they'll be sent manually or via a separate list)
-        if (isSpeaker) {
-            console.log(`⏭️  ${u.name} (speaker — no booking phone, skip)`);
-            skipped++;
-            continue;
-        }
+        // Skip excluded phones
+        if (SKIP_PHONES.has(normalizedLogin) || SKIP_PHONES.has(loginId)) continue;
 
-        if (!realPhone) {
-            console.log(`⏭️  ${u.name} (no matching booking phone, skip)`);
-            skipped++;
-            continue;
-        }
+        // Find real phone from bookings (match by phone or name)
+        let realPhone = userPhoneToBookingPhone[normalizedLogin]
+            || userPhoneToBookingPhone[u.name.trim().toLowerCase()];
 
-        const phones = extractPhones(realPhone);
-        const loginId = u.phone; // This is what they login with (phone number or username)
+        if (!realPhone) continue; // no matching booking
+
+        sendList.push({
+            name: u.name,
+            loginId,
+            password: u.password,
+            realPhones: extractPhones(realPhone).filter(p => !SKIP_PHONES.has(p)),
+        });
+    }
+
+    console.log(`\n🔑 Campaign 2: CREDENTIALS — ${sendList.length} users across ${INSTANCES.length} instances\n`);
+
+    let success = 0, fail = 0;
+
+    for (let i = 0; i < sendList.length; i++) {
+        const u = sendList[i];
+        const instance = INSTANCES[i % INSTANCES.length];
 
         const message = `أهلاً ${u.name} 👋
 
@@ -80,28 +95,29 @@ async function main() {
 
 📲 رابط الأبليكيشن: ${APP_URL}
 
-👤 *Username:* ${loginId}
+👤 *Username:* ${u.loginId}
 🔑 *Password:* ${u.password}
 
-ادخل دلوقتي وجهّز نفسك! 🎯
+ادخل دلوقتي واتعرف على الأبليكيشن!
 الأبليكيشن هيكون معاك طول الليلة — tasks، networking، leaderboard، و live Q&A 🔥
 
-جاهز لليلة استثنائية؟ 🤩`;
+نشوفك النهاردة إن شاء الله! 🤩`;
 
-        for (const phone of phones) {
-            const result = await sendText(phone, message);
+        for (const phone of u.realPhones) {
+            const result = await sendText(instance, phone, message);
             if (result.success) {
-                console.log(`✅ ${u.name} → ${phone} (login: ${loginId})`);
+                console.log(`✅ [${instance}] ${u.name} → ${phone} (login: ${u.loginId})`);
                 success++;
             } else {
-                console.log(`❌ ${u.name} → ${phone}`, JSON.stringify(result.data));
+                console.log(`❌ [${instance}] ${u.name} → ${phone}`, JSON.stringify(result.data).slice(0, 100));
                 fail++;
             }
-            await new Promise(r => setTimeout(r, 1500));
+            // Random delay 5-12 seconds
+            await new Promise(r => setTimeout(r, (Math.random() * 7 + 5) * 1000));
         }
     }
 
-    console.log(`\n📊 Done! ✅ ${success} sent, ❌ ${fail} failed, ⏭️ ${skipped} skipped\n`);
+    console.log(`\n📊 Done! ✅ ${success} sent, ❌ ${fail} failed\n`);
 }
 
 main();

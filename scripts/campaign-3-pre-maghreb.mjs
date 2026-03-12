@@ -1,12 +1,15 @@
 // Campaign 3: PRE-MAGHREB REMINDER — Sent at 5:00 PM
 // تذكير قبل المغرب — جهّز نفسك!
+// موزعة على 4 instances
 // Usage: node scripts/campaign-3-pre-maghreb.mjs
 
 const EVOLUTION_API_URL = "http://evo-sgwcco4kw80sckwg4c08sgk4.72.62.50.238.sslip.io";
 const EVOLUTION_API_KEY = "xLksPzWYBxfxOXW29pY8LytHMAfxPaGg";
-const EVOLUTION_INSTANCE_NAME = "RamadanMajlis1";
+const INSTANCES = ["RamadanMajlis1", "Basmla1", "gehad1", "dr2"];
 const SUPABASE_URL = "https://dqduxsimueexppfiinpw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxZHV4c2ltdWVleHBwZmlpbnB3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mjk2OTEzOSwiZXhwIjoyMDg4NTQ1MTM5fQ.MpTDqmopBMvJXXbICU_FsdqAP92dcwhRK6liRzEJMyw";
+
+const SKIP_PHONES = new Set(["201098620547", "01098620547"]);
 
 function formatPhone(phone) {
     let c = phone.replace(/\D/g, '');
@@ -19,8 +22,8 @@ function extractPhones(phone) {
     return phone.split(/[\/,]/).map(p => formatPhone(p.trim())).filter(p => p.length >= 10);
 }
 
-async function sendText(phone, text) {
-    const res = await fetch(`${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE_NAME)}`, {
+async function sendText(instance, phone, text) {
+    const res = await fetch(`${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(instance)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
         body: JSON.stringify({ number: phone, text })
@@ -34,15 +37,16 @@ async function main() {
     });
     const bookings = await res.json();
 
-    console.log(`\n🌅 Campaign 3: PRE-MAGHREB — ${bookings.length} bookings\n`);
+    console.log(`\n🌅 Campaign 3: PRE-MAGHREB — ${bookings.length} bookings across ${INSTANCES.length} instances\n`);
 
-    let success = 0, fail = 0;
+    let success = 0, fail = 0, msgIdx = 0;
 
     for (const b of bookings) {
-        const phones = extractPhones(b.phone);
+        const phones = extractPhones(b.phone).filter(p => !SKIP_PHONES.has(p));
+        if (phones.length === 0) continue;
 
         const message = `السلام عليكم ${b.customer_name} 🌙
-
+صوماً مقبولاً وافطارً شهياً   
 النهاردة الليلة الكبيرة! 🔥
 
 *Ramadan Majlis 2026 — Grand Summit*
@@ -55,19 +59,21 @@ async function main() {
 ✅ ادخل الأبليكيشن واتأكد إنك جاهز
 ✅ اشحن موبايلك 🔋
 
-
 نشوفك النهاردة إن شاء الله! 🤩`;
 
         for (const phone of phones) {
-            const result = await sendText(phone, message);
+            const instance = INSTANCES[msgIdx % INSTANCES.length];
+            msgIdx++;
+            const result = await sendText(instance, phone, message);
             if (result.success) {
-                console.log(`✅ ${b.customer_name} → ${phone}`);
+                console.log(`✅ [${instance}] ${b.customer_name} → ${phone}`);
                 success++;
             } else {
-                console.log(`❌ ${b.customer_name} → ${phone}`, JSON.stringify(result.data));
+                console.log(`❌ [${instance}] ${b.customer_name} → ${phone}`, JSON.stringify(result.data).slice(0, 100));
                 fail++;
             }
-            await new Promise(r => setTimeout(r, 1500));
+            // Delay 8-15 seconds
+            await new Promise(r => setTimeout(r, (Math.random() * 7 + 8) * 1000));
         }
     }
 

@@ -45,6 +45,25 @@ export default function PartnerScanPage() {
     const [error, setError] = useState<string | null>(null);
     const [showCamera, setShowCamera] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [checkedInList, setCheckedInList] = useState<{customer_name: string; company: string; checked_in_at: string}[]>([]);
+    const [checkedInCount, setCheckedInCount] = useState(0);
+    const [totalBookings, setTotalBookings] = useState(0);
+
+    const fetchCheckInStats = async () => {
+        try {
+            const res = await fetch('/api/admin/check-in-stats');
+            const data = await res.json();
+            setCheckedInList(data.checkedIn || []);
+            setCheckedInCount(data.checkedInCount || 0);
+            setTotalBookings(data.totalBookings || 0);
+        } catch { /* ignore */ }
+    };
+
+    useEffect(() => {
+        fetchCheckInStats();
+        const interval = setInterval(fetchCheckInStats, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (inputRef.current) inputRef.current.focus();
@@ -278,6 +297,48 @@ export default function PartnerScanPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Check-in Counter */}
+            <Card className="bg-white/5 border-primary/20">
+                <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                            <CheckCircle2 className="text-green-400" size={22} />
+                            Checked In
+                        </h2>
+                        <div className="flex items-center gap-2">
+                            <span className="text-3xl font-black text-green-400">{checkedInCount}</span>
+                            <span className="text-gray-500">/</span>
+                            <span className="text-lg text-gray-400">{totalBookings}</span>
+                        </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full bg-white/10 rounded-full h-3 mb-4">
+                        <div
+                            className="bg-gradient-to-r from-green-500 to-emerald-400 h-3 rounded-full transition-all duration-500"
+                            style={{ width: `${totalBookings > 0 ? (checkedInCount / totalBookings) * 100 : 0}%` }}
+                        />
+                    </div>
+
+                    {/* List */}
+                    {checkedInList.length > 0 && (
+                        <div className="max-h-60 overflow-y-auto space-y-2">
+                            {checkedInList.map((person, i) => (
+                                <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+                                    <div>
+                                        <span className="text-white font-medium text-sm">{person.customer_name}</span>
+                                        {person.company && <span className="text-gray-500 text-xs ml-2">— {person.company}</span>}
+                                    </div>
+                                    <span className="text-green-400/60 text-xs">
+                                        {new Date(person.checked_in_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

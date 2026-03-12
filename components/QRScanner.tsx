@@ -65,7 +65,6 @@ export default function QRScanner({ onScan, isActive }: QRScannerProps) {
                     formats={['qr_code']}
                     paused={paused}
                     components={{
-                        audio: false,
                         finder: true,
                     }}
                     styles={{

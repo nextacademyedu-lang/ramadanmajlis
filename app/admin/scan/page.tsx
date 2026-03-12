@@ -44,7 +44,7 @@ export default function ScannerPage() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<ScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [showCamera, setShowCamera] = useState(false);
+    const [showCamera, setShowCamera] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Auto-focus the input for continuous scanning
@@ -191,14 +191,12 @@ export default function ScannerPage() {
                             onClick={() => setShowCamera(!showCamera)}
                         >
                             <Camera className="mr-2" size={18} />
-                            {showCamera ? 'Hide Camera Scanner' : 'Use Camera Scanner'}
+                            {showCamera ? 'Hide Camera' : 'Show Camera'}
                         </Button>
                         
-                        {showCamera && (
-                            <div className="mt-4">
-                                <QRScanner onScan={handleQRScan} isActive={showCamera} />
-                            </div>
-                        )}
+                        <div className="mt-4">
+                            <QRScanner onScan={handleQRScan} isActive={showCamera} />
+                        </div>
                     </div>
                 </CardContent>
             </Card>

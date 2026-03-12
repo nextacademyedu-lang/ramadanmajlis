@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import {
     Search,
-    Loader2
+    Loader2,
+    ScanLine
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import Link from 'next/link';
 
 export default function PartnerDashboard() {
     const [bookings, setBookings] = useState<any[]>([]);
@@ -63,6 +65,11 @@ export default function PartnerDashboard() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">Partner Dashboard</h1>
                 <div className="flex gap-2">
+                    <Link href="/partner/scan">
+                        <Button className="bg-primary text-black font-bold">
+                            <ScanLine className="w-4 h-4 mr-2" /> Scan QR
+                        </Button>
+                    </Link>
                     <Button variant="outline" onClick={fetchBookings}>
                         Refresh
                     </Button>

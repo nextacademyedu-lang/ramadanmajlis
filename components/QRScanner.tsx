@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, CameraOff, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useRef } from 'react';
+import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
+import { CameraOff, Loader2 } from 'lucide-react';
 
 interface QRScannerProps {
     onScan: (result: string) => void;
@@ -11,139 +10,76 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan, isActive }: QRScannerProps) {
-    const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
-    const scannerRef = useRef<Html5Qrcode | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
     const lastScanRef = useRef<number>(0);
+    const [paused, setPaused] = useState(false);
 
-    useEffect(() => {
-        // Check camera permission on mount
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(() => setPermissionGranted(true))
-            .catch(() => setPermissionGranted(false));
+    const handleScan = (results: IDetectedBarcode[]) => {
+        if (!results || results.length === 0 || paused) return;
 
-        return () => {
-            // Cleanup on unmount
-            if (scannerRef.current && isScanning) {
-                scannerRef.current.stop().catch(console.error);
-            }
-        };
-    }, []);
+        const text = results[0]?.rawValue;
+        if (!text) return;
 
-    const startScanning = async () => {
-        if (!containerRef.current) return;
+        // Prevent rapid duplicate scans (2.5 sec cooldown)
+        const now = Date.now();
+        if (now - lastScanRef.current < 2500) return;
+        lastScanRef.current = now;
 
-        setError(null);
-        
-        try {
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            scannerRef.current = html5QrCode;
+        // Vibration feedback
+        if (navigator.vibrate) navigator.vibrate(200);
 
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                },
-                (decodedText) => {
-                    // Prevent rapid duplicate scans
-                    const now = Date.now();
-                    if (now - lastScanRef.current < 2500) return;
-                    
-                    lastScanRef.current = now;
-                    // Success callback
-                    onScan(decodedText);
-                    
-                    // Pause scanning visually and logically
-                    html5QrCode.pause(true);
-                    setIsScanning(false);
-                },
-                () => {
-                    // Error callback - ignore continuous errors during scanning
-                }
-            );
+        // Pause scanning briefly
+        setPaused(true);
+        onScan(text);
 
-            setIsScanning(true);
-        } catch (err) {
-            console.error("QR Scanner error:", err);
-            setError("Failed to start camera. Please check permissions.");
-            setIsScanning(false);
-        }
+        // Resume after 3 seconds
+        setTimeout(() => setPaused(false), 3000);
     };
 
-    const stopScanning = async () => {
-        if (scannerRef.current) {
-            try {
-                await scannerRef.current.stop();
-                setIsScanning(false);
-            } catch (err) {
-                console.error("Error stopping scanner:", err);
-            }
-        }
-    };
-
-    if (permissionGranted === null) {
-        return (
-            <div className="flex items-center justify-center p-8 text-gray-400">
-                <Loader2 className="animate-spin mr-2" />
-                Checking camera permissions...
-            </div>
-        );
-    }
-
-    if (permissionGranted === false) {
-        return (
-            <div className="p-6 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-center">
-                <CameraOff className="mx-auto mb-2" size={32} />
-                <p>Camera permission denied.</p>
-                <p className="text-sm text-gray-400 mt-2">Please allow camera access in your browser settings.</p>
-            </div>
-        );
-    }
+    if (!isActive) return null;
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-center gap-4">
-                {!isScanning ? (
-                    <Button 
-                        onClick={startScanning} 
-                        className="bg-primary text-black font-bold"
-                        disabled={!isActive}
-                    >
-                        <Camera className="mr-2" />
-                        Start Camera Scanner
-                    </Button>
-                ) : (
-                    <Button 
-                        onClick={stopScanning} 
-                        variant="destructive"
-                    >
-                        <CameraOff className="mr-2" />
-                        Stop Scanner
-                    </Button>
-                )}
-            </div>
-
             {error && (
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-200 text-center">
-                    {error}
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-200 text-center flex flex-col items-center gap-2">
+                    <CameraOff size={24} />
+                    <span>{error}</span>
                 </div>
             )}
 
-            <div 
-                ref={containerRef}
-                id="qr-reader" 
-                className={`mx-auto rounded-xl overflow-hidden ${isScanning ? 'border-2 border-primary/50' : ''}`}
-                style={{ 
-                    width: '100%', 
-                    maxWidth: '400px',
-                    minHeight: isScanning ? '300px' : '0'
-                }}
-            />
+            <div className="relative rounded-2xl overflow-hidden border-2 border-primary/30" style={{ maxWidth: '100%' }}>
+                {paused && (
+                    <div className="absolute inset-0 z-20 bg-black/60 flex items-center justify-center">
+                        <div className="text-center space-y-2">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                            <p className="text-white font-bold">Processing...</p>
+                        </div>
+                    </div>
+                )}
+                <Scanner
+                    onScan={handleScan}
+                    onError={(err) => {
+                        console.error('Scanner error:', err);
+                        setError('Camera error. Please check permissions.');
+                    }}
+                    formats={['qr_code']}
+                    paused={paused}
+                    components={{
+                        audio: false,
+                        finder: true,
+                    }}
+                    styles={{
+                        container: {
+                            width: '100%',
+                        },
+                        video: {
+                            width: '100%',
+                        }
+                    }}
+                />
+            </div>
 
-            {isScanning && (
+            {!paused && (
                 <p className="text-center text-gray-400 text-sm animate-pulse">
                     📷 Point camera at QR code...
                 </p>
